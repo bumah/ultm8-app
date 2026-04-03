@@ -1,0 +1,513 @@
+/* ── Wealth Snapshot ── */
+
+.section {
+  margin-bottom: 2rem;
+}
+
+.sectionTitle {
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--red);
+  font-weight: 700;
+  opacity: 0.9;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sectionTitle::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 2px;
+  background: var(--red);
+  flex-shrink: 0;
+}
+
+/* Category header with + button */
+.catHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+.catHeader:first-child {
+  margin-top: 0;
+}
+
+.catTitle {
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 700;
+}
+
+.addBtn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--red2);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  transition: all 0.2s;
+  line-height: 1;
+  padding: 0;
+}
+
+.addBtn:hover {
+  background: var(--red2);
+  color: var(--cream);
+  border-color: var(--red2);
+}
+
+/* Sub-category label */
+.subCatLabel {
+  font-family: var(--mono);
+  font-size: 0.42rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 6px 0 2px 0;
+}
+
+/* Item rows */
+.itemList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.itemRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-dim);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.itemRow:last-child {
+  border-bottom: none;
+}
+
+.itemRow:hover {
+  background: rgba(242, 237, 228, 0.02);
+}
+
+.itemName {
+  font-size: 13px;
+  color: var(--cream);
+  font-weight: 500;
+}
+
+.itemValue {
+  font-family: var(--cond);
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--cream);
+  white-space: nowrap;
+}
+
+.itemFreq {
+  font-size: 10px;
+  color: var(--text-dim);
+  font-weight: 500;
+  margin-left: 2px;
+}
+
+/* Indent for sub-categorised items */
+.itemRowIndented {
+  composes: itemRow;
+  padding-left: 12px;
+}
+
+/* Total rows */
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+  margin-top: 2px;
+}
+
+.totalLabel {
+  font-family: var(--cond);
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.totalValue {
+  font-family: var(--cond);
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--cream);
+}
+
+/* Calculated net rows (Net Income, Net Worth) */
+.netRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  margin-top: 4px;
+  border-top: 2px solid var(--border);
+}
+
+.netLabel {
+  font-family: var(--cond);
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--red2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.netValue {
+  font-family: var(--cond);
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--cream);
+}
+
+.netMeta {
+  font-family: var(--mono);
+  font-size: 0.42rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-left: 6px;
+}
+
+/* Divider between sections */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 1rem 0;
+}
+
+/* Inline add/edit form */
+.inlineForm {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.inlineInput {
+  flex: 1;
+  background: var(--bg2);
+  border: 1px solid rgba(242, 237, 228, 0.08);
+  border-radius: 3px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: var(--sans);
+  font-weight: 600;
+  color: var(--cream);
+  outline: none;
+  transition: border-color 0.2s;
+  min-width: 0;
+}
+
+.inlineInput:focus {
+  border-color: var(--red2);
+}
+
+.inlineInput::placeholder {
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+.inlineNumInput {
+  width: 100px;
+  background: var(--bg2);
+  border: 1px solid rgba(242, 237, 228, 0.08);
+  border-radius: 3px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: var(--cond);
+  font-weight: 900;
+  color: var(--cream);
+  outline: none;
+  transition: border-color 0.2s;
+  text-align: right;
+}
+
+.inlineNumInput:focus {
+  border-color: var(--red2);
+}
+
+.inlineSaveBtn {
+  background: var(--red);
+  border: none;
+  color: var(--cream);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 2px;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+
+.inlineSaveBtn:hover {
+  opacity: 0.9;
+}
+
+.inlineCancelBtn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 2px;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.inlineCancelBtn:hover {
+  color: var(--cream);
+  border-color: var(--text-dim);
+}
+
+/* Item action buttons (edit/delete) */
+.itemActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.actionBtn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 4px 6px;
+  transition: color 0.2s;
+}
+
+.actionBtn:hover {
+  color: var(--red2);
+}
+
+.deleteBtn {
+  composes: actionBtn;
+}
+
+.deleteBtn:hover {
+  color: var(--red);
+}
+
+/* Emergency fund, protection, will section */
+.metaRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.metaRow:last-child {
+  border-bottom: none;
+}
+
+.metaLabel {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.metaValue {
+  font-family: var(--cond);
+  font-size: 17px;
+  font-weight: 900;
+  color: var(--cream);
+}
+
+.metaValueSm {
+  font-size: 13px;
+  color: var(--cream);
+  font-weight: 500;
+}
+
+.metaSub {
+  font-family: var(--mono);
+  font-size: 0.42rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-left: 8px;
+}
+
+.metaRight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.editBtn {
+  background: none;
+  border: none;
+  color: var(--red2);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 0;
+}
+
+.editBtn:hover {
+  color: var(--cream);
+}
+
+/* Will edit form */
+.willEditRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.dateInput {
+  background: var(--bg2);
+  border: 1px solid rgba(242, 237, 228, 0.08);
+  border-radius: 3px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: var(--sans);
+  font-weight: 600;
+  color: var(--cream);
+  outline: none;
+  color-scheme: dark;
+  transition: border-color 0.2s;
+}
+
+.dateInput:focus {
+  border-color: var(--red2);
+}
+
+/* Emergency fund edit */
+.efEditRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 0;
+}
+
+.efInput {
+  width: 120px;
+  background: var(--bg2);
+  border: 1px solid rgba(242, 237, 228, 0.08);
+  border-radius: 3px;
+  padding: 8px 10px;
+  font-size: 15px;
+  font-family: var(--cond);
+  font-weight: 900;
+  color: var(--cream);
+  outline: none;
+  text-align: right;
+  transition: border-color 0.2s;
+}
+
+.efInput:focus {
+  border-color: var(--red2);
+}
+
+/* Loading */
+.loading {
+  font-size: 13px;
+  color: var(--text-dim);
+  padding: 1rem 0;
+}
+
+/* Confirm delete overlay */
+.confirmDelete {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.confirmText {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.confirmYes {
+  background: var(--red);
+  border: none;
+  color: var(--cream);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 2px;
+}
+
+.confirmNo {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 2px;
+}
+
+/* Category select for add form */
+.catSelect {
+  background: var(--bg2);
+  border: 1px solid rgba(242, 237, 228, 0.08);
+  border-radius: 3px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-family: var(--sans);
+  font-weight: 600;
+  color: var(--cream);
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.2s;
+}
+
+.catSelect:focus {
+  border-color: var(--red2);
+}

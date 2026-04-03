@@ -10,6 +10,8 @@ import { BTIERS, BGRADES, getBehaviourTierIndex, getTierColor } from '@/lib/scor
 import Button from '@/components/ui/Button';
 import SelectCard from '@/components/ui/SelectCard';
 import InputField from '@/components/ui/InputField';
+import HealthSnapshot from '@/components/profile/HealthSnapshot';
+import WealthSnapshot from '@/components/profile/WealthSnapshot';
 import { getAgeGroup } from '@/types/database';
 import type { Profile, HealthAssessment, WealthAssessment } from '@/types/database';
 import styles from './profile.module.css';
@@ -405,6 +407,16 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
+
+      {/* ── Health Snapshot ── */}
+      {profile && (
+        <HealthSnapshot userId={profile.id} latestHealthAssessment={healthAssessment} />
+      )}
+
+      {/* ── Wealth Snapshot ── */}
+      {profile && (
+        <WealthSnapshot userId={profile.id} currency={profile.currency} />
+      )}
 
       {/* ── Sign Out ── */}
       <div className={styles.actions}>
