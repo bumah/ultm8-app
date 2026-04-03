@@ -187,8 +187,8 @@ export default function HealthAssessPage() {
       ? computeWeightedScore(validScores, normWeights)
       : 0;
 
-    const bScores = state.bAnswers.filter((s): s is number => s !== null);
-    const behaviourPct = bScores.length > 0 ? computeBehaviourPct(bScores) : 0;
+    const bScoresAll = state.bAnswers.map(s => s ?? 1);
+    const behaviourPct = computeBehaviourPct(bScoresAll);
 
     /* Build the row */
     const row: Record<string, unknown> = {

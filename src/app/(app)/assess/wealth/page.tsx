@@ -219,8 +219,12 @@ export default function WealthAssessPage() {
     };
 
     /* Calculate indicator scores */
+    console.log('[ULTM8 Wealth] Financial data:', fd);
+    console.log('[ULTM8 Wealth] Age group:', ageGroup);
     const result = computeWealthScores(fd, ageGroup);
     const { scores, computed } = result;
+    console.log('[ULTM8 Wealth] Indicator scores:', scores);
+    console.log('[ULTM8 Wealth] Computed values:', computed);
 
     /* Compute aggregate scores */
     const validWeights = [...WHWEIGHTS];
@@ -231,8 +235,11 @@ export default function WealthAssessPage() {
 
     const octagonPct = computeWeightedScore(scores, normWeights);
 
-    const bScores = state.bAnswers.filter((s): s is number => s !== null);
-    const behaviourPct = bScores.length > 0 ? computeBehaviourPct(bScores) : 0;
+    // Default unanswered behaviours to 1 (matching original assessment logic)
+    const bScoresAll = state.bAnswers.map(s => s ?? 1);
+    const behaviourPct = computeBehaviourPct(bScoresAll);
+    console.log('[ULTM8 Wealth] Behaviour answers:', state.bAnswers, '→ scores:', bScoresAll);
+    console.log('[ULTM8 Wealth] Octagon %:', octagonPct, '| Behaviour %:', behaviourPct);
 
     /* Build the row */
     const row: Record<string, unknown> = {
