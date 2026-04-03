@@ -541,28 +541,38 @@ export default function PlanPage() {
                       </div>
                     </div>
 
-                    {/* Right: dots + count + status */}
+                    {/* Right: dots + count + status (health) or done/not done (wealth) */}
                     <div className={styles.habitRight}>
-                      <div className={styles.habitDots}>
-                        {Array.from({ length: dotCount }, (_, di) => (
-                          <div
-                            key={di}
-                            className={`${styles.habitDot} ${
-                              di < habit.daysCompleted
-                                ? styles.habitDotFilled
-                                : ''
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <div className={styles.habitCountRow}>
-                        <span className={styles.habitCountLabel}>
-                          This week:
-                        </span>
-                        <span className={styles.habitCount}>
-                          {habit.daysCompleted}/{habit.weeklyTarget}
-                        </span>
-                      </div>
+                      {activeTab === 'health' ? (
+                        <>
+                          <div className={styles.habitDots}>
+                            {Array.from({ length: dotCount }, (_, di) => (
+                              <div
+                                key={di}
+                                className={`${styles.habitDot} ${
+                                  di < habit.daysCompleted
+                                    ? styles.habitDotFilled
+                                    : ''
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <div className={styles.habitCountRow}>
+                            <span className={styles.habitCountLabel}>
+                              This week:
+                            </span>
+                            <span className={styles.habitCount}>
+                              {habit.daysCompleted}/{habit.weeklyTarget}
+                            </span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className={styles.habitCountRow}>
+                          <span className={styles.habitCount} style={{ fontSize: '14px' }}>
+                            {habit.daysCompleted > 0 ? '✓ Done' : '○ Not done'}
+                          </span>
+                        </div>
+                      )}
                       <div className={`${styles.statusBadge} ${statusClass}`}>
                         <span className={styles.statusDot}>
                           {status === 'achieved' ? '\u25CF' : '\u25CB'}

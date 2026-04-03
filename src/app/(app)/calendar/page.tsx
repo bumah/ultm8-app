@@ -19,6 +19,8 @@ const MONTH_NAMES_FULL = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ] as const;
 
+const DAY_NAMES_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const;
+
 function getWeekStart(date: Date): Date {
   const d = new Date(date);
   const day = d.getDay();
@@ -70,6 +72,18 @@ function formatDayDetailTitle(date: Date): string {
   const dayIdx = (date.getDay() + 6) % 7; // 0=Mon
   const dayName = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'][dayIdx];
   return `${dayName}, ${MONTH_NAMES_FULL[date.getMonth()].toUpperCase()} ${date.getDate()}`;
+}
+
+/**
+ * Compute the plan week number for a given date relative to plan start.
+ */
+function getCurrentWeekForPlan(startDate: string): number {
+  const today = new Date();
+  const start = new Date(startDate);
+  const daysDiff = Math.floor(
+    (today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
+  );
+  return Math.min(8, Math.max(1, Math.floor(daysDiff / 7) + 1));
 }
 
 /**
@@ -216,6 +230,16 @@ interface DetailTask {
   targetAchieved: boolean;
 }
 
+interface WealthTask {
+  progressRow: DailyProgress;
+  behaviourIndex: number;
+  behaviour: string;
+  target: string;
+  completed: boolean;
+  completedAt: string | null;
+  planId: string;
+}
+
 /* ── component ── */
 
 export default function CalendarPage() {
@@ -223,10 +247,17 @@ export default function CalendarPage() {
 
   const [loading, setLoading] = useState(true);
   const [plans, setPlans] = useState<PlanInfo[]>([]);
+  const [activeTab, setActiveTab] = useState<'health' | 'wealth'>('health');
+
+  // Health tab state
   const [weekStart, setWeekStart] = useState<Date>(() => getWeekStart(new Date()));
   const [weekProgress, setWeekProgress] = useState<DailyProgress[]>([]);
   const [selectedDayIdx, setSelectedDayIdx] = useState<number | null>(null);
   const [weekLoading, setWeekLoading] = useState(false);
+
+  // Wealth tab state
+  const [wealthProgress, setWealthProgress] = useState<DailyProgress[]>([]);
+  const [wealthLoading, setWealthLoading] = useState(false);
 
   const today = useMemo(() => new Date(), []);
   const todayStr = useMemo(() => getTodayStr(), []);
@@ -244,6 +275,17 @@ export default function CalendarPage() {
     }
     return map;
   }, [plans]);
+
+  /* ── derived plan references ── */
+  const healthPlan = useMemo(() => plans.find((p) => p.type === 'health'), [plans]);
+  const wealthPlan = useMemo(() => plans.find((p) => p.type === 'wealth'), [plans]);
+  const hasBothPlans = !!healthPlan && !!wealthPlan;
+
+  /* ── Wealth: current week number ── */
+  const wealthCurrentWeek = useMemo(() => {
+    if (!wealthPlan) return 1;
+    return getCurrentWeekForPlan(wealthPlan.plan.start_date);
+  }, [wealthPlan]);
 
   /* ── load active plans ── */
   const loadPlans = useCallback(async () => {
@@ -274,24 +316,32 @@ export default function CalendarPage() {
     }));
 
     setPlans(planInfos);
+
+    // Set default active tab: health first if both exist
+    const hasHealth = planInfos.some((p) => p.type === 'health');
+    const hasWealth = planInfos.some((p) => p.type === 'wealth');
+    if (hasHealth) {
+      setActiveTab('health');
+    } else if (hasWealth) {
+      setActiveTab('wealth');
+    }
+
     setLoading(false);
   }, [supabase]);
 
-  /* ── load week progress ── */
-  const loadWeekProgress = useCallback(async () => {
-    if (plans.length === 0) return;
+  /* ── load health week progress ── */
+  const loadHealthWeekProgress = useCallback(async () => {
+    if (!healthPlan) return;
 
     setWeekLoading(true);
 
     const weekStartStr = toDateStr(weekStart);
     const weekEndStr = toDateStr(weekEndDate);
 
-    const planIds = plans.map((p) => p.plan.id);
-
     const { data } = await supabase
       .from('daily_progress')
       .select('*')
-      .in('plan_id', planIds)
+      .eq('plan_id', healthPlan.plan.id)
       .gte('date', weekStartStr)
       .lte('date', weekEndStr)
       .order('date', { ascending: true })
@@ -299,19 +349,42 @@ export default function CalendarPage() {
 
     setWeekProgress((data || []) as DailyProgress[]);
     setWeekLoading(false);
-  }, [supabase, plans, weekStart, weekEndDate]);
+  }, [supabase, healthPlan, weekStart, weekEndDate]);
+
+  /* ── load wealth week progress ── */
+  const loadWealthProgress = useCallback(async () => {
+    if (!wealthPlan) return;
+
+    setWealthLoading(true);
+
+    const { data } = await supabase
+      .from('daily_progress')
+      .select('*')
+      .eq('plan_id', wealthPlan.plan.id)
+      .eq('week_number', wealthCurrentWeek)
+      .order('behaviour_index', { ascending: true });
+
+    setWealthProgress((data || []) as DailyProgress[]);
+    setWealthLoading(false);
+  }, [supabase, wealthPlan, wealthCurrentWeek]);
 
   useEffect(() => {
     loadPlans();
   }, [loadPlans]);
 
   useEffect(() => {
-    if (plans.length > 0) {
-      loadWeekProgress();
+    if (healthPlan) {
+      loadHealthWeekProgress();
     }
-  }, [plans, loadWeekProgress]);
+  }, [healthPlan, loadHealthWeekProgress]);
 
-  /* ── Auto-select today when on current week ── */
+  useEffect(() => {
+    if (wealthPlan) {
+      loadWealthProgress();
+    }
+  }, [wealthPlan, loadWealthProgress]);
+
+  /* ── Auto-select today when on current week (health tab) ── */
   useEffect(() => {
     if (isCurrentWeek) {
       const todayIdx = weekDates.findIndex((d) => isSameDay(d, today));
@@ -323,7 +396,7 @@ export default function CalendarPage() {
     }
   }, [isCurrentWeek, weekDates, today]);
 
-  /* ── Build day data ── */
+  /* ── Build day data (health) ── */
   const dayDataArray: DayData[] = useMemo(() => {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
@@ -358,7 +431,7 @@ export default function CalendarPage() {
     return map;
   }, [weekProgress]);
 
-  /* ── Build detail tasks for selected day ── */
+  /* ── Build detail tasks for selected day (health) ── */
   const detailTasks: DetailTask[] = useMemo(() => {
     if (selectedDayIdx === null) return [];
     const dayData = dayDataArray[selectedDayIdx];
@@ -369,48 +442,75 @@ export default function CalendarPage() {
 
     const tasks: DetailTask[] = [];
 
-    for (const planInfo of plans) {
-      const planBehaviours: PlanBehaviour[] = planInfo.plan.plan_data;
-      const dayProgressForPlan = dayData.progress.filter(
-        (dp) => dp.plan_id === planInfo.plan.id
+    // Only show health plan tasks in the health tab detail
+    if (!healthPlan) return [];
+
+    const planBehaviours: PlanBehaviour[] = healthPlan.plan.plan_data;
+    const dayProgressForPlan = dayData.progress.filter(
+      (dp) => dp.plan_id === healthPlan.plan.id
+    );
+
+    for (let i = 0; i < planBehaviours.length; i++) {
+      const b = planBehaviours[i];
+      const progressRow = dayProgressForPlan.find(
+        (dp) => dp.behaviour_index === i
       );
 
-      for (let i = 0; i < planBehaviours.length; i++) {
-        const b = planBehaviours[i];
-        const progressRow = dayProgressForPlan.find(
-          (dp) => dp.behaviour_index === i
-        );
+      // Only show behaviours that have progress rows for this day
+      if (progressRow) {
+        const targetText = progressRow.target_text || '';
+        const dailyAction = toDailyAction(targetText, b.behaviour, b.direction);
+        const weeklyTarget = parseWeeklyTarget(targetText, b.direction);
+        const key = `${healthPlan.plan.id}-${i}`;
+        const daysCompleted = weekCompletedByBehaviour.get(key) || 0;
+        const targetAchieved = daysCompleted >= weeklyTarget;
 
-        // Only show behaviours that have progress rows for this day
-        if (progressRow) {
-          const targetText = progressRow.target_text || '';
-          const dailyAction = toDailyAction(targetText, b.behaviour, b.direction);
-          const weeklyTarget = parseWeeklyTarget(targetText, b.direction);
-          const key = `${planInfo.plan.id}-${i}`;
-          const daysCompleted = weekCompletedByBehaviour.get(key) || 0;
-          const targetAchieved = daysCompleted >= weeklyTarget;
-
-          tasks.push({
-            progressRow,
-            behaviourIndex: i,
-            behaviour: b.behaviour,
-            direction: b.direction,
-            target: targetText,
-            dailyAction,
-            completed: progressRow.completed,
-            planType: planInfo.type,
-            planId: planInfo.plan.id,
-            targetAchieved,
-          });
-        }
+        tasks.push({
+          progressRow,
+          behaviourIndex: i,
+          behaviour: b.behaviour,
+          direction: b.direction,
+          target: targetText,
+          dailyAction,
+          completed: progressRow.completed,
+          planType: 'health',
+          planId: healthPlan.plan.id,
+          targetAchieved,
+        });
       }
     }
 
     return tasks;
-  }, [selectedDayIdx, dayDataArray, plans, weekCompletedByBehaviour]);
+  }, [selectedDayIdx, dayDataArray, healthPlan, weekCompletedByBehaviour]);
 
-  /* ── Toggle checkbox (today only) ── */
-  const toggleTask = useCallback(
+  /* ── Build wealth task lists ── */
+  const wealthTasks: WealthTask[] = useMemo(() => {
+    if (!wealthPlan) return [];
+    return wealthProgress.map((dp) => ({
+      progressRow: dp,
+      behaviourIndex: dp.behaviour_index,
+      behaviour: dp.behaviour_name,
+      target: dp.target_text,
+      completed: dp.completed,
+      completedAt: dp.completed_at,
+      planId: dp.plan_id,
+    }));
+  }, [wealthPlan, wealthProgress]);
+
+  const wealthTasksRemaining = useMemo(
+    () => wealthTasks.filter((t) => !t.completed),
+    [wealthTasks]
+  );
+
+  const wealthTasksCompleted = useMemo(
+    () => wealthTasks.filter((t) => t.completed),
+    [wealthTasks]
+  );
+
+  const wealthAllDone = wealthTasks.length > 0 && wealthTasksRemaining.length === 0;
+
+  /* ── Toggle checkbox: health (daily, rolling 7-day window) ── */
+  const toggleHealthTask = useCallback(
     async (task: DetailTask) => {
       if (!task.progressRow) return;
 
@@ -439,7 +539,35 @@ export default function CalendarPage() {
     [supabase]
   );
 
-  /* ── Navigation ── */
+  /* ── Toggle checkbox: wealth (current week only) ── */
+  const toggleWealthTask = useCallback(
+    async (task: WealthTask) => {
+      const newCompleted = !task.completed;
+      const newCompletedAt = newCompleted ? new Date().toISOString() : null;
+      const rowId = task.progressRow.id;
+
+      // Optimistic update
+      setWealthProgress((prev) =>
+        prev.map((dp) =>
+          dp.id === rowId
+            ? { ...dp, completed: newCompleted, completed_at: newCompletedAt }
+            : dp
+        )
+      );
+
+      // Persist
+      await supabase
+        .from('daily_progress')
+        .update({
+          completed: newCompleted,
+          completed_at: newCompletedAt,
+        })
+        .eq('id', rowId);
+    },
+    [supabase]
+  );
+
+  /* ── Navigation (health) ── */
   const goToPrevWeek = () => {
     const prev = new Date(weekStart);
     prev.setDate(prev.getDate() - 7);
@@ -456,7 +584,7 @@ export default function CalendarPage() {
     setWeekStart(getWeekStart(new Date()));
   };
 
-  /* ── Selected day info ── */
+  /* ── Selected day info (health) ── */
   const selectedDay: DayData | null =
     selectedDayIdx !== null ? dayDataArray[selectedDayIdx] : null;
   const selectedIsToday = selectedDay?.isToday ?? false;
@@ -466,12 +594,25 @@ export default function CalendarPage() {
     if (!selectedDay) return false;
     if (selectedDay.isFuture) return false;
     const dayDate = new Date(selectedDay.dateStr);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const todayDate = new Date();
+    todayDate.setHours(0, 0, 0, 0);
     dayDate.setHours(0, 0, 0, 0);
-    const diffDays = Math.floor((today.getTime() - dayDate.getTime()) / (1000 * 60 * 60 * 24));
+    const diffDays = Math.floor((todayDate.getTime() - dayDate.getTime()) / (1000 * 60 * 60 * 24));
     return diffDays >= 0 && diffDays <= 7;
   })();
+
+  /* ── Tab switching ── */
+  const handleTabSwitch = (type: 'health' | 'wealth') => {
+    setActiveTab(type);
+  };
+
+  /* ── Helper: format completed date for wealth tasks ── */
+  function formatCompletedDay(completedAt: string | null): string {
+    if (!completedAt) return '';
+    const d = new Date(completedAt);
+    const dayIdx = (d.getDay() + 6) % 7; // 0=Mon
+    return DAY_NAMES_SHORT[dayIdx];
+  }
 
   /* ── Render: loading ── */
   if (loading) {
@@ -539,223 +680,380 @@ export default function CalendarPage() {
         </h1>
       </div>
 
-      {/* Week navigation */}
-      <div className={styles.weekNav}>
-        <button
-          className={styles.navArrow}
-          onClick={goToPrevWeek}
-          aria-label="Previous week"
-        >
-          <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M9 3L5 7L9 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-        <div className={styles.weekLabel}>{formatWeekLabel(weekStart)}</div>
-        <button
-          className={styles.navArrow}
-          onClick={goToNextWeek}
-          aria-label="Next week"
-        >
-          <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5 3L9 7L5 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-        <button
-          className={`${styles.todayBtn} ${isCurrentWeek ? styles.todayBtnHidden : ''}`}
-          onClick={goToToday}
-        >
-          TODAY
-        </button>
-      </div>
-
-      {/* Week grid */}
-      {weekLoading ? (
-        <div className={styles.weekGrid}>
-          {Array.from({ length: 7 }, (_, i) => (
-            <div key={i} className={styles.dayCol}>
-              <div className={styles.dayName}>{DAY_NAMES[i]}</div>
-              <div className={styles.dayNumber}>{weekDates[i].getDate()}</div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className={styles.weekGrid}>
-          {dayDataArray.map((day, i) => {
-            const isSelected = selectedDayIdx === i;
-
-            const dayClasses = [
-              styles.dayCol,
-              isSelected ? styles.dayColSelected : '',
-              day.isToday ? styles.dayColToday : '',
-            ]
-              .filter(Boolean)
-              .join(' ');
-
-            return (
-              <div
-                key={day.dateStr}
-                className={dayClasses}
-                onClick={() => setSelectedDayIdx(i)}
-                role="button"
-                tabIndex={0}
-                aria-label={`${DAY_NAMES[i]} ${day.date.getDate()}`}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    setSelectedDayIdx(i);
-                  }
-                }}
-              >
-                <div className={styles.dayName}>{DAY_NAMES[i]}</div>
-                <div className={styles.dayNumber}>{day.date.getDate()}</div>
-                {day.progress.length > 0 && (
-                  <div className={styles.dayDot}>
-                    <div
-                      className={
-                        day.hasAnyCompleted
-                          ? styles.dayDotFilled
-                          : styles.dayDotEmpty
-                      }
-                    />
-                  </div>
-                )}
-              </div>
-            );
-          })}
+      {/* Type tabs — only show if both plans exist */}
+      {hasBothPlans && (
+        <div className={styles.typeTabs}>
+          <button
+            className={`${styles.typeTab} ${
+              activeTab === 'health' ? styles.typeTabActive : ''
+            }`}
+            onClick={() => handleTabSwitch('health')}
+          >
+            Health
+          </button>
+          <button
+            className={`${styles.typeTab} ${
+              activeTab === 'wealth' ? styles.typeTabActive : ''
+            }`}
+            onClick={() => handleTabSwitch('wealth')}
+          >
+            Wealth
+          </button>
         </div>
       )}
 
-      {/* Day detail panel */}
-      {selectedDay && !weekLoading && (
-        <div className={styles.dayDetail} key={selectedDay.dateStr}>
-          <div className={styles.dayDetailHeader}>
-            <div className={styles.dayDetailTitle}>
-              {formatDayDetailTitle(selectedDay.date)}
-            </div>
+      {/* ═══════════════════════════════════════════════ */}
+      {/* HEALTH TAB — daily habits with week grid       */}
+      {/* ═══════════════════════════════════════════════ */}
+      {activeTab === 'health' && healthPlan && (
+        <>
+          {/* Week navigation */}
+          <div className={styles.weekNav}>
+            <button
+              className={styles.navArrow}
+              onClick={goToPrevWeek}
+              aria-label="Previous week"
+            >
+              <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 3L5 7L9 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            <div className={styles.weekLabel}>{formatWeekLabel(weekStart)}</div>
+            <button
+              className={styles.navArrow}
+              onClick={goToNextWeek}
+              aria-label="Next week"
+            >
+              <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 3L9 7L5 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            <button
+              className={`${styles.todayBtn} ${isCurrentWeek ? styles.todayBtnHidden : ''}`}
+              onClick={goToToday}
+            >
+              TODAY
+            </button>
           </div>
-          <div className={styles.dayDetailDivider} />
 
-          {selectedDay.isFuture ? (
-            <div className={styles.dayDetailEmpty}>
-              <div className={styles.dayDetailEmptyText}>
-                No tasks yet - future day
-              </div>
+          {/* Week grid */}
+          {weekLoading ? (
+            <div className={styles.weekGrid}>
+              {Array.from({ length: 7 }, (_, i) => (
+                <div key={i} className={styles.dayCol}>
+                  <div className={styles.dayName}>{DAY_NAMES[i]}</div>
+                  <div className={styles.dayNumber}>{weekDates[i].getDate()}</div>
+                </div>
+              ))}
             </div>
-          ) : detailTasks.length > 0 ? (
-            <div className={styles.detailTaskList}>
-              {detailTasks.map((task) => {
-                const arrowChar =
-                  task.direction === 'increase'
-                    ? '\u2191'
-                    : task.direction === 'reduce'
-                      ? '\u2193'
-                      : '\u2194';
-                const arrowClass =
-                  task.direction === 'increase'
-                    ? styles.taskArrowIncrease
-                    : task.direction === 'reduce'
-                      ? styles.taskArrowReduce
-                      : styles.taskArrowMaintain;
+          ) : (
+            <div className={styles.weekGrid}>
+              {dayDataArray.map((day, i) => {
+                const isSelected = selectedDayIdx === i;
 
-                // TARGET ACHIEVED: weekly target met, no checkbox needed
-                if (task.targetAchieved && !task.completed) {
-                  return (
-                    <div
-                      key={`${task.planId}-${task.behaviourIndex}`}
-                      className={`${styles.detailTaskRow} ${styles.detailTaskRowAchieved}`}
-                    >
-                      <div className={`${styles.taskArrow} ${arrowClass}`}>
-                        {arrowChar}
-                      </div>
-                      <div className={styles.taskInfo}>
-                        <div className={styles.taskName}>{task.behaviour}</div>
-                        <div className={styles.taskAchieved}>
-                          &#10003; TARGET ACHIEVED
-                        </div>
-                      </div>
-                      <div className={styles.taskCheckboxPlaceholder} />
-                    </div>
-                  );
-                }
-
-                const canToggle = selectedIsEditable && task.progressRow !== null;
-
-                const rowClasses = [
-                  styles.detailTaskRow,
-                  task.completed ? styles.detailTaskRowCompleted : '',
-                  !selectedIsToday ? styles.detailTaskRowPast : '',
+                const dayClasses = [
+                  styles.dayCol,
+                  isSelected ? styles.dayColSelected : '',
+                  day.isToday ? styles.dayColToday : '',
                 ]
                   .filter(Boolean)
                   .join(' ');
 
                 return (
                   <div
-                    key={`${task.planId}-${task.behaviourIndex}`}
-                    className={rowClasses}
+                    key={day.dateStr}
+                    className={dayClasses}
+                    onClick={() => setSelectedDayIdx(i)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`${DAY_NAMES[i]} ${day.date.getDate()}`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setSelectedDayIdx(i);
+                      }
+                    }}
                   >
-                    {/* Arrow */}
-                    <div className={`${styles.taskArrow} ${arrowClass}`}>
-                      {arrowChar}
-                    </div>
-
-                    {/* Name + daily action */}
-                    <div className={styles.taskInfo}>
-                      <div className={styles.taskName}>
-                        {task.behaviour}
-                      </div>
-                      <div className={styles.taskTarget}>
-                        {task.dailyAction}
-                      </div>
-                    </div>
-
-                    {/* Checkbox */}
-                    <div
-                      className={`${styles.taskCheckbox} ${
-                        !canToggle ? styles.taskCheckboxReadonly : ''
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        className={styles.taskCheckboxInput}
-                        checked={task.completed}
-                        onChange={() => {
-                          if (canToggle) {
-                            toggleTask(task);
+                    <div className={styles.dayName}>{DAY_NAMES[i]}</div>
+                    <div className={styles.dayNumber}>{day.date.getDate()}</div>
+                    {day.progress.length > 0 && (
+                      <div className={styles.dayDot}>
+                        <div
+                          className={
+                            day.hasAnyCompleted
+                              ? styles.dayDotFilled
+                              : styles.dayDotEmpty
                           }
-                        }}
-                        disabled={!canToggle}
-                        aria-label={`Mark ${task.behaviour} as ${
-                          task.completed ? 'incomplete' : 'complete'
-                        }`}
-                      />
-                      <div
-                        className={`${styles.taskCheckboxBox} ${
-                          task.completed ? styles.taskCheckboxChecked : ''
-                        }`}
-                      >
-                        <span
-                          className={`${styles.taskCheckboxMark} ${
-                            task.completed
-                              ? styles.taskCheckboxMarkVisible
-                              : ''
-                          }`}
-                        >
-                          &#10003;
-                        </span>
+                        />
                       </div>
-                    </div>
+                    )}
                   </div>
                 );
               })}
             </div>
-          ) : (
-            <div className={styles.dayDetailEmpty}>
-              <div className={styles.dayDetailEmptyText}>
-                No tasks for this day
+          )}
+
+          {/* Day detail panel */}
+          {selectedDay && !weekLoading && (
+            <div className={styles.dayDetail} key={selectedDay.dateStr}>
+              <div className={styles.dayDetailHeader}>
+                <div className={styles.dayDetailTitle}>
+                  {formatDayDetailTitle(selectedDay.date)}
+                </div>
               </div>
+              <div className={styles.dayDetailDivider} />
+
+              {selectedDay.isFuture ? (
+                <div className={styles.dayDetailEmpty}>
+                  <div className={styles.dayDetailEmptyText}>
+                    No tasks yet - future day
+                  </div>
+                </div>
+              ) : detailTasks.length > 0 ? (
+                <div className={styles.detailTaskList}>
+                  {detailTasks.map((task) => {
+                    const arrowChar =
+                      task.direction === 'increase'
+                        ? '\u2191'
+                        : task.direction === 'reduce'
+                          ? '\u2193'
+                          : '\u2194';
+                    const arrowClass =
+                      task.direction === 'increase'
+                        ? styles.taskArrowIncrease
+                        : task.direction === 'reduce'
+                          ? styles.taskArrowReduce
+                          : styles.taskArrowMaintain;
+
+                    // TARGET ACHIEVED: weekly target met, no checkbox needed
+                    if (task.targetAchieved && !task.completed) {
+                      return (
+                        <div
+                          key={`${task.planId}-${task.behaviourIndex}`}
+                          className={`${styles.detailTaskRow} ${styles.detailTaskRowAchieved}`}
+                        >
+                          <div className={`${styles.taskArrow} ${arrowClass}`}>
+                            {arrowChar}
+                          </div>
+                          <div className={styles.taskInfo}>
+                            <div className={styles.taskName}>{task.behaviour}</div>
+                            <div className={styles.taskAchieved}>
+                              &#10003; TARGET ACHIEVED
+                            </div>
+                          </div>
+                          <div className={styles.taskCheckboxPlaceholder} />
+                        </div>
+                      );
+                    }
+
+                    const canToggle = selectedIsEditable && task.progressRow !== null;
+
+                    const rowClasses = [
+                      styles.detailTaskRow,
+                      task.completed ? styles.detailTaskRowCompleted : '',
+                      !selectedIsToday ? styles.detailTaskRowPast : '',
+                    ]
+                      .filter(Boolean)
+                      .join(' ');
+
+                    return (
+                      <div
+                        key={`${task.planId}-${task.behaviourIndex}`}
+                        className={rowClasses}
+                      >
+                        {/* Arrow */}
+                        <div className={`${styles.taskArrow} ${arrowClass}`}>
+                          {arrowChar}
+                        </div>
+
+                        {/* Name + daily action */}
+                        <div className={styles.taskInfo}>
+                          <div className={styles.taskName}>
+                            {task.behaviour}
+                          </div>
+                          <div className={styles.taskTarget}>
+                            {task.dailyAction}
+                          </div>
+                        </div>
+
+                        {/* Checkbox */}
+                        <div
+                          className={`${styles.taskCheckbox} ${
+                            !canToggle ? styles.taskCheckboxReadonly : ''
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            className={styles.taskCheckboxInput}
+                            checked={task.completed}
+                            onChange={() => {
+                              if (canToggle) {
+                                toggleHealthTask(task);
+                              }
+                            }}
+                            disabled={!canToggle}
+                            aria-label={`Mark ${task.behaviour} as ${
+                              task.completed ? 'incomplete' : 'complete'
+                            }`}
+                          />
+                          <div
+                            className={`${styles.taskCheckboxBox} ${
+                              task.completed ? styles.taskCheckboxChecked : ''
+                            }`}
+                          >
+                            <span
+                              className={`${styles.taskCheckboxMark} ${
+                                task.completed
+                                  ? styles.taskCheckboxMarkVisible
+                                  : ''
+                              }`}
+                            >
+                              &#10003;
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className={styles.dayDetailEmpty}>
+                  <div className={styles.dayDetailEmptyText}>
+                    No tasks for this day
+                  </div>
+                </div>
+              )}
             </div>
           )}
-        </div>
+        </>
+      )}
+
+      {/* ═══════════════════════════════════════════════ */}
+      {/* WEALTH TAB — weekly task queue                 */}
+      {/* ═══════════════════════════════════════════════ */}
+      {activeTab === 'wealth' && wealthPlan && (
+        <>
+          {wealthLoading ? (
+            <div className={styles.loading}>
+              <div className={styles.spinner} />
+              <div className={styles.loadingText}>Loading Tasks</div>
+            </div>
+          ) : (
+            <div className={styles.wealthContainer}>
+              {/* Week header */}
+              <div className={styles.wealthHeader}>
+                <div className={styles.wealthWeekTitle}>
+                  WEEK {wealthCurrentWeek}
+                  {wealthCurrentWeek <= 8 && (
+                    <span className={styles.wealthWeekCount}>
+                      {wealthAllDone
+                        ? '0 TASKS REMAINING'
+                        : `${wealthTasksRemaining.length} TASK${wealthTasksRemaining.length !== 1 ? 'S' : ''} REMAINING`}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className={styles.wealthDivider} />
+
+              {/* All done celebration */}
+              {wealthAllDone && (
+                <div className={styles.wealthAllDone}>
+                  <div className={styles.wealthAllDoneIcon}>&#10003;</div>
+                  <div className={styles.wealthAllDoneText}>
+                    All tasks completed for this week
+                  </div>
+                </div>
+              )}
+
+              {/* Remaining tasks */}
+              {wealthTasksRemaining.length > 0 && (
+                <div className={styles.wealthTaskList}>
+                  {wealthTasksRemaining.map((task) => (
+                    <div
+                      key={task.progressRow.id}
+                      className={styles.wealthTaskCard}
+                    >
+                      <div
+                        className={styles.wealthTaskCheckbox}
+                        onClick={() => toggleWealthTask(task)}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Mark ${task.behaviour} as complete`}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            toggleWealthTask(task);
+                          }
+                        }}
+                      >
+                        <div className={styles.wealthCheckboxBox} />
+                      </div>
+                      <div className={styles.wealthTaskInfo}>
+                        <div className={styles.wealthTaskName}>
+                          {task.behaviour}
+                        </div>
+                        <div className={styles.wealthTaskTarget}>
+                          {task.target}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Completed tasks section */}
+              {wealthTasksCompleted.length > 0 && (
+                <>
+                  <div className={styles.wealthCompletedHeader}>
+                    <div className={styles.wealthCompletedDivider} />
+                    <span className={styles.wealthCompletedLabel}>
+                      COMPLETED THIS WEEK
+                    </span>
+                    <div className={styles.wealthCompletedDivider} />
+                  </div>
+
+                  <div className={styles.wealthCompletedList}>
+                    {wealthTasksCompleted.map((task) => (
+                      <div
+                        key={task.progressRow.id}
+                        className={styles.wealthCompletedCard}
+                      >
+                        <div
+                          className={styles.wealthCompletedCheckbox}
+                          onClick={() => toggleWealthTask(task)}
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`Uncheck ${task.behaviour}`}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              toggleWealthTask(task);
+                            }
+                          }}
+                        >
+                          <div className={styles.wealthCheckboxBoxChecked}>
+                            <span className={styles.wealthCheckboxMark}>&#10003;</span>
+                          </div>
+                        </div>
+                        <div className={styles.wealthCompletedInfo}>
+                          <div className={styles.wealthCompletedName}>
+                            {task.behaviour}
+                          </div>
+                          {task.completedAt && (
+                            <div className={styles.wealthCompletedDate}>
+                              completed {formatCompletedDay(task.completedAt)}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

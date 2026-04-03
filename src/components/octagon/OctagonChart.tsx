@@ -85,7 +85,7 @@ export default function OctagonChart({
     const points: [number, number][] = [];
     for (let i = 0; i < n; i++) {
       const angle = startAngle + i * angleStep;
-      const val = Math.max(0, Math.min(maxScore, scores[i] || 0));
+      const val = Math.max(1, Math.min(maxScore, scores[i] || 1));
       const r = (val / maxScore) * R;
       const x = cx + r * Math.cos(angle);
       const y = cy + r * Math.sin(angle);

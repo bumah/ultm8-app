@@ -196,6 +196,40 @@
   flex-shrink: 0;
 }
 
+/* ── Type tabs (Health / Wealth) ── */
+.typeTabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.typeTab {
+  flex: 1;
+  padding: 10px 0;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-family: var(--cond);
+  font-size: 15px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  transition: color 0.2s, border-color 0.2s;
+  text-align: center;
+}
+
+.typeTab:hover {
+  color: var(--text-muted);
+}
+
+.typeTabActive {
+  color: var(--cream);
+  border-bottom-color: var(--red2);
+}
+
 /* ── Week Navigation ── */
 .weekNav {
   display: flex;
@@ -460,7 +494,7 @@
   margin-bottom: 12px;
 }
 
-/* ── Detail Task List ── */
+/* ── Detail Task List (health) ── */
 .detailTaskList {
   display: flex;
   flex-direction: column;
@@ -565,7 +599,7 @@
   flex-shrink: 0;
 }
 
-/* ── Checkbox ── */
+/* ── Checkbox (health) ── */
 .taskCheckbox {
   position: relative;
   width: 22px;
@@ -637,6 +671,282 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text-dim);
+}
+
+/* ══════════════════════════════════════════════════════ */
+/* ── WEALTH TAB STYLES                               ── */
+/* ══════════════════════════════════════════════════════ */
+
+.wealthContainer {
+  animation: slideIn 0.2s ease;
+}
+
+/* Week header */
+.wealthHeader {
+  margin-bottom: 0.5rem;
+}
+
+.wealthWeekTitle {
+  font-family: var(--cond);
+  font-size: 20px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--cream);
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.wealthWeekCount {
+  font-family: var(--mono);
+  font-size: 0.42rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+.wealthDivider {
+  height: 1px;
+  background: var(--border);
+  margin-bottom: 1rem;
+}
+
+/* All done celebration */
+.wealthAllDone {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  position: relative;
+}
+
+.wealthAllDone::before,
+.wealthAllDone::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+}
+
+.wealthAllDone::before {
+  top: 3px;
+  left: 3px;
+  border-top: 2px solid var(--tier-3);
+  border-left: 2px solid var(--tier-3);
+  opacity: 0.5;
+}
+
+.wealthAllDone::after {
+  bottom: 3px;
+  right: 3px;
+  border-bottom: 2px solid var(--tier-3);
+  border-right: 2px solid var(--tier-3);
+  opacity: 0.5;
+}
+
+.wealthAllDoneIcon {
+  font-size: 32px;
+  color: var(--tier-3);
+  margin-bottom: 0.75rem;
+  line-height: 1;
+}
+
+.wealthAllDoneText {
+  font-family: var(--cond);
+  font-size: 18px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--tier-3);
+  letter-spacing: 0.04em;
+}
+
+/* Wealth task list */
+.wealthTaskList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.wealthTaskCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border-dim);
+  transition: background 0.15s, opacity 0.3s ease;
+}
+
+.wealthTaskCard:first-child {
+  border-radius: 3px 3px 0 0;
+}
+
+.wealthTaskCard:last-child {
+  border-bottom: none;
+  border-radius: 0 0 3px 3px;
+}
+
+.wealthTaskCard:only-child {
+  border-radius: 3px;
+}
+
+/* Wealth checkbox (unchecked) */
+.wealthTaskCheckbox {
+  flex-shrink: 0;
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+.wealthCheckboxBox {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--border);
+  border-radius: 3px;
+  transition: border-color 0.15s;
+}
+
+.wealthTaskCheckbox:hover .wealthCheckboxBox {
+  border-color: var(--red);
+}
+
+/* Wealth task info */
+.wealthTaskInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.wealthTaskName {
+  font-family: var(--cond);
+  font-size: 14px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--cream);
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+  margin-bottom: 3px;
+}
+
+.wealthTaskTarget {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ── Completed section ── */
+.wealthCompletedHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.wealthCompletedDivider {
+  flex: 1;
+  height: 1px;
+  background: var(--border-dim);
+}
+
+.wealthCompletedLabel {
+  font-family: var(--mono);
+  font-size: 0.42rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.wealthCompletedList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  opacity: 0.5;
+}
+
+.wealthCompletedCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border-dim);
+  transition: opacity 0.15s;
+}
+
+.wealthCompletedCard:first-child {
+  border-radius: 3px 3px 0 0;
+}
+
+.wealthCompletedCard:last-child {
+  border-bottom: none;
+  border-radius: 0 0 3px 3px;
+}
+
+.wealthCompletedCard:only-child {
+  border-radius: 3px;
+}
+
+.wealthCompletedCard:hover {
+  opacity: 1;
+}
+
+/* Completed checkbox (checked) */
+.wealthCompletedCheckbox {
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.wealthCheckboxBoxChecked {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--red);
+  border-radius: 3px;
+  background: var(--red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s;
+}
+
+.wealthCheckboxMark {
+  color: var(--cream);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+/* Completed task info */
+.wealthCompletedInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.wealthCompletedName {
+  font-family: var(--cond);
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--cream);
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.wealthCompletedDate {
+  font-family: var(--mono);
+  font-size: 0.38rem;
+  letter-spacing: 0.1em;
+  text-transform: lowercase;
+  color: var(--text-dim);
+  white-space: nowrap;
 }
 
 /* ── Responsive ── */
@@ -716,6 +1026,38 @@
     width: 5px;
     height: 5px;
   }
+
+  /* Wealth responsive */
+  .wealthWeekTitle {
+    font-size: 18px;
+  }
+
+  .wealthTaskCard {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  .wealthTaskName {
+    font-size: 13px;
+  }
+
+  .wealthTaskTarget {
+    font-size: 11px;
+  }
+
+  .wealthCompletedCard {
+    padding: 8px 14px;
+    gap: 10px;
+  }
+
+  .wealthCompletedName {
+    font-size: 12px;
+  }
+
+  .wealthCompletedInfo {
+    flex-direction: column;
+    gap: 2px;
+  }
 }
 
 @media (max-width: 340px) {
@@ -738,5 +1080,11 @@
 
   .weekLabel {
     font-size: 11px;
+  }
+
+  .wealthWeekTitle {
+    font-size: 16px;
+    flex-direction: column;
+    gap: 4px;
   }
 }

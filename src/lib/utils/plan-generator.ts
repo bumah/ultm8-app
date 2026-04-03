@@ -4,7 +4,10 @@ import type { PlanBehaviour } from '@/types/database';
 
 /**
  * Given an assessment's behaviour scores, build the plan_data JSONB
- * and generate all daily_progress rows for 56 days (8 weeks).
+ * and generate progress rows.
+ *
+ * Health: 56 days × 8 behaviours = 448 daily rows (daily habits)
+ * Wealth: 8 weeks × 8 behaviours = 64 weekly rows (one-time weekly tasks)
  */
 
 export interface GeneratedPlan {
@@ -22,10 +25,6 @@ export interface DailyRow {
 
 function formatDate(d: Date): string {
   return d.toISOString().split('T')[0];
-}
-
-function getWeekNumber(dayIndex: number): number {
-  return Math.floor(dayIndex / 7) + 1;
 }
 
 export function generatePlan(
@@ -46,23 +45,43 @@ export function generatePlan(
     };
   });
 
-  // Generate 56 days × 8 behaviours = 448 daily_progress rows
   const dailyRows: DailyRow[] = [];
 
-  for (let day = 0; day < 56; day++) {
-    const date = new Date(startDate);
-    date.setDate(date.getDate() + day);
-    const weekNum = getWeekNumber(day);
-    const dateStr = formatDate(date);
+  if (type === 'health') {
+    // Health: 56 days × 8 behaviours = 448 daily rows
+    for (let day = 0; day < 56; day++) {
+      const date = new Date(startDate);
+      date.setDate(date.getDate() + day);
+      const weekNum = Math.floor(day / 7) + 1;
+      const dateStr = formatDate(date);
 
-    for (let b = 0; b < 8; b++) {
-      dailyRows.push({
-        date: dateStr,
-        week_number: weekNum,
-        behaviour_index: b,
-        behaviour_name: planData[b].behaviour,
-        target_text: planData[b].weekly_targets[weekNum - 1],
-      });
+      for (let b = 0; b < 8; b++) {
+        dailyRows.push({
+          date: dateStr,
+          week_number: weekNum,
+          behaviour_index: b,
+          behaviour_name: planData[b].behaviour,
+          target_text: planData[b].weekly_targets[weekNum - 1],
+        });
+      }
+    }
+  } else {
+    // Wealth: 8 weeks × 8 behaviours = 64 weekly rows
+    // Each row's date = the Monday of that week (start of week)
+    for (let week = 0; week < 8; week++) {
+      const weekStart = new Date(startDate);
+      weekStart.setDate(weekStart.getDate() + week * 7);
+      const dateStr = formatDate(weekStart);
+
+      for (let b = 0; b < 8; b++) {
+        dailyRows.push({
+          date: dateStr,
+          week_number: week + 1,
+          behaviour_index: b,
+          behaviour_name: planData[b].behaviour,
+          target_text: planData[b].weekly_targets[week],
+        });
+      }
     }
   }
 
