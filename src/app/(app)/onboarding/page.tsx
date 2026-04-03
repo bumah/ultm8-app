@@ -26,27 +26,54 @@ export default function OnboardingPage() {
   const [customCurrency, setCustomCurrency] = useState('');
   const [useCustomCurrency, setUseCustomCurrency] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   async function handleComplete() {
     setLoading(true);
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      // Try to recover session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setError('Session expired. Please sign in again.');
+        setLoading(false);
+        return;
+      }
+    }
+
+    const userId = user?.id || (await supabase.auth.getSession()).data.session?.user?.id;
+    if (!userId) {
+      setError('Could not identify user. Please sign in again.');
+      setLoading(false);
+      return;
+    }
 
     const finalCurrency = useCustomCurrency ? customCurrency : currency;
     const ageGroup = getAgeGroup(dob || null);
 
-    await supabase.from('profiles').update({
+    // Build update object — only include date_of_birth if dob is provided
+    const updateData: Record<string, unknown> = {
       gender,
-      date_of_birth: dob || null,
       age_group: ageGroup,
       currency: finalCurrency,
       onboarding_complete: true,
       updated_at: new Date().toISOString(),
-    }).eq('id', user.id);
+    };
+    if (dob) {
+      updateData.date_of_birth = dob;
+    }
 
-    router.push('/dashboard');
-    router.refresh();
+    const { error: updateError } = await supabase.from('profiles').update(updateData).eq('id', userId);
+
+    if (updateError) {
+      console.error('Onboarding save failed:', updateError);
+      setError('Failed to save. Please try again.');
+      setLoading(false);
+      return;
+    }
+
+    window.location.href = '/dashboard';
   }
 
   function handleNext() {
@@ -67,6 +94,7 @@ export default function OnboardingPage() {
 
   return (
     <div className={styles.container}>
+      {error && <div style={{ background: 'rgba(200,36,26,0.15)', border: '1px solid rgba(200,36,26,0.3)', borderRadius: '3px', padding: '12px 16px', marginBottom: '1rem', fontSize: '13px', color: 'var(--red2)' }}>{error}</div>}
       <div className={styles.eyebrow}>Setup — Step {stepNumber} of 3</div>
 
       <div className={styles.progressBar}>
