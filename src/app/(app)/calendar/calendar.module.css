@@ -1,0 +1,742 @@
+/* ── ULTM8 Calendar Page ── */
+
+.container {
+  padding-top: 2rem;
+  padding-bottom: 4rem;
+  animation: fadeIn 0.35s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Header ── */
+.header {
+  margin-bottom: 1.5rem;
+}
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--red2);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 2px;
+  background: var(--red2);
+}
+
+.heading {
+  font-family: var(--cond);
+  font-size: clamp(32px, 6vw, 48px);
+  font-weight: 900;
+  color: var(--cream);
+  line-height: 0.95;
+  letter-spacing: -0.5px;
+  text-transform: uppercase;
+}
+
+.heading em {
+  font-style: normal;
+  color: var(--red2);
+}
+
+/* ── Loading ── */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  text-align: center;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--border);
+  border-top-color: var(--red2);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 1.5rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loadingText {
+  font-family: var(--cond);
+  font-size: 20px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--cream);
+}
+
+/* ── Empty state ── */
+.emptyState {
+  margin-top: 1rem;
+}
+
+.emptyCard {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 2rem;
+  position: relative;
+}
+
+.emptyCard::before,
+.emptyCard::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+}
+
+.emptyCard::before {
+  top: 4px;
+  left: 4px;
+  border-top: 2px solid var(--red);
+  border-left: 2px solid var(--red);
+  opacity: 0.6;
+}
+
+.emptyCard::after {
+  bottom: 4px;
+  right: 4px;
+  border-bottom: 2px solid var(--red);
+  border-right: 2px solid var(--red);
+  opacity: 0.6;
+}
+
+.emptyTitle {
+  font-family: var(--cond);
+  font-size: 24px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--cream);
+  margin-bottom: 0.5rem;
+}
+
+.emptyText {
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
+}
+
+.assessLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.assessLink {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 14px 16px;
+  transition: border-color 0.2s;
+  text-decoration: none;
+  color: inherit;
+}
+
+.assessLink:hover {
+  border-color: var(--red);
+}
+
+.assessLink strong {
+  display: block;
+  font-family: var(--cond);
+  font-size: 16px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--cream);
+}
+
+.assessLink span {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.assessIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(200, 36, 26, 0.15);
+  color: var(--red2);
+  font-size: 20px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ── Week Navigation ── */
+.weekNav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 1.25rem;
+}
+
+.navArrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.navArrow:hover {
+  border-color: var(--red);
+  color: var(--cream);
+}
+
+.navArrow svg {
+  width: 14px;
+  height: 14px;
+}
+
+.weekLabel {
+  flex: 1;
+  text-align: center;
+  font-family: var(--cond);
+  font-size: 15px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--cream);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.todayBtn {
+  font-family: var(--mono);
+  font-size: 0.42rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--red2);
+  background: none;
+  border: 1px solid var(--red);
+  border-radius: 20px;
+  padding: 4px 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+
+.todayBtn:hover {
+  background: var(--red);
+  color: var(--cream);
+}
+
+.todayBtnHidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* ── Week Grid (compact) ── */
+.weekGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0;
+  margin-bottom: 1.25rem;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.dayCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 2px 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-right: 1px solid var(--border-dim);
+  position: relative;
+  min-width: 0;
+}
+
+.dayCol:last-child {
+  border-right: none;
+}
+
+.dayCol:hover {
+  background: rgba(242, 237, 228, 0.03);
+}
+
+.dayColSelected {
+  background: rgba(242, 237, 228, 0.05);
+}
+
+.dayColToday {
+  background: rgba(200, 36, 26, 0.06);
+}
+
+.dayColToday.dayColSelected {
+  background: rgba(200, 36, 26, 0.1);
+}
+
+/* Today red bottom border */
+.dayColToday::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--red2);
+}
+
+/* Selected top accent */
+.dayColSelected::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--cream);
+  opacity: 0.3;
+}
+
+.dayColToday.dayColSelected::before {
+  background: var(--red2);
+  opacity: 0.7;
+}
+
+.dayName {
+  font-family: var(--mono);
+  font-size: 0.4rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+  line-height: 1;
+}
+
+.dayNumber {
+  font-family: var(--cond);
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--text-muted);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.dayColToday .dayNumber {
+  color: var(--red2);
+}
+
+.dayColSelected .dayNumber {
+  color: var(--cream);
+}
+
+.dayColToday.dayColSelected .dayNumber {
+  color: var(--red2);
+}
+
+/* Completion indicator dot */
+.dayDot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 8px;
+}
+
+.dayDotFilled {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--red2);
+}
+
+.dayDotEmpty {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border-dim);
+}
+
+/* ── Day Detail Panel ── */
+.dayDetail {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 16px;
+  position: relative;
+  animation: slideIn 0.2s ease;
+  margin-bottom: 1rem;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dayDetail::before,
+.dayDetail::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+}
+
+.dayDetail::before {
+  top: 3px;
+  left: 3px;
+  border-top: 2px solid var(--red);
+  border-left: 2px solid var(--red);
+  opacity: 0.4;
+}
+
+.dayDetail::after {
+  bottom: 3px;
+  right: 3px;
+  border-bottom: 2px solid var(--red);
+  border-right: 2px solid var(--red);
+  opacity: 0.4;
+}
+
+.dayDetailHeader {
+  margin-bottom: 8px;
+}
+
+.dayDetailTitle {
+  font-family: var(--cond);
+  font-size: 15px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--cream);
+  letter-spacing: 0.04em;
+}
+
+.dayDetailDivider {
+  height: 1px;
+  background: var(--border);
+  margin-bottom: 12px;
+}
+
+/* ── Detail Task List ── */
+.detailTaskList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.detailTaskRow {
+  display: grid;
+  grid-template-columns: 22px 1fr 22px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-dim);
+  transition: opacity 0.25s ease;
+}
+
+.detailTaskRow:last-child {
+  border-bottom: none;
+}
+
+/* Completed row: dimmed */
+.detailTaskRowCompleted {
+  opacity: 0.5;
+}
+
+/* Past day: checkboxes read-only, slightly dimmed */
+.detailTaskRowPast {
+  opacity: 0.55;
+}
+
+/* TARGET ACHIEVED row: dimmed */
+.detailTaskRowAchieved {
+  opacity: 0.45;
+}
+
+/* ── Direction Arrow ── */
+.taskArrow {
+  font-family: var(--cond);
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+  width: 22px;
+  flex-shrink: 0;
+}
+
+.taskArrowIncrease {
+  color: var(--tier-3);
+}
+
+.taskArrowReduce {
+  color: var(--tier-1);
+}
+
+.taskArrowMaintain {
+  color: var(--tier-2);
+}
+
+/* ── Task Info ── */
+.taskInfo {
+  min-width: 0;
+}
+
+.taskName {
+  font-family: var(--cond);
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--cream);
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.taskTarget {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-top: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* TARGET ACHIEVED text */
+.taskAchieved {
+  font-family: var(--mono);
+  font-size: 0.42rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tier-3);
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+/* Placeholder for achieved rows (no checkbox) */
+.taskCheckboxPlaceholder {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+/* ── Checkbox ── */
+.taskCheckbox {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  justify-self: end;
+}
+
+.taskCheckboxInput {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  z-index: 2;
+  margin: 0;
+}
+
+.taskCheckboxBox {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--border);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  background: transparent;
+}
+
+.taskCheckboxInput:hover + .taskCheckboxBox {
+  border-color: var(--red);
+}
+
+.taskCheckboxChecked {
+  background: var(--red);
+  border-color: var(--red);
+}
+
+.taskCheckboxMark {
+  color: var(--cream);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.15s ease;
+}
+
+.taskCheckboxMarkVisible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.taskCheckboxReadonly {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* ── Day Detail Empty ── */
+.dayDetailEmpty {
+  text-align: center;
+  padding: 1.5rem 0;
+}
+
+.dayDetailEmptyText {
+  font-family: var(--mono);
+  font-size: 0.44rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* ── Responsive ── */
+@media (max-width: 420px) {
+  .dayCol {
+    padding: 8px 1px 6px;
+  }
+
+  .dayName {
+    font-size: 0.36rem;
+    letter-spacing: 0.1em;
+  }
+
+  .dayNumber {
+    font-size: 15px;
+    margin-bottom: 3px;
+  }
+
+  .weekLabel {
+    font-size: 13px;
+  }
+
+  .navArrow {
+    width: 28px;
+    height: 28px;
+  }
+
+  .todayBtn {
+    padding: 3px 10px;
+    font-size: 0.38rem;
+  }
+
+  .detailTaskRow {
+    grid-template-columns: 18px 1fr 20px;
+    gap: 6px;
+    padding: 8px 0;
+  }
+
+  .taskArrow {
+    font-size: 14px;
+    width: 18px;
+  }
+
+  .taskName {
+    font-size: 12px;
+  }
+
+  .taskTarget {
+    font-size: 10px;
+  }
+
+  .taskAchieved {
+    font-size: 0.38rem;
+  }
+
+  .taskCheckbox {
+    width: 20px;
+    height: 20px;
+  }
+
+  .taskCheckboxBox {
+    width: 20px;
+    height: 20px;
+  }
+
+  .taskCheckboxPlaceholder {
+    width: 20px;
+    height: 20px;
+  }
+
+  .dayDetailTitle {
+    font-size: 13px;
+  }
+
+  .dayDotFilled,
+  .dayDotEmpty {
+    width: 5px;
+    height: 5px;
+  }
+}
+
+@media (max-width: 340px) {
+  .dayCol {
+    padding: 6px 0 5px;
+  }
+
+  .dayName {
+    font-size: 0.32rem;
+    letter-spacing: 0.06em;
+  }
+
+  .dayNumber {
+    font-size: 13px;
+  }
+
+  .dayDot {
+    display: none;
+  }
+
+  .weekLabel {
+    font-size: 11px;
+  }
+}

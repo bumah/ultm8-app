@@ -1,0 +1,212 @@
+import { redirect } from 'next/navigation';
+import { createClient } from '@/lib/supabase/server';
+import Link from 'next/link';
+import styles from './dashboard.module.css';
+
+export default async function DashboardPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
+
+  // Check onboarding
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
+  if (!profile?.onboarding_complete) {
+    redirect('/onboarding');
+  }
+
+  // Get latest assessments (include id for linking)
+  const { data: healthAssessment } = await supabase
+    .from('health_assessments')
+    .select('id, octagon_score_pct, behaviour_score_pct, completed_at')
+    .eq('user_id', user.id)
+    .order('completed_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  const { data: wealthAssessment } = await supabase
+    .from('wealth_assessments')
+    .select('id, octagon_score_pct, behaviour_score_pct, completed_at')
+    .eq('user_id', user.id)
+    .order('completed_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  const hasAssessments = healthAssessment || wealthAssessment;
+
+  // Get today's plan progress
+  const today = new Date().toISOString().split('T')[0];
+  const { data: todayProgress } = await supabase
+    .from('daily_progress')
+    .select('id, plan_id, behaviour_name, target_text, completed, behaviour_index')
+    .eq('user_id', user.id)
+    .eq('date', today)
+    .order('behaviour_index', { ascending: true });
+
+  // Get active plans to know their types
+  const { data: activePlans } = await supabase
+    .from('action_plans')
+    .select('id, assessment_type, plan_data, start_date')
+    .eq('user_id', user.id)
+    .eq('is_active', true);
+
+  // Group today's items by plan type
+  const planTypeMap: Record<string, string> = {};
+  activePlans?.forEach(p => { planTypeMap[p.id] = p.assessment_type; });
+
+  const todayItems = (todayProgress || []).map(item => ({
+    ...item,
+    type: planTypeMap[item.plan_id] || 'health',
+  }));
+
+  const completedCount = todayItems.filter(i => i.completed).length;
+  const totalCount = todayItems.length;
+
+  return (
+    <div className={styles.container}>
+      <div className={styles.greeting}>
+        <div className={styles.eyebrow}>Dashboard</div>
+        <h1 className={styles.heading}>
+          Welcome,<br /><em>{profile.name || 'Fighter'}</em>
+        </h1>
+      </div>
+
+      {!hasAssessments ? (
+        <div className={styles.emptyState}>
+          <div className={styles.emptyCard}>
+            <h3 className={styles.emptyTitle}>Start Your Journey</h3>
+            <p className={styles.emptyText}>
+              Take your first assessment to build your octagon and get a personalised 8-week plan.
+            </p>
+            <div className={styles.assessLinks}>
+              <a href="/assess/health" className={styles.assessLink}>
+                <span className={styles.assessIcon}>+</span>
+                <div>
+                  <strong>Health Assessment</strong>
+                  <span>8 behaviours + 8 indicators</span>
+                </div>
+              </a>
+              <a href="/assess/wealth" className={styles.assessLink}>
+                <span className={styles.assessIcon}>+</span>
+                <div>
+                  <strong>Wealth Assessment</strong>
+                  <span>8 behaviours + financial data</span>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Score cards */}
+          <div className={styles.scores}>
+            {healthAssessment && (
+              <a href={`/results/health/${healthAssessment.id}`} className={styles.scoreCard}>
+                <div className={styles.scoreCardTop}>
+                  <div className={styles.scoreLabel}>Health Octagon</div>
+                  <div className={styles.scoreValue}>{healthAssessment.octagon_score_pct}%</div>
+                  <div className={styles.scoreSub}>
+                    Behaviours: {healthAssessment.behaviour_score_pct}%
+                  </div>
+                </div>
+                <div className={styles.scoreCta}>
+                  View Results <span>&rarr;</span>
+                </div>
+              </a>
+            )}
+            {wealthAssessment && (
+              <a href={`/results/wealth/${wealthAssessment.id}`} className={styles.scoreCard}>
+                <div className={styles.scoreCardTop}>
+                  <div className={styles.scoreLabel}>Wealth Octagon</div>
+                  <div className={styles.scoreValue}>{wealthAssessment.octagon_score_pct}%</div>
+                  <div className={styles.scoreSub}>
+                    Behaviours: {wealthAssessment.behaviour_score_pct}%
+                  </div>
+                </div>
+                <div className={styles.scoreCta}>
+                  View Results <span>&rarr;</span>
+                </div>
+              </a>
+            )}
+            {(!healthAssessment || !wealthAssessment) && (
+              <a
+                href={!healthAssessment ? '/assess/health' : '/assess/wealth'}
+                className={styles.addAssessment}
+              >
+                <span>+</span>
+                Take {!healthAssessment ? 'Health' : 'Wealth'} Assessment
+              </a>
+            )}
+          </div>
+
+          {/* Retake assessments */}
+          <div className={styles.retakeSection}>
+            <div className={styles.retakeTitle}>Retake</div>
+            <div className={styles.retakeLinks}>
+              <a href="/assess/health" className={styles.retakeLink}>
+                <span className={styles.retakeIcon}>&#8635;</span>
+                Health
+              </a>
+              <a href="/assess/wealth" className={styles.retakeLink}>
+                <span className={styles.retakeIcon}>&#8635;</span>
+                Wealth
+              </a>
+            </div>
+          </div>
+
+          {/* Today's Plan */}
+          {totalCount > 0 && (
+            <div className={styles.todaySection}>
+              <div className={styles.todayHeader}>
+                <div className={styles.todayTitle}>This Week&apos;s Plan</div>
+                <div className={styles.todayCount}>
+                  {completedCount}/{totalCount}
+                </div>
+              </div>
+
+              <div className={styles.todayBar}>
+                <div
+                  className={styles.todayBarFill}
+                  style={{ width: `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%` }}
+                />
+              </div>
+
+              <div className={styles.todayItems}>
+                {todayItems.slice(0, 6).map((item) => (
+                  <div
+                    key={item.id}
+                    className={`${styles.todayItem} ${item.completed ? styles.todayItemDone : ''}`}
+                  >
+                    <div
+                      className={styles.todayDot}
+                      style={{ background: item.type === 'health' ? 'var(--red)' : 'var(--tier-2)' }}
+                    />
+                    <div className={styles.todayItemContent}>
+                      <div className={styles.todayItemName}>{item.behaviour_name}</div>
+                      <div className={styles.todayItemTarget}>{item.target_text}</div>
+                    </div>
+                    {item.completed && <span className={styles.todayCheck}>&#10003;</span>}
+                  </div>
+                ))}
+              </div>
+
+              {totalCount > 6 && (
+                <Link href="/calendar" className={styles.todayMore}>
+                  + {totalCount - 6} more &rarr;
+                </Link>
+              )}
+
+              <Link href="/calendar" className={styles.todayViewAll}>
+                Open Calendar &rarr;
+              </Link>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}

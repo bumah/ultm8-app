@@ -1,0 +1,461 @@
+.container {
+  padding-top: 2rem;
+}
+
+.greeting {
+  margin-bottom: 2rem;
+}
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--red2);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 2px;
+  background: var(--red2);
+}
+
+.heading {
+  font-family: var(--cond);
+  font-size: clamp(32px, 6vw, 48px);
+  font-weight: 900;
+  color: var(--cream);
+  line-height: 0.95;
+  letter-spacing: -0.5px;
+  text-transform: uppercase;
+}
+
+.heading em {
+  font-style: normal;
+  color: var(--red2);
+}
+
+/* Empty state */
+.emptyState {
+  margin-top: 1rem;
+}
+
+.emptyCard {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 2rem;
+  position: relative;
+}
+
+.emptyCard::before,
+.emptyCard::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+}
+
+.emptyCard::before {
+  top: 4px;
+  left: 4px;
+  border-top: 2px solid var(--red);
+  border-left: 2px solid var(--red);
+  opacity: 0.6;
+}
+
+.emptyCard::after {
+  bottom: 4px;
+  right: 4px;
+  border-bottom: 2px solid var(--red);
+  border-right: 2px solid var(--red);
+  opacity: 0.6;
+}
+
+.emptyTitle {
+  font-family: var(--cond);
+  font-size: 24px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--cream);
+  margin-bottom: 0.5rem;
+}
+
+.emptyText {
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
+}
+
+.assessLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.assessLink {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 14px 16px;
+  transition: border-color 0.2s;
+  text-decoration: none;
+  color: inherit;
+}
+
+.assessLink:hover {
+  border-color: var(--red);
+}
+
+.assessLink strong {
+  display: block;
+  font-family: var(--cond);
+  font-size: 16px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--cream);
+}
+
+.assessLink span {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.assessIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(200, 36, 26, 0.15);
+  color: var(--red2);
+  font-size: 20px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* Score cards */
+.scores {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.scoreCard {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.2s;
+  position: relative;
+}
+
+.scoreCard:hover {
+  border-color: var(--red);
+}
+
+.scoreCard::before,
+.scoreCard::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+}
+
+.scoreCard::before {
+  top: 4px;
+  left: 4px;
+  border-top: 2px solid var(--red);
+  border-left: 2px solid var(--red);
+  opacity: 0.6;
+}
+
+.scoreCard::after {
+  bottom: 4px;
+  right: 4px;
+  border-bottom: 2px solid var(--red);
+  border-right: 2px solid var(--red);
+  opacity: 0.6;
+}
+
+.scoreCardTop {
+  padding: 1.5rem;
+}
+
+.scoreCta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 1.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--red2);
+  transition: color 0.2s;
+}
+
+.scoreCta span {
+  font-size: 14px;
+}
+
+.scoreCard:hover .scoreCta {
+  color: var(--cream);
+}
+
+.scoreLabel {
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  color: var(--text-dim);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.scoreValue {
+  font-family: var(--cond);
+  font-size: 48px;
+  font-weight: 900;
+  color: var(--red);
+  line-height: 1;
+  letter-spacing: -2px;
+  text-shadow: 0 0 40px rgba(200, 36, 26, 0.4);
+}
+
+.scoreSub {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 6px;
+}
+
+.addAssessment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  border: 1px dashed var(--border);
+  border-radius: 3px;
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  transition: border-color 0.2s, color 0.2s;
+  text-decoration: none;
+}
+
+.addAssessment:hover {
+  border-color: var(--red);
+  color: var(--red2);
+}
+
+.addAssessment span {
+  font-size: 18px;
+  color: var(--red2);
+}
+
+/* ── Today's Plan Section ── */
+.todaySection {
+  margin-top: 1.5rem;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1.25rem;
+}
+
+.todayHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.todayTitle {
+  font-family: var(--cond);
+  font-size: 18px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--cream);
+}
+
+.todayCount {
+  font-family: var(--mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.15em;
+  color: var(--red2);
+  font-weight: 700;
+}
+
+.todayBar {
+  height: 2px;
+  background: var(--border-dim);
+  border-radius: 1px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.todayBarFill {
+  height: 100%;
+  background: var(--red2);
+  transition: width 0.3s ease;
+}
+
+.todayItems {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.todayItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-dim);
+  transition: opacity 0.2s;
+}
+
+.todayItem:last-child {
+  border-bottom: none;
+}
+
+.todayItemDone {
+  opacity: 0.35;
+}
+
+.todayDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 7px;
+}
+
+.todayItemContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.todayItemName {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--cream);
+}
+
+.todayItemDone .todayItemName {
+  text-decoration: line-through;
+}
+
+.todayItemTarget {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-top: 2px;
+}
+
+.todayCheck {
+  color: var(--red2);
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.todayMore {
+  display: block;
+  text-align: center;
+  padding: 10px 0 4px;
+  font-size: 11px;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.todayMore:hover {
+  color: var(--red2);
+}
+
+.todayViewAll {
+  display: block;
+  text-align: center;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--red2);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.todayViewAll:hover {
+  color: var(--cream);
+}
+
+/* ── Retake Section ── */
+.retakeSection {
+  margin-top: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.retakeTitle {
+  font-family: var(--mono);
+  font-size: 0.46rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.retakeLinks {
+  display: flex;
+  gap: 8px;
+}
+
+.retakeLink {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.retakeLink:hover {
+  border-color: var(--red);
+  color: var(--red2);
+}
+
+.retakeIcon {
+  font-size: 14px;
+}

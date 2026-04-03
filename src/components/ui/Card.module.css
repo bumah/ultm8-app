@@ -1,0 +1,36 @@
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1.25rem;
+  position: relative;
+}
+
+.impact {
+  position: relative;
+}
+
+.impact::before,
+.impact::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+}
+
+.impact::before {
+  top: 4px;
+  left: 4px;
+  border-top: 2px solid var(--red);
+  border-left: 2px solid var(--red);
+  opacity: 0.6;
+}
+
+.impact::after {
+  bottom: 4px;
+  right: 4px;
+  border-bottom: 2px solid var(--red);
+  border-right: 2px solid var(--red);
+  opacity: 0.6;
+}

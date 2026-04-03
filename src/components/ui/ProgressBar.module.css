@@ -1,0 +1,31 @@
+.wrap {
+  margin-bottom: 1.5rem;
+}
+
+.labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.text {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--red2);
+  font-weight: 700;
+}
+
+.bar {
+  height: 2px;
+  background: var(--border-dim);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  background: var(--red2);
+  border-radius: 1px;
+  transition: width 0.4s ease;
+}

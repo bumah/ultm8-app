@@ -1,0 +1,40 @@
+.card {
+  background: var(--bg2);
+  border: 1px solid rgba(242, 237, 228, 0.08);
+  border-radius: 3px;
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.card:hover {
+  border-color: rgba(242, 237, 228, 0.3);
+}
+
+.selected {
+  border-color: var(--red2);
+  background: rgba(200, 36, 26, 0.1);
+}
+
+.label {
+  font-family: var(--cond);
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--cream);
+  text-transform: uppercase;
+}
+
+.selected .label {
+  color: var(--red2);
+}
+
+.sub {
+  font-size: 11px;
+  color: var(--text-muted);
+}
