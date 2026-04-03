@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { WBLABELS, WHLABELS, WBMAP } from '@/lib/scoring/wealth-scoring';
-import { BTIERS, HSTATUS, getBehaviourTierIndex, getTierColor } from '@/lib/scoring/shared';
+import { BTIERS, BGRADES, HSTATUS, getBehaviourTierIndex, getTierColor } from '@/lib/scoring/shared';
 import { WBRECS, WHRECS } from '@/lib/data/wealth-recommendations';
 import { WCONN_INSIGHTS } from '@/lib/data/wealth-connections';
 import OctagonChart from '@/components/octagon/OctagonChart';
@@ -94,6 +94,7 @@ export default function WealthResultsPage() {
   /* Expandable cards state */
   const [openBehaviours, setOpenBehaviours] = useState<Set<number>>(new Set());
   const [openIndicators, setOpenIndicators] = useState<Set<number>>(new Set());
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -214,7 +215,7 @@ export default function WealthResultsPage() {
                   ))}
                 </div>
                 <div className={styles.barTier} style={{ color }}>
-                  {tierLabel}
+                  {BGRADES[tierIdx]}
                 </div>
               </div>
             );
@@ -249,13 +250,13 @@ export default function WealthResultsPage() {
                   >
                     <div className={styles.reportCardLeft}>
                       <div className={styles.reportCardScore} style={{ color }}>
-                        {score}
+                        {BGRADES[tierIdx]}
                       </div>
                       <div className={styles.reportCardName}>{label}</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <div className={styles.reportCardTier} style={{ color }}>
-                        {tierLabel}
+                        {BGRADES[tierIdx]} &mdash; {tierLabel}
                       </div>
                       <div
                         className={`${styles.reportCardChevron} ${isOpen ? styles.reportCardChevronOpen : ''}`}
@@ -467,13 +468,14 @@ export default function WealthResultsPage() {
                   {driverIndices.map((bIdx) => {
                     const bScore = bScores[bIdx];
                     const bColor = getTierColor(bScore, 4);
+                    const bGrade = BGRADES[getBehaviourTierIndex(bScore)];
                     return (
                       <div className={styles.connectionDriver} key={bIdx}>
                         <span
                           className={styles.connectionDriverScore}
                           style={{ color: bColor }}
                         >
-                          {bScore}
+                          {bGrade}
                         </span>
                         <span className={styles.connectionDriverName}>
                           {WBLABELS[bIdx]}
@@ -502,6 +504,46 @@ export default function WealthResultsPage() {
         <Button variant="outline" fullWidth onClick={() => router.push('/assess/wealth')}>
           Retake Assessment
         </Button>
+      </div>
+
+      <div className={styles.deleteSection}>
+        {!showDeleteConfirm ? (
+          <button className={styles.deleteBtn} onClick={() => setShowDeleteConfirm(true)}>
+            Delete this assessment
+          </button>
+        ) : (
+          <div className={styles.deleteConfirm}>
+            <p className={styles.deleteText}>
+              This will permanently delete this assessment and its associated plan. This cannot be undone.
+            </p>
+            <div className={styles.deleteActions}>
+              <Button
+                variant="primary"
+                onClick={async () => {
+                  const supabase = createClient();
+                  const { data: plans } = await supabase
+                    .from('action_plans')
+                    .select('id')
+                    .eq('assessment_id', id);
+                  if (plans) {
+                    for (const p of plans) {
+                      await supabase.from('daily_progress').delete().eq('plan_id', p.id);
+                    }
+                    await supabase.from('action_plans').delete().eq('assessment_id', id);
+                  }
+                  await supabase.from('wealth_assessments').delete().eq('id', id);
+                  router.push('/dashboard');
+                  router.refresh();
+                }}
+              >
+                Yes, Delete
+              </Button>
+              <Button variant="ghost" onClick={() => setShowDeleteConfirm(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

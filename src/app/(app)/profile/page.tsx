@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { BLABELS } from '@/lib/scoring/health-scoring';
 import { WBLABELS } from '@/lib/scoring/wealth-scoring';
-import { BTIERS, getBehaviourTierIndex, getTierColor } from '@/lib/scoring/shared';
+import { BTIERS, BGRADES, getBehaviourTierIndex, getTierColor } from '@/lib/scoring/shared';
 import Button from '@/components/ui/Button';
 import SelectCard from '@/components/ui/SelectCard';
 import InputField from '@/components/ui/InputField';
@@ -150,6 +150,16 @@ export default function ProfilePage() {
     return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
+  function getAge(dob: string | null): number | null {
+    if (!dob) return null;
+    const today = new Date();
+    const birth = new Date(dob);
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age;
+  }
+
   function renderBehaviourBar(score: number | null) {
     const s = score ?? 0;
     const tierIndex = getBehaviourTierIndex(s);
@@ -204,8 +214,10 @@ export default function ProfilePage() {
               <span className={styles.infoValue}>{profile?.gender || '—'}</span>
             </div>
             <div className={styles.infoItem}>
-              <span className={styles.infoLabel}>Age Group</span>
-              <span className={styles.infoValue}>{profile?.age_group || '—'}</span>
+              <span className={styles.infoLabel}>Age</span>
+              <span className={styles.infoValue}>
+                {profile?.date_of_birth ? `${getAge(profile.date_of_birth)}` : (profile?.age_group || '—')}
+              </span>
             </div>
             <div className={styles.infoItem}>
               <span className={styles.infoLabel}>Currency</span>
@@ -311,7 +323,7 @@ export default function ProfilePage() {
                     <div className={styles.summaryBName}>{BLABELS[i]}</div>
                     {renderBehaviourBar(score)}
                     <div className={styles.summaryBTier} style={{ color: tierColor }}>
-                      {BTIERS[tierIdx]}
+                      {BGRADES[tierIdx]}
                     </div>
                   </div>
                 );
@@ -368,7 +380,7 @@ export default function ProfilePage() {
                     <div className={styles.summaryBName}>{WBLABELS[i]}</div>
                     {renderBehaviourBar(score)}
                     <div className={styles.summaryBTier} style={{ color: tierColor }}>
-                      {BTIERS[tierIdx]}
+                      {BGRADES[tierIdx]}
                     </div>
                   </div>
                 );

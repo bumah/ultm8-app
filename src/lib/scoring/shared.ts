@@ -1,6 +1,7 @@
 // Shared scoring constants and utilities
 
 export const BTIERS = ['Needs improvement', 'Getting there', 'Strong', 'Ultimate'] as const;
+export const BGRADES = ['C', 'B', 'A', 'A+'] as const;
 export const BTIER_COLS = ['#ff3b2f', '#C8241A', '#C8241A', '#C8241A'];
 
 export const HSTATUS = [
@@ -20,6 +21,10 @@ export function getTierColor(score: number, maxScore: number = 8): string {
 
 export function getBehaviourTierIndex(score: number): number {
   return Math.max(0, Math.min(3, score - 1));
+}
+
+export function getBehaviourGrade(score: number): string {
+  return BGRADES[getBehaviourTierIndex(score)];
 }
 
 export function getIndicatorStatusIndex(score: number): number {
