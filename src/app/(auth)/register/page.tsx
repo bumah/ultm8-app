@@ -42,6 +42,22 @@ export default function RegisterPage() {
       return;
     }
 
+    // Check if session was established (email confirmation may be required)
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+      // If no session, explicitly sign in (handles cases where signup doesn't auto-login)
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (signInError) {
+        setError('Account created but could not sign in. Please go to the login page.');
+        setLoading(false);
+        return;
+      }
+    }
+
     // Ensure profile row exists (trigger may have created it already)
     if (data.user) {
       await supabase.from('profiles').upsert({
@@ -51,7 +67,7 @@ export default function RegisterPage() {
       }, { onConflict: 'id' });
     }
 
-    // Use window.location for a hard redirect to avoid middleware race
+    // Hard redirect to ensure cookies are established before middleware runs
     window.location.href = '/onboarding';
   }
 
