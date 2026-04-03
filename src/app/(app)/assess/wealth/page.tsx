@@ -270,7 +270,7 @@ export default function WealthAssessPage() {
       row[col] = scores[i];
     });
 
-    // Check if there's a recent assessment within 8 weeks
+    // Always create a new assessment (delete recent one if within 8 weeks)
     const eightWeeksAgo = new Date();
     eightWeeksAgo.setDate(eightWeeksAgo.getDate() - 56);
     const { data: recentAssessment } = await supabase
@@ -282,23 +282,26 @@ export default function WealthAssessPage() {
       .limit(1)
       .single();
 
-    let assessmentId: string;
-
+    // If within 8 weeks, delete the old one first
     if (recentAssessment) {
-      // Within 8 weeks — overwrite the existing assessment
-      row.completed_at = new Date().toISOString();
-      const { error } = await supabase
-        .from('wealth_assessments')
-        .update(row)
-        .eq('id', recentAssessment.id);
-
-      if (error) {
-        console.error('Failed to update wealth assessment:', error);
-        return;
+      console.log('[ULTM8 Wealth] Overwriting assessment:', recentAssessment.id);
+      // Delete old plan and progress
+      const { data: oldPlans } = await supabase
+        .from('action_plans')
+        .select('id')
+        .eq('assessment_id', recentAssessment.id);
+      if (oldPlans) {
+        for (const p of oldPlans) {
+          await supabase.from('daily_progress').delete().eq('plan_id', p.id);
+        }
+        await supabase.from('action_plans').delete().eq('assessment_id', recentAssessment.id);
       }
-      assessmentId = recentAssessment.id;
-    } else {
-      // After 8 weeks — create new assessment
+      await supabase.from('wealth_assessments').delete().eq('id', recentAssessment.id);
+    }
+
+    // Always insert fresh
+    let assessmentId: string;
+    {
       const { data, error } = await supabase
         .from('wealth_assessments')
         .insert(row)
@@ -649,6 +652,13 @@ export default function WealthAssessPage() {
           <p className={styles.computingSub}>
             Scoring your behaviours and financial data.
           </p>
+          {/* Debug: show state values */}
+          <div style={{ marginTop: '2rem', fontSize: '10px', color: 'var(--text-dim)', fontFamily: 'var(--mono)', textAlign: 'left', maxWidth: '340px', lineHeight: 1.8 }}>
+            <div>B: {JSON.stringify(state.bAnswers)}</div>
+            <div>FD: {JSON.stringify(state.fdValues)}</div>
+            <div>CS: {state.creditScore}</div>
+            <div>Age: {ageGroup}</div>
+          </div>
         </div>
       </div>
     );

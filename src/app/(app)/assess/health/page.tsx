@@ -211,7 +211,7 @@ export default function HealthAssessPage() {
       row[col] = indicatorScores[i];
     });
 
-    // Check if there's a recent assessment within 8 weeks
+    // Always create a new assessment (delete recent one if within 8 weeks)
     const eightWeeksAgo = new Date();
     eightWeeksAgo.setDate(eightWeeksAgo.getDate() - 56);
     const { data: recentAssessment } = await supabase
@@ -223,23 +223,25 @@ export default function HealthAssessPage() {
       .limit(1)
       .single();
 
-    let assessmentId: string;
-
+    // If within 8 weeks, delete the old one first
     if (recentAssessment) {
-      // Within 8 weeks — overwrite the existing assessment
-      row.completed_at = new Date().toISOString();
-      const { error } = await supabase
-        .from('health_assessments')
-        .update(row)
-        .eq('id', recentAssessment.id);
-
-      if (error) {
-        console.error('Failed to update health assessment:', error);
-        return;
+      console.log('[ULTM8 Health] Overwriting assessment:', recentAssessment.id);
+      const { data: oldPlans } = await supabase
+        .from('action_plans')
+        .select('id')
+        .eq('assessment_id', recentAssessment.id);
+      if (oldPlans) {
+        for (const p of oldPlans) {
+          await supabase.from('daily_progress').delete().eq('plan_id', p.id);
+        }
+        await supabase.from('action_plans').delete().eq('assessment_id', recentAssessment.id);
       }
-      assessmentId = recentAssessment.id;
-    } else {
-      // After 8 weeks — create new assessment
+      await supabase.from('wealth_assessments').delete().eq('id', recentAssessment.id);
+    }
+
+    // Always insert fresh
+    let assessmentId: string;
+    {
       const { data, error } = await supabase
         .from('health_assessments')
         .insert(row)
