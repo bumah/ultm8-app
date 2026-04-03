@@ -42,17 +42,17 @@ export default function RegisterPage() {
       return;
     }
 
-    // Create profile row
+    // Ensure profile row exists (trigger may have created it already)
     if (data.user) {
-      await supabase.from('profiles').insert({
+      await supabase.from('profiles').upsert({
         id: data.user.id,
         name,
         onboarding_complete: false,
-      });
+      }, { onConflict: 'id' });
     }
 
-    router.push('/onboarding');
-    router.refresh();
+    // Use window.location for a hard redirect to avoid middleware race
+    window.location.href = '/onboarding';
   }
 
   return (
