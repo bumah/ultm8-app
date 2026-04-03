@@ -1,0 +1,257 @@
+/* ── ULTM8 Landing Page ── */
+
+.page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 var(--page-pad);
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Hero ── */
+.hero {
+  padding-top: 4rem;
+  padding-bottom: 3rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.logo {
+  font-family: var(--cond);
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  color: var(--cream);
+  text-transform: uppercase;
+  margin-bottom: 2.5rem;
+}
+
+.accent {
+  color: var(--red);
+}
+
+.heading {
+  font-family: var(--cond);
+  font-size: clamp(36px, 8vw, 56px);
+  font-weight: 900;
+  color: var(--cream);
+  line-height: 0.95;
+  letter-spacing: -1px;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+
+.heading em {
+  font-style: normal;
+  color: var(--red2);
+  display: block;
+  margin-top: 0.2em;
+}
+
+.sub {
+  font-size: 15px;
+  color: var(--text-dim);
+  line-height: 1.8;
+  margin-bottom: 2rem;
+  max-width: 380px;
+}
+
+.heroCtas {
+  display: flex;
+  gap: 12px;
+}
+
+.ctaPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--red);
+  color: var(--cream);
+  padding: 14px 28px;
+  border-radius: 2px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  box-shadow: 0 0 20px var(--red-glow);
+  transition: opacity 0.2s, box-shadow 0.2s;
+}
+
+.ctaPrimary:hover {
+  opacity: 0.9;
+  box-shadow: 0 0 30px rgba(200, 36, 26, 0.35);
+}
+
+.ctaGhost {
+  display: inline-flex;
+  align-items: center;
+  background: transparent;
+  color: var(--text-dim);
+  padding: 14px 20px;
+  border-radius: 2px;
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.ctaGhost:hover {
+  color: var(--text-muted);
+  border-color: rgba(242, 237, 228, 0.3);
+}
+
+/* ── Sections ── */
+.section {
+  padding: 2.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.sectionEyebrow {
+  font-family: var(--mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--red2);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.sectionEyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 2px;
+  background: var(--red2);
+}
+
+/* ── Features ── */
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.feature:last-child {
+  border-bottom: none;
+}
+
+.featureIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 3px;
+  background: rgba(200, 36, 26, 0.12);
+  color: var(--red2);
+  flex-shrink: 0;
+}
+
+.featureName {
+  font-family: var(--cond);
+  font-size: 16px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--cream);
+  letter-spacing: 0.03em;
+}
+
+.featureDesc {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-top: 2px;
+  line-height: 1.5;
+}
+
+/* ── Try without account ── */
+.trySub {
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
+}
+
+.challengeLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.challengeLink {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 16px 18px;
+  text-decoration: none;
+  transition: border-color 0.2s;
+}
+
+.challengeLink:hover {
+  border-color: var(--red);
+}
+
+.challengeLabel {
+  font-family: var(--cond);
+  font-size: 16px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--cream);
+}
+
+.challengeUrl {
+  font-family: var(--mono);
+  font-size: 0.46rem;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+}
+
+/* ── Bottom CTA ── */
+.bottomCta {
+  padding: 3rem 0 4rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.bottomText {
+  font-family: var(--cond);
+  font-size: 22px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--cream);
+}
+
+.bottomSignIn {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.bottomLink {
+  color: var(--red2);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.bottomLink:hover {
+  color: var(--cream);
+}
