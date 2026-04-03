@@ -219,12 +219,8 @@ export default function WealthAssessPage() {
     };
 
     /* Calculate indicator scores */
-    console.log('[ULTM8 Wealth] Financial data:', fd);
-    console.log('[ULTM8 Wealth] Age group:', ageGroup);
     const result = computeWealthScores(fd, ageGroup);
     const { scores, computed } = result;
-    console.log('[ULTM8 Wealth] Indicator scores:', scores);
-    console.log('[ULTM8 Wealth] Computed values:', computed);
 
     /* Compute aggregate scores */
     const validWeights = [...WHWEIGHTS];
@@ -235,11 +231,8 @@ export default function WealthAssessPage() {
 
     const octagonPct = computeWeightedScore(scores, normWeights);
 
-    // Default unanswered behaviours to 1 (matching original assessment logic)
     const bScoresAll = state.bAnswers.map(s => s ?? 1);
     const behaviourPct = computeBehaviourPct(bScoresAll);
-    console.log('[ULTM8 Wealth] Behaviour answers:', state.bAnswers, '→ scores:', bScoresAll);
-    console.log('[ULTM8 Wealth] Octagon %:', octagonPct, '| Behaviour %:', behaviourPct);
 
     /* Build the row */
     const row: Record<string, unknown> = {
@@ -652,13 +645,6 @@ export default function WealthAssessPage() {
           <p className={styles.computingSub}>
             Scoring your behaviours and financial data.
           </p>
-          {/* Debug: show state values */}
-          <div style={{ marginTop: '2rem', fontSize: '10px', color: 'var(--text-dim)', fontFamily: 'var(--mono)', textAlign: 'left', maxWidth: '340px', lineHeight: 1.8 }}>
-            <div>B: {JSON.stringify(state.bAnswers)}</div>
-            <div>FD: {JSON.stringify(state.fdValues)}</div>
-            <div>CS: {state.creditScore}</div>
-            <div>Age: {ageGroup}</div>
-          </div>
         </div>
       </div>
     );
