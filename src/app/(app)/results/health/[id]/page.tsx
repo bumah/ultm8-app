@@ -180,7 +180,6 @@ export default function HealthResultsPage() {
         </div>
 
         {/* Behaviour grades removed — indicator cards now cover the analysis */}
-        </div>
       </section>
 
       <div className={styles.divider} />

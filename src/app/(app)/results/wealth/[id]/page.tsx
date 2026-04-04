@@ -223,7 +223,6 @@ export default function WealthResultsPage() {
         </div>
 
         {/* Behaviour grades removed — indicator cards now cover the analysis */}
-        </div>
       </section>
 
       <div className={styles.divider} />
