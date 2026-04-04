@@ -229,38 +229,44 @@
   margin-bottom: 0.5rem;
 }
 
-.scoreRow {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
+.scoreColumns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 8px;
 }
 
-.scoreValue {
+.scoreCol {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.scoreColLabel {
+  font-family: var(--mono);
+  font-size: 0.42rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.scoreColValue {
   font-family: var(--cond);
-  font-size: 48px;
+  font-size: 36px;
   font-weight: 900;
   color: var(--red);
   line-height: 1;
-  letter-spacing: -2px;
-  text-shadow: 0 0 40px rgba(200, 36, 26, 0.4);
+  letter-spacing: -1.5px;
+  text-shadow: 0 0 30px rgba(200, 36, 26, 0.3);
 }
 
-.scoreRating {
+.scoreColRating {
   font-family: var(--cond);
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-}
-
-.scoreSub {
-  font-size: 12px;
-  color: var(--text-dim);
-  margin-top: 6px;
-}
-
-.scoreSubRating {
-  font-weight: 700;
+  margin-top: 2px;
 }
 
 .scoreMetrics {

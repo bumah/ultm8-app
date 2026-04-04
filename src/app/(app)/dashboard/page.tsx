@@ -106,19 +106,23 @@ export default async function DashboardPage() {
           {/* Score cards */}
           <div className={styles.scores}>
             {healthAssessment && (() => {
-              const octRating = getOverallRating(healthAssessment.octagon_score_pct);
-              const behRating = getOverallRating(healthAssessment.behaviour_score_pct);
+              const octR = getOverallRating(healthAssessment.octagon_score_pct);
+              const behR = getOverallRating(healthAssessment.behaviour_score_pct);
               return (
               <a href={`/results/health/${healthAssessment.id}`} className={styles.scoreCard}>
                 <div className={styles.scoreCardTop}>
                   <div className={styles.scoreLabel}>Health Octagon</div>
-                  <div className={styles.scoreRow}>
-                    <div className={styles.scoreValue}>{healthAssessment.octagon_score_pct}%</div>
-                    <div className={styles.scoreRating} style={{ color: octRating.color }}>{octRating.label}</div>
-                  </div>
-                  <div className={styles.scoreSub}>
-                    Behaviours: {healthAssessment.behaviour_score_pct}%
-                    <span className={styles.scoreSubRating} style={{ color: behRating.color }}> — {behRating.label}</span>
+                  <div className={styles.scoreColumns}>
+                    <div className={styles.scoreCol}>
+                      <div className={styles.scoreColLabel}>Indicators</div>
+                      <div className={styles.scoreColValue}>{healthAssessment.octagon_score_pct}%</div>
+                      <div className={styles.scoreColRating} style={{ color: octR.color }}>{octR.label}</div>
+                    </div>
+                    <div className={styles.scoreCol}>
+                      <div className={styles.scoreColLabel}>Behaviours</div>
+                      <div className={styles.scoreColValue}>{healthAssessment.behaviour_score_pct}%</div>
+                      <div className={styles.scoreColRating} style={{ color: behR.color }}>{behR.label}</div>
+                    </div>
                   </div>
                   <div className={styles.scoreMetrics}>
                     <div className={styles.scoreMetric}>
@@ -142,19 +146,23 @@ export default async function DashboardPage() {
               );
             })()}
             {wealthAssessment && (() => {
-              const octRating = getOverallRating(wealthAssessment.octagon_score_pct);
-              const behRating = getOverallRating(wealthAssessment.behaviour_score_pct);
+              const octR = getOverallRating(wealthAssessment.octagon_score_pct);
+              const behR = getOverallRating(wealthAssessment.behaviour_score_pct);
               return (
               <a href={`/results/wealth/${wealthAssessment.id}`} className={styles.scoreCard}>
                 <div className={styles.scoreCardTop}>
                   <div className={styles.scoreLabel}>Wealth Octagon</div>
-                  <div className={styles.scoreRow}>
-                    <div className={styles.scoreValue}>{wealthAssessment.octagon_score_pct}%</div>
-                    <div className={styles.scoreRating} style={{ color: octRating.color }}>{octRating.label}</div>
-                  </div>
-                  <div className={styles.scoreSub}>
-                    Behaviours: {wealthAssessment.behaviour_score_pct}%
-                    <span className={styles.scoreSubRating} style={{ color: behRating.color }}> — {behRating.label}</span>
+                  <div className={styles.scoreColumns}>
+                    <div className={styles.scoreCol}>
+                      <div className={styles.scoreColLabel}>Indicators</div>
+                      <div className={styles.scoreColValue}>{wealthAssessment.octagon_score_pct}%</div>
+                      <div className={styles.scoreColRating} style={{ color: octR.color }}>{octR.label}</div>
+                    </div>
+                    <div className={styles.scoreCol}>
+                      <div className={styles.scoreColLabel}>Behaviours</div>
+                      <div className={styles.scoreColValue}>{wealthAssessment.behaviour_score_pct}%</div>
+                      <div className={styles.scoreColRating} style={{ color: behR.color }}>{behR.label}</div>
+                    </div>
                   </div>
                   <div className={styles.scoreMetrics}>
                     <div className={styles.scoreMetric}>
