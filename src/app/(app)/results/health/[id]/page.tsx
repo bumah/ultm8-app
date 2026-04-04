@@ -351,7 +351,6 @@ export default function HealthResultsPage() {
         <div className={styles.scoreBox}>
           <div className={styles.scoreValue}>{behaviourPct}%</div>
           <div className={styles.scoreLabel}>Behaviour Score</div>
-          <div className={styles.scoreSummary}>{getBehaviourSummary(behaviourPct)}</div>
         </div>
 
         <div className={styles.barRows}>
