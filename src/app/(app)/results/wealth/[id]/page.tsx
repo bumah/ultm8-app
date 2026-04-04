@@ -415,39 +415,64 @@ export default function WealthResultsPage() {
                         ))}
                       </div>
 
-                      {/* Factors */}
-                      <div className={styles.insightSection}>
-                        <div className={styles.insightLabel}>Factors</div>
-                        <div className={styles.insightText}>
-                          Driven by {(WBMAP[i] || []).map((bIdx) => {
-                            const bGrade = BGRADES[getBehaviourTierIndex(bScores[bIdx])];
-                            const bColor = getTierColor(bScores[bIdx], 4);
-                            return (
-                              <span key={bIdx} className={styles.insightDriver}>
-                                <span style={{ color: bColor, fontWeight: 800 }}>{WBLABELS[bIdx]}</span>
-                                <span className={styles.insightGrade} style={{ color: bColor }}>({bGrade})</span>
-                              </span>
-                            );
-                          }).reduce((prev, curr, idx) => idx === 0 ? [curr] : [...prev, <span key={`sep-${idx}`}>, </span>, curr], [] as React.ReactNode[])}
-                        </div>
-                      </div>
+                      {(() => {
+                        const drivers = WBMAP[i] || [];
+                        const strong = drivers.filter(bIdx => bScores[bIdx] >= 3);
+                        const weak = drivers.filter(bIdx => bScores[bIdx] <= 2);
+                        const insightText = WCONN_INSIGHTS[i]?.(bScores, iScores) || '';
+                        const sentences = insightText.split(/(?<=\.)\s+/);
+                        const wellSentences = sentences.filter(s => /working in your favour|currently working|at its best|consistent|building|supporting/i.test(s));
+                        const attentionSentences = sentences.filter(s => /pushing|limiting|actively|holding|working against|slowing/i.test(s));
 
-                      {/* Observations */}
-                      <div className={styles.insightSection}>
-                        <div className={styles.insightLabel}>Observations</div>
-                        <div className={styles.insightText}>
-                          {WCONN_INSIGHTS[i]?.(bScores, iScores) || ''}
-                        </div>
-                      </div>
+                        return (
+                          <>
+                            {/* Key Factors */}
+                            <div className={styles.insightSection}>
+                              <div className={styles.insightLabel}>Key Factors</div>
+                              <div className={styles.insightDriverList}>
+                                {drivers.map((bIdx) => {
+                                  const bGrade = BGRADES[getBehaviourTierIndex(bScores[bIdx])];
+                                  const bColor = getTierColor(bScores[bIdx], 4);
+                                  return (
+                                    <span key={bIdx} className={styles.insightDriverPill} style={{ borderColor: bColor }}>
+                                      <span style={{ color: bColor, fontWeight: 800 }}>{WBLABELS[bIdx]}</span>
+                                      <span className={styles.insightGrade} style={{ color: bColor }}>({bGrade})</span>
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            </div>
 
-                      {/* Action */}
-                      {rec && (
-                        <div className={styles.insightSection}>
-                          <div className={styles.insightLabel}>Action</div>
-                          <div className={styles.insightText}>{rec.rec}</div>
-                          <div className={styles.insightTarget}>{rec.next}</div>
-                        </div>
-                      )}
+                            {/* Going Well */}
+                            {strong.length > 0 && (
+                              <div className={styles.insightSection}>
+                                <div className={styles.insightLabelGood}>Going Well</div>
+                                <div className={styles.insightText}>
+                                  {wellSentences.length > 0 ? wellSentences.join(' ') : `${strong.map(bIdx => WBLABELS[bIdx]).join(' and ')} ${strong.length > 1 ? 'are' : 'is'} working in your favour.`}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Needs Attention */}
+                            {weak.length > 0 && (
+                              <div className={styles.insightSection}>
+                                <div className={styles.insightLabelWarn}>Needs Attention</div>
+                                <div className={styles.insightText}>
+                                  {attentionSentences.length > 0 ? attentionSentences.join(' ') : `${weak.map(bIdx => WBLABELS[bIdx]).join(' and ')} ${weak.length > 1 ? 'are' : 'is'} holding back your ${WHLABELS[i].toLowerCase()}.`}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Action */}
+                            {rec && (
+                              <div className={styles.insightSection}>
+                                <div className={styles.insightLabel}>Action</div>
+                                <div className={styles.insightText}>{rec.rec}</div>
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                   )}
                 </div>
