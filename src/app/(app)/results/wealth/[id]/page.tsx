@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { WBLABELS, WHLABELS, WBMAP } from '@/lib/scoring/wealth-scoring';
 import { BTIERS, BGRADES, HSTATUS, getBehaviourTierIndex, getTierColor } from '@/lib/scoring/shared';
-import { WBRECS, WHRECS } from '@/lib/data/wealth-recommendations';
+import { WHRECS } from '@/lib/data/wealth-recommendations';
 import { WCONN_INSIGHTS } from '@/lib/data/wealth-connections';
 import OctagonChart from '@/components/octagon/OctagonChart';
 import Button from '@/components/ui/Button';
@@ -222,61 +222,7 @@ export default function WealthResultsPage() {
           })}
         </div>
 
-        {/* Behaviour report cards */}
-        <div className={styles.reportSection}>
-          <div className={styles.reportSectionTitle}>Behaviour Report</div>
-          <div className={styles.reportCards}>
-            {WBLABELS.map((label, i) => {
-              const score = bScores[i];
-              const tierIdx = getBehaviourTierIndex(score);
-              const tierLabel = BTIERS[tierIdx];
-              const color = getTierColor(score, 4);
-              const isOpen = openBehaviours.has(i);
-              const rec = WBRECS[i]?.[score];
-
-              return (
-                <div className={styles.reportCard} key={i}>
-                  <div
-                    className={styles.reportCardHeader}
-                    onClick={() => toggleBehaviour(i)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        toggleBehaviour(i);
-                      }
-                    }}
-                  >
-                    <div className={styles.reportCardLeft}>
-                      <div className={styles.reportCardScore} style={{ color }}>
-                        {BGRADES[tierIdx]}
-                      </div>
-                      <div className={styles.reportCardName}>{label}</div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div className={styles.reportCardTier} style={{ color }}>
-                        {BGRADES[tierIdx]} &mdash; {tierLabel}
-                      </div>
-                      <div
-                        className={`${styles.reportCardChevron} ${isOpen ? styles.reportCardChevronOpen : ''}`}
-                      >
-                        &#9662;
-                      </div>
-                    </div>
-                  </div>
-                  {isOpen && rec && (
-                    <div className={styles.reportCardBody}>
-                      <div className={styles.reportRecLabel}>Recommendation</div>
-                      <div className={styles.reportRecText}>{rec.rec}</div>
-                      <div className={styles.reportNextLabel}>Next Step</div>
-                      <div className={styles.reportNextText}>{rec.next}</div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+        {/* Behaviour grades removed — indicator cards now cover the analysis */}
         </div>
       </section>
 
