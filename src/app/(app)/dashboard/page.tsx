@@ -270,9 +270,9 @@ export default async function DashboardPage() {
           {/* Key Dates */}
           {(() => {
             const checks = [
-              { label: 'Health Assessment', icon: '🏥', last: healthAssessment?.completed_at, next: healthAssessment ? new Date(new Date(healthAssessment.completed_at).getTime() + 56 * 24 * 60 * 60 * 1000).toISOString() : null },
+              { label: 'ULTM8 Assessment', icon: '🏥', last: healthAssessment?.completed_at, next: healthAssessment ? new Date(new Date(healthAssessment.completed_at).getTime() + 56 * 24 * 60 * 60 * 1000).toISOString() : null },
               { label: 'Dental', icon: '🦷', last: healthSnapshot?.dental_last, next: healthSnapshot?.dental_next },
-              { label: 'Eye Check', icon: '👁', last: healthSnapshot?.eye_last, next: healthSnapshot?.eye_next },
+              { label: 'Full Body Check', icon: '👁', last: healthSnapshot?.eye_last, next: healthSnapshot?.eye_next },
               { label: 'Cancer Check', icon: '🎗', last: healthSnapshot?.cancer_last, next: healthSnapshot?.cancer_next },
             ];
             const hasAnyDate = checks.some(c => c.last || c.next);

@@ -472,7 +472,7 @@ export default function HealthSnapshot({ userId, latestHealthAssessment }: Props
       {!editingChecks ? (
         <div className={styles.checksGrid}>
           <div className={styles.checkRow}>
-            <span className={styles.checkLabel}>Health Assessment</span>
+            <span className={styles.checkLabel}>ULTM8 Assessment</span>
             <span className={styles.checkDate}>
               <span className={styles.checkPrefix}>Last:</span>
               {formatShortDate(assessmentLast)}
@@ -494,7 +494,7 @@ export default function HealthSnapshot({ userId, latestHealthAssessment }: Props
             </span>
           </div>
           <div className={styles.checkRow}>
-            <span className={styles.checkLabel}>Eye Check</span>
+            <span className={styles.checkLabel}>Full Body Check</span>
             <span className={data?.eye_last ? styles.checkDate : styles.checkDateDim}>
               <span className={styles.checkPrefix}>Last:</span>
               {formatShortDate(data?.eye_last ?? null)}
@@ -519,7 +519,7 @@ export default function HealthSnapshot({ userId, latestHealthAssessment }: Props
       ) : (
         <div className={styles.editForm}>
           <div className={styles.checkEditRow}>
-            <span className={styles.editLabel}>Health Assessment</span>
+            <span className={styles.editLabel}>ULTM8 Assessment</span>
             <div className={styles.dateCol}>
               <span className={styles.dateLabelSm}>Last</span>
               <input
@@ -561,7 +561,7 @@ export default function HealthSnapshot({ userId, latestHealthAssessment }: Props
             </div>
           </div>
           <div className={styles.checkEditRow}>
-            <span className={styles.editLabel}>Eye Check</span>
+            <span className={styles.editLabel}>Full Body Check</span>
             <div className={styles.dateCol}>
               <span className={styles.dateLabelSm}>Last</span>
               <input
