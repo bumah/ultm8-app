@@ -513,3 +513,115 @@
 .retakeIcon {
   font-size: 14px;
 }
+
+/* ── Key Dates Section ── */
+.keyDatesSection {
+  margin-top: 1.5rem;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1.25rem;
+}
+
+.keyDatesTitle {
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--red2);
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-dim);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.keyDatesTitle::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 2px;
+  background: var(--red2);
+}
+
+.keyDatesList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.keyDateRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.keyDateRow:last-child {
+  border-bottom: none;
+}
+
+.keyDateIcon {
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.keyDateContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.keyDateLabel {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--cream);
+  margin-bottom: 4px;
+}
+
+.keyDateDates {
+  display: flex;
+  gap: 16px;
+}
+
+.keyDatePair {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.keyDateTag {
+  font-family: var(--mono);
+  font-size: 0.4rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-right: 4px;
+}
+
+.keyDatesEmpty {
+  font-size: 13px;
+  color: var(--text-dim);
+  padding: 8px 0;
+}
+
+.keyDatesEdit {
+  display: block;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-dim);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--red2);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.keyDatesEdit:hover {
+  color: var(--cream);
+}

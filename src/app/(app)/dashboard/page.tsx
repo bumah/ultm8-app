@@ -39,6 +39,13 @@ export default async function DashboardPage() {
 
   const hasAssessments = healthAssessment || wealthAssessment;
 
+  // Get health check dates
+  const { data: healthSnapshot } = await supabase
+    .from('health_snapshot')
+    .select('dental_last, dental_next, eye_last, eye_next, cancer_last, cancer_next')
+    .eq('user_id', user.id)
+    .single();
+
   // Get today's plan progress
   const today = new Date().toISOString().split('T')[0];
   const { data: todayProgress } = await supabase
@@ -260,6 +267,53 @@ export default async function DashboardPage() {
               </Link>
             </div>
           )}
+          {/* Key Dates */}
+          {(() => {
+            const checks = [
+              { label: 'Health Assessment', icon: '🏥', last: healthAssessment?.completed_at, next: healthAssessment ? new Date(new Date(healthAssessment.completed_at).getTime() + 56 * 24 * 60 * 60 * 1000).toISOString() : null },
+              { label: 'Dental', icon: '🦷', last: healthSnapshot?.dental_last, next: healthSnapshot?.dental_next },
+              { label: 'Eye Check', icon: '👁', last: healthSnapshot?.eye_last, next: healthSnapshot?.eye_next },
+              { label: 'Cancer Check', icon: '🎗', last: healthSnapshot?.cancer_last, next: healthSnapshot?.cancer_next },
+            ];
+            const hasAnyDate = checks.some(c => c.last || c.next);
+            const fmtDate = (d: string | null | undefined) => {
+              if (!d) return '—';
+              return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+            };
+
+            return (
+              <div className={styles.keyDatesSection}>
+                <div className={styles.keyDatesTitle}>Key Dates</div>
+                {hasAnyDate ? (
+                  <div className={styles.keyDatesList}>
+                    {checks.map((check, i) => (
+                      <div className={styles.keyDateRow} key={i}>
+                        <div className={styles.keyDateIcon}>{check.icon}</div>
+                        <div className={styles.keyDateContent}>
+                          <div className={styles.keyDateLabel}>{check.label}</div>
+                          <div className={styles.keyDateDates}>
+                            <span className={styles.keyDatePair}>
+                              <span className={styles.keyDateTag}>Last</span> {fmtDate(check.last)}
+                            </span>
+                            <span className={styles.keyDatePair}>
+                              <span className={styles.keyDateTag}>Next</span> {fmtDate(check.next)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className={styles.keyDatesEmpty}>
+                    No upcoming appointments set.
+                  </div>
+                )}
+                <Link href="/profile" className={styles.keyDatesEdit}>
+                  Edit dates &rarr;
+                </Link>
+              </div>
+            );
+          })()}
         </>
       )}
     </div>
