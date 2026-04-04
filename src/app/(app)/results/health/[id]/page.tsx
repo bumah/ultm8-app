@@ -431,7 +431,7 @@ export default function HealthResultsPage() {
                               <div className={styles.insightSection}>
                                 <div className={styles.insightLabel}>Action</div>
                                 <div className={styles.insightText}>
-                                  Focus on improving your {weak.map(bIdx => BLABELS[bIdx]).join(' and ')} {weak.length > 1 ? 'habits' : 'habit'}. Your 8-week plan includes specific weekly targets for {weak.length > 1 ? 'these behaviours' : 'this behaviour'}.
+                                  Focus on improving your {weak.map(bIdx => BLABELS[bIdx]).join(' and ')} {weak.length > 1 ? 'habits' : 'habit'}.
                                 </div>
                               </div>
                             )}
