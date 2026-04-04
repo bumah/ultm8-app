@@ -375,13 +375,39 @@ export default function HealthResultsPage() {
                           />
                         ))}
                       </div>
+
+                      {/* Factors */}
+                      <div className={styles.insightSection}>
+                        <div className={styles.insightLabel}>Factors</div>
+                        <div className={styles.insightText}>
+                          Driven by {(BMAP[i] || []).map((bIdx) => {
+                            const bGrade = BGRADES[getBehaviourTierIndex(bScores[bIdx])];
+                            const bColor = getTierColor(bScores[bIdx], 4);
+                            return (
+                              <span key={bIdx} className={styles.insightDriver}>
+                                <span style={{ color: bColor, fontWeight: 800 }}>{BLABELS[bIdx]}</span>
+                                <span className={styles.insightGrade} style={{ color: bColor }}>({bGrade})</span>
+                              </span>
+                            );
+                          }).reduce((prev, curr, idx) => idx === 0 ? [curr] : [...prev, <span key={`sep-${idx}`}>, </span>, curr], [] as React.ReactNode[])}
+                        </div>
+                      </div>
+
+                      {/* Observations */}
+                      <div className={styles.insightSection}>
+                        <div className={styles.insightLabel}>Observations</div>
+                        <div className={styles.insightText}>
+                          {CONN_INSIGHTS[i]?.(bScores, iScores) || ''}
+                        </div>
+                      </div>
+
+                      {/* Action */}
                       {rec && (
-                        <>
-                          <div className={styles.reportRecLabel}>Recommendation</div>
-                          <div className={styles.reportRecText}>{rec.rec}</div>
-                          <div className={styles.reportNextLabel}>Next Step</div>
-                          <div className={styles.reportNextText}>{rec.next}</div>
-                        </>
+                        <div className={styles.insightSection}>
+                          <div className={styles.insightLabel}>Action</div>
+                          <div className={styles.insightText}>{rec.rec}</div>
+                          <div className={styles.insightTarget}>{rec.next}</div>
+                        </div>
                       )}
                     </div>
                   )}
