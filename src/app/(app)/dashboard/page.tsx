@@ -19,10 +19,10 @@ export default async function DashboardPage() {
     redirect('/onboarding');
   }
 
-  // Get latest assessments (include id for linking)
+  // Get latest assessments (include id + key metrics for dashboard cards)
   const { data: healthAssessment } = await supabase
     .from('health_assessments')
-    .select('id, octagon_score_pct, behaviour_score_pct, completed_at')
+    .select('id, octagon_score_pct, behaviour_score_pct, completed_at, i_blood_pressure, i_body_fat')
     .eq('user_id', user.id)
     .order('completed_at', { ascending: false })
     .limit(1)
@@ -30,7 +30,7 @@ export default async function DashboardPage() {
 
   const { data: wealthAssessment } = await supabase
     .from('wealth_assessments')
-    .select('id, octagon_score_pct, behaviour_score_pct, completed_at')
+    .select('id, octagon_score_pct, behaviour_score_pct, completed_at, computed_net_worth, fd_income, fd_expenses')
     .eq('user_id', user.id)
     .order('completed_at', { ascending: false })
     .limit(1)
@@ -112,6 +112,20 @@ export default async function DashboardPage() {
                   <div className={styles.scoreSub}>
                     Behaviours: {healthAssessment.behaviour_score_pct}%
                   </div>
+                  <div className={styles.scoreMetrics}>
+                    <div className={styles.scoreMetric}>
+                      <span className={styles.scoreMetricLabel}>BP</span>
+                      <span className={styles.scoreMetricValue}>
+                        {healthAssessment.i_blood_pressure ? `${healthAssessment.i_blood_pressure} mmHg` : '—'}
+                      </span>
+                    </div>
+                    <div className={styles.scoreMetric}>
+                      <span className={styles.scoreMetricLabel}>Body Fat</span>
+                      <span className={styles.scoreMetricValue}>
+                        {healthAssessment.i_body_fat ? `${healthAssessment.i_body_fat}%` : '—'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
                 <div className={styles.scoreCta}>
                   View Results <span>&rarr;</span>
@@ -125,6 +139,22 @@ export default async function DashboardPage() {
                   <div className={styles.scoreValue}>{wealthAssessment.octagon_score_pct}%</div>
                   <div className={styles.scoreSub}>
                     Behaviours: {wealthAssessment.behaviour_score_pct}%
+                  </div>
+                  <div className={styles.scoreMetrics}>
+                    <div className={styles.scoreMetric}>
+                      <span className={styles.scoreMetricLabel}>Net Income</span>
+                      <span className={styles.scoreMetricValue}>
+                        {profile.currency}{Math.round((wealthAssessment.fd_income || 0) - (wealthAssessment.fd_expenses || 0)).toLocaleString()}/mo
+                      </span>
+                    </div>
+                    <div className={styles.scoreMetric}>
+                      <span className={styles.scoreMetricLabel}>Net Worth</span>
+                      <span className={styles.scoreMetricValue}>
+                        {wealthAssessment.computed_net_worth != null
+                          ? `${wealthAssessment.computed_net_worth >= 0 ? '' : '-'}${profile.currency}${Math.abs(Math.round(wealthAssessment.computed_net_worth)).toLocaleString()}`
+                          : '—'}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div className={styles.scoreCta}>

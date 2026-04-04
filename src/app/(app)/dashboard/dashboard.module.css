@@ -245,6 +245,36 @@
   margin-top: 6px;
 }
 
+.scoreMetrics {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-dim);
+}
+
+.scoreMetric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.scoreMetricLabel {
+  font-family: var(--mono);
+  font-size: 0.42rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.scoreMetricValue {
+  font-family: var(--cond);
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--cream);
+  letter-spacing: -0.3px;
+}
+
 .addAssessment {
   display: flex;
   align-items: center;
