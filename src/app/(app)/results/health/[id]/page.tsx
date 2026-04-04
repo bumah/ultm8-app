@@ -386,67 +386,6 @@ export default function HealthResultsPage() {
       <div className={styles.divider} />
 
       {/* ═══════════════════════════════════════════
-          THE CONNECTION
-      ═══════════════════════════════════════════ */}
-      <section className={styles.section}>
-        <div className={styles.sectionEyebrow}>The Connection</div>
-        <h2 className={styles.sectionHeading}>
-          How your behaviours <em>drive</em> your indicators.
-        </h2>
-        <p className={styles.sectionSub}>
-          Every indicator is driven by one or more daily behaviours. Here is how yours connect.
-        </p>
-
-        <div className={styles.connectionCards}>
-          {HLABELS.map((label, i) => {
-            const indicatorScore = iScores[i];
-            const indicatorColor = getTierColor(indicatorScore, 8);
-            const driverIndices = BMAP[i] || [];
-            const insightText = CONN_INSIGHTS[i]?.(bScores, iScores) || '';
-
-            return (
-              <div className={styles.connectionCard} key={i}>
-                <div className={styles.connectionCardHeader}>
-                  <div className={styles.connectionCardName}>{label}</div>
-                  <div
-                    className={styles.connectionCardScore}
-                    style={{ color: indicatorColor }}
-                  >
-                    {indicatorScore}/8
-                  </div>
-                </div>
-
-                <div className={styles.connectionDrivers}>
-                  {driverIndices.map((bIdx) => {
-                    const bScore = bScores[bIdx];
-                    const bColor = getTierColor(bScore, 4);
-                    const bGrade = BGRADES[getBehaviourTierIndex(bScore)];
-                    return (
-                      <div className={styles.connectionDriver} key={bIdx}>
-                        <span
-                          className={styles.connectionDriverScore}
-                          style={{ color: bColor }}
-                        >
-                          {bGrade}
-                        </span>
-                        <span className={styles.connectionDriverName}>
-                          {BLABELS[bIdx]}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className={styles.connectionInsight}>{insightText}</div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      <div className={styles.divider} />
-
-      {/* ═══════════════════════════════════════════
           ACTIONS
       ═══════════════════════════════════════════ */}
       <div className={styles.actions}>

@@ -421,67 +421,6 @@ export default function WealthResultsPage() {
       <div className={styles.divider} />
 
       {/* ===================================================
-          THE CONNECTION
-      =================================================== */}
-      <section className={styles.section}>
-        <div className={styles.sectionEyebrow}>The Connection</div>
-        <h2 className={styles.sectionHeading}>
-          Behaviours meet <em>outcomes.</em>
-        </h2>
-        <p className={styles.sectionSub}>
-          For each indicator, which behaviours are helping and which are holding it back.
-        </p>
-
-        <div className={styles.connectionCards}>
-          {WHLABELS.map((label, i) => {
-            const indicatorScore = iScores[i];
-            const indicatorColor = getTierColor(indicatorScore, 8);
-            const driverIndices = WBMAP[i] || [];
-            const insightText = WCONN_INSIGHTS[i]?.(bScores, iScores) || '';
-
-            return (
-              <div className={styles.connectionCard} key={i}>
-                <div className={styles.connectionCardHeader}>
-                  <div className={styles.connectionCardName}>{label}</div>
-                  <div
-                    className={styles.connectionCardScore}
-                    style={{ color: indicatorColor }}
-                  >
-                    {indicatorScore}/8
-                  </div>
-                </div>
-
-                <div className={styles.connectionDrivers}>
-                  {driverIndices.map((bIdx) => {
-                    const bScore = bScores[bIdx];
-                    const bColor = getTierColor(bScore, 4);
-                    const bGrade = BGRADES[getBehaviourTierIndex(bScore)];
-                    return (
-                      <div className={styles.connectionDriver} key={bIdx}>
-                        <span
-                          className={styles.connectionDriverScore}
-                          style={{ color: bColor }}
-                        >
-                          {bGrade}
-                        </span>
-                        <span className={styles.connectionDriverName}>
-                          {WBLABELS[bIdx]}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className={styles.connectionInsight}>{insightText}</div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      <div className={styles.divider} />
-
-      {/* ===================================================
           ACTIONS
       =================================================== */}
       <div className={styles.actions}>
