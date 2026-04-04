@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { getOverallRating } from '@/lib/scoring/shared';
 import Link from 'next/link';
 import styles from './dashboard.module.css';
 
@@ -104,13 +105,20 @@ export default async function DashboardPage() {
         <>
           {/* Score cards */}
           <div className={styles.scores}>
-            {healthAssessment && (
+            {healthAssessment && (() => {
+              const octRating = getOverallRating(healthAssessment.octagon_score_pct);
+              const behRating = getOverallRating(healthAssessment.behaviour_score_pct);
+              return (
               <a href={`/results/health/${healthAssessment.id}`} className={styles.scoreCard}>
                 <div className={styles.scoreCardTop}>
                   <div className={styles.scoreLabel}>Health Octagon</div>
-                  <div className={styles.scoreValue}>{healthAssessment.octagon_score_pct}%</div>
+                  <div className={styles.scoreRow}>
+                    <div className={styles.scoreValue}>{healthAssessment.octagon_score_pct}%</div>
+                    <div className={styles.scoreRating} style={{ color: octRating.color }}>{octRating.label}</div>
+                  </div>
                   <div className={styles.scoreSub}>
                     Behaviours: {healthAssessment.behaviour_score_pct}%
+                    <span className={styles.scoreSubRating} style={{ color: behRating.color }}> — {behRating.label}</span>
                   </div>
                   <div className={styles.scoreMetrics}>
                     <div className={styles.scoreMetric}>
@@ -131,14 +139,22 @@ export default async function DashboardPage() {
                   View Results <span>&rarr;</span>
                 </div>
               </a>
-            )}
-            {wealthAssessment && (
+              );
+            })()}
+            {wealthAssessment && (() => {
+              const octRating = getOverallRating(wealthAssessment.octagon_score_pct);
+              const behRating = getOverallRating(wealthAssessment.behaviour_score_pct);
+              return (
               <a href={`/results/wealth/${wealthAssessment.id}`} className={styles.scoreCard}>
                 <div className={styles.scoreCardTop}>
                   <div className={styles.scoreLabel}>Wealth Octagon</div>
-                  <div className={styles.scoreValue}>{wealthAssessment.octagon_score_pct}%</div>
+                  <div className={styles.scoreRow}>
+                    <div className={styles.scoreValue}>{wealthAssessment.octagon_score_pct}%</div>
+                    <div className={styles.scoreRating} style={{ color: octRating.color }}>{octRating.label}</div>
+                  </div>
                   <div className={styles.scoreSub}>
                     Behaviours: {wealthAssessment.behaviour_score_pct}%
+                    <span className={styles.scoreSubRating} style={{ color: behRating.color }}> — {behRating.label}</span>
                   </div>
                   <div className={styles.scoreMetrics}>
                     <div className={styles.scoreMetric}>
@@ -161,7 +177,8 @@ export default async function DashboardPage() {
                   View Results <span>&rarr;</span>
                 </div>
               </a>
-            )}
+              );
+            })()}
             {(!healthAssessment || !wealthAssessment) && (
               <a
                 href={!healthAssessment ? '/assess/health' : '/assess/wealth'}

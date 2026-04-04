@@ -41,3 +41,11 @@ export function computeBehaviourPct(scores: number[]): number {
   const total = scores.reduce((a, b) => a + b, 0);
   return Math.round((total / 32) * 100);
 }
+
+/** Get overall rating label from a percentage (works for both behaviour and octagon scores) */
+export function getOverallRating(pct: number): { label: string; color: string } {
+  if (pct >= 80) return { label: 'Ultimate', color: '#C8F135' };
+  if (pct >= 60) return { label: 'Strong', color: '#00D4AA' };
+  if (pct >= 40) return { label: 'Getting there', color: '#F5A623' };
+  return { label: 'Needs improvement', color: '#e74c3c' };
+}
