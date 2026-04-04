@@ -173,65 +173,10 @@ export default function WealthResultsPage() {
     <div className={styles.container}>
 
       {/* ===================================================
-          PART 1 — YOUR WEALTH BEHAVIOURS
+          YOUR WEALTH OCTAGON
       =================================================== */}
       <section className={styles.section}>
-        <div className={styles.sectionEyebrow}>Part 1 &mdash; Your Wealth Behaviours</div>
-        <h2 className={styles.sectionHeading}>
-          How you handle <em>money.</em>
-        </h2>
-        <p className={styles.sectionSub}>
-          Your daily financial habits scored against the 8 ULTM8 wealth behaviours.
-        </p>
-
-        {/* Score box */}
-        <div className={styles.scoreBox}>
-          <div className={styles.scoreValue}>{behaviourPct}%</div>
-          <div className={styles.scoreLabel}>Wealth Behaviour Score</div>
-          <div className={styles.scoreSummary}>{getBehaviourSummary(behaviourPct)}</div>
-        </div>
-
-        {/* Behaviour bar rows */}
-        <div className={styles.barRows}>
-          {WBLABELS.map((label, i) => {
-            const score = bScores[i];
-            const tierIdx = getBehaviourTierIndex(score);
-            const tierLabel = BTIERS[tierIdx];
-            const color = getTierColor(score, 4);
-            return (
-              <div className={styles.barRow} key={i}>
-                <div className={styles.barLabel}>{label}</div>
-                <div className={styles.barSegments}>
-                  {[1, 2, 3, 4].map((seg) => (
-                    <div
-                      key={seg}
-                      className={
-                        seg <= score
-                          ? `${styles.barSegment} ${styles.barSegmentFilled}`
-                          : `${styles.barSegment} ${styles.barSegmentEmpty}`
-                      }
-                      style={seg <= score ? { background: color } : undefined}
-                    />
-                  ))}
-                </div>
-                <div className={styles.barTier} style={{ color }}>
-                  {BGRADES[tierIdx]}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Behaviour grades removed — indicator cards now cover the analysis */}
-      </section>
-
-      <div className={styles.divider} />
-
-      {/* ===================================================
-          PART 2 — YOUR WEALTH OCTAGON
-      =================================================== */}
-      <section className={styles.section}>
-        <div className={styles.sectionEyebrow}>Part 2 &mdash; Your Wealth Octagon</div>
+        <div className={styles.sectionEyebrow}>Your Wealth Octagon</div>
         <h2 className={styles.sectionHeading}>
           Your wealth <em>right now.</em>
         </h2>
@@ -430,7 +375,54 @@ export default function WealthResultsPage() {
       <div className={styles.divider} />
 
       {/* ===================================================
-          PART 3 — THE CONNECTION
+          YOUR WEALTH BEHAVIOURS
+      =================================================== */}
+      <section className={styles.section}>
+        <div className={styles.sectionEyebrow}>Your Wealth Behaviours</div>
+        <h2 className={styles.sectionHeading}>
+          How you handle <em>money.</em>
+        </h2>
+
+        <div className={styles.scoreBox}>
+          <div className={styles.scoreValue}>{behaviourPct}%</div>
+          <div className={styles.scoreLabel}>Behaviour Score</div>
+          <div className={styles.scoreSummary}>{getBehaviourSummary(behaviourPct)}</div>
+        </div>
+
+        <div className={styles.barRows}>
+          {WBLABELS.map((label, i) => {
+            const score = bScores[i];
+            const tierIdx = getBehaviourTierIndex(score);
+            const color = getTierColor(score, 4);
+            return (
+              <div className={styles.barRow} key={i}>
+                <div className={styles.barLabel}>{label}</div>
+                <div className={styles.barSegments}>
+                  {[1, 2, 3, 4].map((seg) => (
+                    <div
+                      key={seg}
+                      className={
+                        seg <= score
+                          ? `${styles.barSegment} ${styles.barSegmentFilled}`
+                          : `${styles.barSegment} ${styles.barSegmentEmpty}`
+                      }
+                      style={seg <= score ? { background: color } : undefined}
+                    />
+                  ))}
+                </div>
+                <div className={styles.barTier} style={{ color }}>
+                  {BGRADES[tierIdx]}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <div className={styles.divider} />
+
+      {/* ===================================================
+          THE CONNECTION
       =================================================== */}
       <section className={styles.section}>
         <div className={styles.sectionEyebrow}>The Connection</div>

@@ -130,70 +130,15 @@ export default function HealthResultsPage() {
     <div className={styles.container}>
 
       {/* ═══════════════════════════════════════════
-          PART 1 — YOUR HEALTH BEHAVIOURS
+          YOUR HEALTH OCTAGON
       ═══════════════════════════════════════════ */}
       <section className={styles.section}>
-        <div className={styles.sectionEyebrow}>Part 1 &mdash; Your Health Behaviours</div>
-        <h2 className={styles.sectionHeading}>
-          What you do <em>every day.</em>
-        </h2>
-        <p className={styles.sectionSub}>
-          Your daily habits scored against the 8 ULTM8 behaviours.
-        </p>
-
-        {/* Score box */}
-        <div className={styles.scoreBox}>
-          <div className={styles.scoreValue}>{behaviourPct}%</div>
-          <div className={styles.scoreLabel}>Behaviour Score</div>
-          <div className={styles.scoreSummary}>{getBehaviourSummary(behaviourPct)}</div>
-        </div>
-
-        {/* Behaviour bar rows */}
-        <div className={styles.barRows}>
-          {BLABELS.map((label, i) => {
-            const score = bScores[i];
-            const tierIdx = getBehaviourTierIndex(score);
-            const tierLabel = BTIERS[tierIdx];
-            const color = getTierColor(score, 4);
-            return (
-              <div className={styles.barRow} key={i}>
-                <div className={styles.barLabel}>{label}</div>
-                <div className={styles.barSegments}>
-                  {[1, 2, 3, 4].map((seg) => (
-                    <div
-                      key={seg}
-                      className={
-                        seg <= score
-                          ? `${styles.barSegment} ${styles.barSegmentFilled}`
-                          : `${styles.barSegment} ${styles.barSegmentEmpty}`
-                      }
-                      style={seg <= score ? { background: color } : undefined}
-                    />
-                  ))}
-                </div>
-                <div className={styles.barTier} style={{ color }}>
-                  {BGRADES[tierIdx]}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Behaviour grades removed — indicator cards now cover the analysis */}
-      </section>
-
-      <div className={styles.divider} />
-
-      {/* ═══════════════════════════════════════════
-          PART 2 — YOUR HEALTH OCTAGON
-      ═══════════════════════════════════════════ */}
-      <section className={styles.section}>
-        <div className={styles.sectionEyebrow}>Part 2 &mdash; Your Health Octagon</div>
+        <div className={styles.sectionEyebrow}>Your Health Octagon</div>
         <h2 className={styles.sectionHeading}>
           Your health <em>right now.</em>
         </h2>
         <p className={styles.sectionSub}>
-          Your 8 health indicators measured and scored against clinical thresholds.
+          Your 8 health indicators measured and scored.
         </p>
 
         {/* Score box */}
@@ -395,7 +340,54 @@ export default function HealthResultsPage() {
       <div className={styles.divider} />
 
       {/* ═══════════════════════════════════════════
-          PART 3 — THE CONNECTION
+          YOUR HEALTH BEHAVIOURS
+      ═══════════════════════════════════════════ */}
+      <section className={styles.section}>
+        <div className={styles.sectionEyebrow}>Your Health Behaviours</div>
+        <h2 className={styles.sectionHeading}>
+          What you do <em>every day.</em>
+        </h2>
+
+        <div className={styles.scoreBox}>
+          <div className={styles.scoreValue}>{behaviourPct}%</div>
+          <div className={styles.scoreLabel}>Behaviour Score</div>
+          <div className={styles.scoreSummary}>{getBehaviourSummary(behaviourPct)}</div>
+        </div>
+
+        <div className={styles.barRows}>
+          {BLABELS.map((label, i) => {
+            const score = bScores[i];
+            const tierIdx = getBehaviourTierIndex(score);
+            const color = getTierColor(score, 4);
+            return (
+              <div className={styles.barRow} key={i}>
+                <div className={styles.barLabel}>{label}</div>
+                <div className={styles.barSegments}>
+                  {[1, 2, 3, 4].map((seg) => (
+                    <div
+                      key={seg}
+                      className={
+                        seg <= score
+                          ? `${styles.barSegment} ${styles.barSegmentFilled}`
+                          : `${styles.barSegment} ${styles.barSegmentEmpty}`
+                      }
+                      style={seg <= score ? { background: color } : undefined}
+                    />
+                  ))}
+                </div>
+                <div className={styles.barTier} style={{ color }}>
+                  {BGRADES[tierIdx]}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <div className={styles.divider} />
+
+      {/* ═══════════════════════════════════════════
+          THE CONNECTION
       ═══════════════════════════════════════════ */}
       <section className={styles.section}>
         <div className={styles.sectionEyebrow}>The Connection</div>
