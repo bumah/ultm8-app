@@ -23,7 +23,7 @@ export default async function DashboardPage() {
   // Get latest assessments (include id + key metrics for dashboard cards)
   const { data: healthAssessment } = await supabase
     .from('health_assessments')
-    .select('id, octagon_score_pct, behaviour_score_pct, completed_at, i_blood_pressure, i_body_fat')
+    .select('id, octagon_score_pct, behaviour_score_pct, completed_at, i_blood_pressure, i_blood_pressure_diastolic, i_body_fat')
     .eq('user_id', user.id)
     .order('completed_at', { ascending: false })
     .limit(1)
@@ -107,7 +107,9 @@ export default async function DashboardPage() {
                     <div className={styles.scoreMetric}>
                       <span className={styles.scoreMetricLabel}>BP</span>
                       <span className={styles.scoreMetricValue}>
-                        {healthAssessment.i_blood_pressure ? `${healthAssessment.i_blood_pressure} mmHg` : '—'}
+                        {healthAssessment.i_blood_pressure
+                          ? `${healthAssessment.i_blood_pressure}${healthAssessment.i_blood_pressure_diastolic ? '/' + healthAssessment.i_blood_pressure_diastolic : ''} mmHg`
+                          : '—'}
                       </span>
                     </div>
                     <div className={styles.scoreMetric}>

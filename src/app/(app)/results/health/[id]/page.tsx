@@ -104,6 +104,7 @@ export default function HealthResultsPage() {
   const bScores: number[] = B_KEYS.map((k) => (data[k] as number) || 0);
   const iScores: number[] = IS_KEYS.map((k) => (data[k] as number) || 0);
   const iRaw: number[] = I_KEYS.map((k) => (data[k] as number) || 0);
+  const bpDiastolic = (data['i_blood_pressure_diastolic'] as number) || null;
   const behaviourPct: number = data.behaviour_score_pct ?? 0;
   const octagonPct: number = data.octagon_score_pct ?? 0;
 
@@ -185,7 +186,9 @@ export default function HealthResultsPage() {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <div className={styles.barValueWrap}>
-                    <span className={styles.barRaw}>{raw}</span>
+                    <span className={styles.barRaw}>
+                      {i === 0 && bpDiastolic ? `${raw}/${bpDiastolic}` : raw}
+                    </span>
                     <span className={styles.barUnit}>{unit}</span>
                   </div>
                   <div className={styles.barTier} style={{ color }}>

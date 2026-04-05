@@ -14,10 +14,10 @@ export interface IndicatorDefinition {
 export const HEALTH_INDICATORS: IndicatorDefinition[] = [
   {
     id: 1, name: 'Blood Pressure',
-    hook: 'Your systolic (top) number in mmHg. Check with a home cuff or at your GP.',
+    hook: 'Your blood pressure reading in mmHg. Enter both systolic (top) and diastolic (bottom) numbers. Check with a home cuff or at your GP.',
     drivenBy: 'Salt, Spirits, Smoking, Stress',
     unit: 'mmHg', placeholder: 'e.g. 125', min: 60, max: 220, step: 1,
-    range: 'Normal range: 90–180+',
+    range: 'Systolic / Diastolic',
   },
   {
     id: 2, name: 'Blood Sugar',

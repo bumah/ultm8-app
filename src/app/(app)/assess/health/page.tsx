@@ -22,6 +22,7 @@ interface State {
   hIndex: number;
   bAnswers: (number | null)[];
   hValues: (number | null)[];
+  bpDiastolic: number | null;
 }
 
 type Action =
@@ -32,6 +33,7 @@ type Action =
   | { type: 'GO_BRIDGE' }
   | { type: 'START_INDICATORS' }
   | { type: 'SET_H_VALUE'; index: number; value: number | null }
+  | { type: 'SET_BP_DIASTOLIC'; value: number | null }
   | { type: 'NEXT_H' }
   | { type: 'PREV_H' }
   | { type: 'GO_COMPUTING' };
@@ -42,6 +44,7 @@ const initialState: State = {
   hIndex: 0,
   bAnswers: Array(8).fill(null),
   hValues: Array(8).fill(null),
+  bpDiastolic: null,
 };
 
 function reducer(state: State, action: Action): State {
@@ -78,6 +81,9 @@ function reducer(state: State, action: Action): State {
       hValues[action.index] = action.value;
       return { ...state, hValues };
     }
+
+    case 'SET_BP_DIASTOLIC':
+      return { ...state, bpDiastolic: action.value };
 
     case 'NEXT_H':
       if (state.hIndex < 7) {
@@ -125,6 +131,7 @@ export default function HealthAssessPage() {
   const [ageGroup, setAgeGroup] = useState<string>('30-44');
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [inputStr, setInputStr] = useState('');
+  const [diaStr, setDiaStr] = useState('');
 
   /* Load user profile on mount */
   useEffect(() => {
@@ -155,8 +162,11 @@ export default function HealthAssessPage() {
     if (state.screen === 'indicator') {
       const current = state.hValues[state.hIndex];
       setInputStr(current !== null ? String(current) : '');
+      if (state.hIndex === 0) {
+        setDiaStr(state.bpDiastolic !== null ? String(state.bpDiastolic) : '');
+      }
     }
-  }, [state.hIndex, state.screen, state.hValues]);
+  }, [state.hIndex, state.screen, state.hValues, state.bpDiastolic]);
 
   /* Compute and save to Supabase */
   const computeAndSave = useCallback(async () => {
@@ -210,6 +220,9 @@ export default function HealthAssessPage() {
     IS_COLS.forEach((col, i) => {
       row[col] = indicatorScores[i];
     });
+
+    // Add diastolic BP
+    row['i_blood_pressure_diastolic'] = state.bpDiastolic;
 
     // Always create a new assessment (delete recent one if within 8 weeks)
     const eightWeeksAgo = new Date();
@@ -515,22 +528,62 @@ export default function HealthAssessPage() {
           <span className={styles.drivenByValue}>{ind.drivenBy}</span>
         </div>
 
-        <div className={styles.inputWrap}>
-          <input
-            type="number"
-            className={styles.numInput}
-            placeholder={ind.placeholder}
-            value={inputStr}
-            onChange={(e) => handleInputChange(e.target.value)}
-            min={ind.min}
-            max={ind.max}
-            step={ind.step}
-            autoFocus
-          />
-          <span className={styles.unitLabel}>{ind.unit}</span>
-        </div>
-
-        <div className={styles.rangeHint}>{ind.range}</div>
+        {state.hIndex === 0 ? (
+          /* Blood Pressure — dual input (systolic / diastolic) */
+          <>
+            <div className={styles.inputWrap} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input
+                type="number"
+                className={styles.numInput}
+                placeholder="Systolic"
+                value={inputStr}
+                onChange={(e) => handleInputChange(e.target.value)}
+                min={60}
+                max={220}
+                step={1}
+                autoFocus
+                style={{ flex: 1 }}
+              />
+              <span style={{ fontFamily: 'var(--cond)', fontSize: '24px', fontWeight: 900, color: 'var(--text-dim)' }}>/</span>
+              <input
+                type="number"
+                className={styles.numInput}
+                placeholder="Diastolic"
+                value={diaStr}
+                onChange={(e) => {
+                  setDiaStr(e.target.value);
+                  const num = parseFloat(e.target.value);
+                  dispatch({ type: 'SET_BP_DIASTOLIC', value: isNaN(num) ? null : num });
+                }}
+                min={30}
+                max={140}
+                step={1}
+                style={{ flex: 1 }}
+              />
+              <span className={styles.unitLabel}>{ind.unit}</span>
+            </div>
+            <div className={styles.rangeHint}>Systolic (top number) / Diastolic (bottom number)</div>
+          </>
+        ) : (
+          /* All other indicators — single input */
+          <>
+            <div className={styles.inputWrap}>
+              <input
+                type="number"
+                className={styles.numInput}
+                placeholder={ind.placeholder}
+                value={inputStr}
+                onChange={(e) => handleInputChange(e.target.value)}
+                min={ind.min}
+                max={ind.max}
+                step={ind.step}
+                autoFocus
+              />
+              <span className={styles.unitLabel}>{ind.unit}</span>
+            </div>
+            <div className={styles.rangeHint}>{ind.range}</div>
+          </>
+        )}
 
         <div
           className={`${styles.scorePreview} ${hasValue ? styles.scorePreviewActive : ''}`}
