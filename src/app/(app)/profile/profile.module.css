@@ -1,3 +1,5 @@
+/* ── Profile Hub ── */
+
 .container {
   padding-top: 2rem;
 }
@@ -22,96 +24,37 @@
   background: var(--red2);
 }
 
-.heading {
+/* ── Compact Header ── */
+.headerRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.name {
   font-family: var(--cond);
-  font-size: clamp(32px, 6vw, 48px);
+  font-size: clamp(28px, 5vw, 40px);
   font-weight: 900;
   color: var(--cream);
-  line-height: 0.95;
+  line-height: 1;
   letter-spacing: -0.5px;
   text-transform: uppercase;
-  margin-bottom: 2rem;
 }
 
-.section {
-  margin-bottom: 2rem;
-}
-
-.sectionTitle {
-  font-size: 10px;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: var(--red);
-  font-weight: 700;
-  opacity: 0.9;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border);
+.headerMeta {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.sectionTitle::before {
-  content: '';
-  display: inline-block;
-  width: 20px;
-  height: 2px;
-  background: var(--red);
-  flex-shrink: 0;
-}
-
-.infoGrid {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.infoItem {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border-dim);
-}
-
-.infoItem:last-child {
-  border-bottom: none;
-}
-
-.infoLabel {
+  align-items: baseline;
+  gap: 0.4rem;
   font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.headerSep {
   color: var(--text-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-weight: 600;
-}
-
-.infoValue {
-  font-family: var(--cond);
-  font-size: 18px;
-  font-weight: 900;
-  color: var(--cream);
-  text-transform: capitalize;
-}
-
-.placeholder {
-  font-size: 13px;
-  color: var(--text-dim);
-  line-height: 1.7;
-}
-
-.actions {
-  margin-top: 3rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--border);
-}
-
-/* Section header with edit button */
-.sectionHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  font-weight: 300;
 }
 
 .editBtn {
@@ -123,17 +66,24 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   cursor: pointer;
+  padding: 0;
+  margin-left: 0.5rem;
 }
 
 .editBtn:hover {
   color: var(--cream);
 }
 
-/* Edit form */
+/* ── Edit Form ── */
 .editForm {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  margin-bottom: 2rem;
+  padding: 1.25rem;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
 }
 
 .editLabel {
@@ -162,7 +112,7 @@
 
 .dobInput {
   width: 100%;
-  background: var(--bg2);
+  background: var(--bg);
   border: 1px solid rgba(242, 237, 228, 0.08);
   border-radius: 3px;
   padding: 14px 18px;
@@ -214,172 +164,146 @@
   margin-top: 12px;
 }
 
-/* Summary card */
-.summaryCard {
+/* ── Snapshot Cards ── */
+.snapshotCard {
+  display: block;
   background: var(--bg2);
   border: 1px solid var(--border);
   border-radius: 3px;
   padding: 1.25rem;
+  margin-bottom: 1rem;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.2s;
+  cursor: pointer;
 }
 
-.summaryTop {
-  display: grid;
-  grid-template-columns: auto auto 1fr;
+.snapshotCard:hover {
+  border-color: var(--red2);
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.cardIcon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.cardTitle {
+  font-family: var(--mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--red2);
+  font-weight: 700;
+}
+
+.cardMetrics {
+  display: flex;
   gap: 1.5rem;
-  align-items: flex-start;
-  margin-bottom: 1.25rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-dim);
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
 }
 
-.summaryLabel {
-  font-family: var(--mono);
-  font-size: 0.46rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--text-dim);
-  margin-bottom: 4px;
-}
-
-.summaryScore {
-  font-family: var(--cond);
-  font-size: 36px;
-  font-weight: 900;
-  color: var(--red);
-  line-height: 1;
-  letter-spacing: -1px;
-  text-shadow: 0 0 30px rgba(200,36,26,0.3);
-}
-
-.summaryScoreSm {
-  font-family: var(--cond);
-  font-size: 24px;
-  font-weight: 900;
-  color: var(--cream);
-  line-height: 1;
-}
-
-.summaryMeta {
-  text-align: right;
-}
-
-.summaryDate {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.summaryCount {
-  font-family: var(--mono);
-  font-size: 0.46rem;
-  color: var(--text-dim);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  margin-top: 4px;
-}
-
-/* Behaviour rows in summary */
-.summaryBehaviours {
+.metric {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 2px;
 }
 
-.summaryBRow {
-  display: grid;
-  grid-template-columns: 90px 1fr auto;
-  gap: 10px;
+.metricLabel {
+  font-family: var(--mono);
+  font-size: 0.42rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.metricValue {
+  font-family: var(--cond);
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--cream);
+  line-height: 1;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border-dim);
-}
-
-.summaryBRow:last-child {
-  border-bottom: none;
-}
-
-.summaryBName {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--cream);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.summaryBBar {
-  display: flex;
-  gap: 3px;
-}
-
-.summaryBSeg {
-  width: 100%;
-  height: 4px;
-  border-radius: 1px;
-  flex: 1;
-}
-
-.summaryBTier {
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  text-align: right;
-  white-space: nowrap;
-}
-
-/* Summary action links */
-.summaryActions {
-  display: flex;
-  gap: 16px;
-  margin-top: 1rem;
-  padding-top: 0.75rem;
+  padding-top: 0.5rem;
   border-top: 1px solid var(--border-dim);
+  margin-top: 0.5rem;
 }
 
-.summaryLink {
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--red2);
-  text-decoration: none;
-}
-
-.summaryLink:hover {
-  color: var(--cream);
-}
-
-.summaryLinkDim {
-  font-size: 11px;
-  font-weight: 800;
+.cardSub {
+  font-family: var(--mono);
+  font-size: 0.46rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-dim);
-  text-decoration: none;
 }
 
-.summaryLinkDim:hover {
-  color: var(--text-muted);
+.cardArrow {
+  font-size: 14px;
+  color: var(--text-dim);
+  transition: color 0.2s;
 }
 
-/* Empty card */
+.snapshotCard:hover .cardArrow {
+  color: var(--red2);
+}
+
+/* ── Empty Card ── */
 .emptyCard {
+  display: block;
   background: var(--bg2);
   border: 1px solid var(--border);
   border-radius: 3px;
   padding: 1.25rem;
-}
-
-.emptyLink {
-  display: inline-block;
-  margin-top: 8px;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--red2);
+  margin-bottom: 1rem;
   text-decoration: none;
+  color: inherit;
+  transition: border-color 0.2s;
+  cursor: pointer;
 }
 
-.emptyLink:hover {
-  color: var(--cream);
+.emptyCard:hover {
+  border-color: var(--red2);
+}
+
+.emptyTitle {
+  font-family: var(--mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.emptyText {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.emptyArrow {
+  color: var(--red2);
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+/* ── Sign Out ── */
+.actions {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
 }
