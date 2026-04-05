@@ -810,112 +810,185 @@ export default function CalendarPage() {
                   </div>
                 </div>
               ) : detailTasks.length > 0 ? (
-                <div className={styles.detailTaskList}>
-                  {detailTasks.map((task) => {
-                    const arrowChar =
-                      task.direction === 'increase'
-                        ? '\u2191'
-                        : task.direction === 'reduce'
-                          ? '\u2193'
-                          : '\u2194';
-                    const arrowClass =
-                      task.direction === 'increase'
-                        ? styles.taskArrowIncrease
-                        : task.direction === 'reduce'
-                          ? styles.taskArrowReduce
-                          : styles.taskArrowMaintain;
+                <>
+                  {/* Uncompleted tasks */}
+                  {detailTasks.filter((t) => !t.completed).length > 0 && (
+                    <div className={styles.detailTaskList}>
+                      {detailTasks
+                        .filter((t) => !t.completed)
+                        .map((task) => {
+                          const arrowChar =
+                            task.direction === 'increase'
+                              ? '\u2191'
+                              : task.direction === 'reduce'
+                                ? '\u2193'
+                                : '\u2194';
+                          const arrowClass =
+                            task.direction === 'increase'
+                              ? styles.taskArrowIncrease
+                              : task.direction === 'reduce'
+                                ? styles.taskArrowReduce
+                                : styles.taskArrowMaintain;
 
-                    // TARGET ACHIEVED: weekly target met, no checkbox needed
-                    if (task.targetAchieved && !task.completed) {
-                      return (
-                        <div
-                          key={`${task.planId}-${task.behaviourIndex}`}
-                          className={`${styles.detailTaskRow} ${styles.detailTaskRowAchieved}`}
-                        >
-                          <div className={`${styles.taskArrow} ${arrowClass}`}>
-                            {arrowChar}
-                          </div>
-                          <div className={styles.taskInfo}>
-                            <div className={styles.taskName}>{task.behaviour}</div>
-                            <div className={styles.taskAchieved}>
-                              &#10003; TARGET ACHIEVED
-                            </div>
-                          </div>
-                          <div className={styles.taskCheckboxPlaceholder} />
-                        </div>
-                      );
-                    }
+                          // TARGET ACHIEVED: weekly target met, no checkbox needed
+                          if (task.targetAchieved) {
+                            return (
+                              <div
+                                key={`${task.planId}-${task.behaviourIndex}`}
+                                className={`${styles.detailTaskRow} ${styles.detailTaskRowAchieved}`}
+                              >
+                                <div className={`${styles.taskArrow} ${arrowClass}`}>
+                                  {arrowChar}
+                                </div>
+                                <div className={styles.taskInfo}>
+                                  <div className={styles.taskName}>{task.behaviour}</div>
+                                  <div className={styles.taskAchieved}>
+                                    &#10003; TARGET ACHIEVED
+                                  </div>
+                                </div>
+                                <div className={styles.taskCheckboxPlaceholder} />
+                              </div>
+                            );
+                          }
 
-                    const canToggle = selectedIsEditable && task.progressRow !== null;
+                          const canToggle = selectedIsEditable && task.progressRow !== null;
 
-                    const rowClasses = [
-                      styles.detailTaskRow,
-                      task.completed ? styles.detailTaskRowCompleted : '',
-                      !selectedIsToday ? styles.detailTaskRowPast : '',
-                    ]
-                      .filter(Boolean)
-                      .join(' ');
+                          const rowClasses = [
+                            styles.detailTaskRow,
+                            !selectedIsToday ? styles.detailTaskRowPast : '',
+                          ]
+                            .filter(Boolean)
+                            .join(' ');
 
-                    return (
-                      <div
-                        key={`${task.planId}-${task.behaviourIndex}`}
-                        className={rowClasses}
-                      >
-                        {/* Arrow */}
-                        <div className={`${styles.taskArrow} ${arrowClass}`}>
-                          {arrowChar}
-                        </div>
-
-                        {/* Name + daily action */}
-                        <div className={styles.taskInfo}>
-                          <div className={styles.taskName}>
-                            {task.behaviour}
-                          </div>
-                          <div className={styles.taskTarget}>
-                            {task.dailyAction}
-                          </div>
-                        </div>
-
-                        {/* Checkbox */}
-                        <div
-                          className={`${styles.taskCheckbox} ${
-                            !canToggle ? styles.taskCheckboxReadonly : ''
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            className={styles.taskCheckboxInput}
-                            checked={task.completed}
-                            onChange={() => {
-                              if (canToggle) {
-                                toggleHealthTask(task);
-                              }
-                            }}
-                            disabled={!canToggle}
-                            aria-label={`Mark ${task.behaviour} as ${
-                              task.completed ? 'incomplete' : 'complete'
-                            }`}
-                          />
-                          <div
-                            className={`${styles.taskCheckboxBox} ${
-                              task.completed ? styles.taskCheckboxChecked : ''
-                            }`}
-                          >
-                            <span
-                              className={`${styles.taskCheckboxMark} ${
-                                task.completed
-                                  ? styles.taskCheckboxMarkVisible
-                                  : ''
-                              }`}
+                          return (
+                            <div
+                              key={`${task.planId}-${task.behaviourIndex}`}
+                              className={rowClasses}
                             >
-                              &#10003;
-                            </span>
-                          </div>
-                        </div>
+                              {/* Arrow */}
+                              <div className={`${styles.taskArrow} ${arrowClass}`}>
+                                {arrowChar}
+                              </div>
+
+                              {/* Name + daily action */}
+                              <div className={styles.taskInfo}>
+                                <div className={styles.taskName}>
+                                  {task.behaviour}
+                                </div>
+                                <div className={styles.taskTarget}>
+                                  {task.dailyAction}
+                                </div>
+                              </div>
+
+                              {/* Checkbox */}
+                              <div
+                                className={`${styles.taskCheckbox} ${
+                                  !canToggle ? styles.taskCheckboxReadonly : ''
+                                }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  className={styles.taskCheckboxInput}
+                                  checked={false}
+                                  onChange={() => {
+                                    if (canToggle) {
+                                      toggleHealthTask(task);
+                                    }
+                                  }}
+                                  disabled={!canToggle}
+                                  aria-label={`Mark ${task.behaviour} as complete`}
+                                />
+                                <div className={styles.taskCheckboxBox}>
+                                  <span className={styles.taskCheckboxMark}>
+                                    &#10003;
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+
+                  {/* Completed tasks section */}
+                  {detailTasks.filter((t) => t.completed).length > 0 && (
+                    <>
+                      <div className={styles.healthCompletedHeader}>
+                        <div className={styles.healthCompletedDivider} />
+                        <span className={styles.healthCompletedLabel}>
+                          COMPLETED TODAY
+                        </span>
+                        <div className={styles.healthCompletedDivider} />
                       </div>
-                    );
-                  })}
-                </div>
+
+                      <div className={styles.healthCompletedList}>
+                        {detailTasks
+                          .filter((t) => t.completed)
+                          .map((task) => {
+                            const arrowChar =
+                              task.direction === 'increase'
+                                ? '\u2191'
+                                : task.direction === 'reduce'
+                                  ? '\u2193'
+                                  : '\u2194';
+                            const arrowClass =
+                              task.direction === 'increase'
+                                ? styles.taskArrowIncrease
+                                : task.direction === 'reduce'
+                                  ? styles.taskArrowReduce
+                                  : styles.taskArrowMaintain;
+
+                            const canToggle = selectedIsEditable && task.progressRow !== null;
+
+                            return (
+                              <div
+                                key={`${task.planId}-${task.behaviourIndex}`}
+                                className={styles.healthCompletedRow}
+                              >
+                                {/* Arrow (dimmed via parent opacity) */}
+                                <div className={`${styles.taskArrow} ${arrowClass}`}>
+                                  {arrowChar}
+                                </div>
+
+                                {/* Name */}
+                                <div className={styles.taskInfo}>
+                                  <div className={styles.taskName}>
+                                    {task.behaviour}
+                                  </div>
+                                  <div className={styles.taskTarget}>
+                                    {task.dailyAction}
+                                  </div>
+                                </div>
+
+                                {/* Checked box — click to undo */}
+                                <div
+                                  className={styles.healthCompletedUndoBox}
+                                  onClick={() => {
+                                    if (canToggle) {
+                                      toggleHealthTask(task);
+                                    }
+                                  }}
+                                  role="button"
+                                  tabIndex={0}
+                                  aria-label={`Uncheck ${task.behaviour}`}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.preventDefault();
+                                      if (canToggle) {
+                                        toggleHealthTask(task);
+                                      }
+                                    }
+                                  }}
+                                >
+                                  <span className={styles.healthCompletedUndoMark}>&#10003;</span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    </>
+                  )}
+                </>
               ) : (
                 <div className={styles.dayDetailEmpty}>
                   <div className={styles.dayDetailEmptyText}>
