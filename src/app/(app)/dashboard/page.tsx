@@ -46,34 +46,6 @@ export default async function DashboardPage() {
     .eq('user_id', user.id)
     .single();
 
-  // Get today's plan progress
-  const today = new Date().toISOString().split('T')[0];
-  const { data: todayProgress } = await supabase
-    .from('daily_progress')
-    .select('id, plan_id, behaviour_name, target_text, completed, behaviour_index')
-    .eq('user_id', user.id)
-    .eq('date', today)
-    .order('behaviour_index', { ascending: true });
-
-  // Get active plans to know their types
-  const { data: activePlans } = await supabase
-    .from('action_plans')
-    .select('id, assessment_type, plan_data, start_date')
-    .eq('user_id', user.id)
-    .eq('is_active', true);
-
-  // Group today's items by plan type
-  const planTypeMap: Record<string, string> = {};
-  activePlans?.forEach(p => { planTypeMap[p.id] = p.assessment_type; });
-
-  const todayItems = (todayProgress || []).map(item => ({
-    ...item,
-    type: planTypeMap[item.plan_id] || 'health',
-  }));
-
-  const completedCount = todayItems.filter(i => i.completed).length;
-  const totalCount = todayItems.length;
-
   return (
     <div className={styles.container}>
       <div className={styles.greeting}>
@@ -220,59 +192,12 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Today's Plan */}
-          {totalCount > 0 && (
-            <div className={styles.todaySection}>
-              <div className={styles.todayHeader}>
-                <div className={styles.todayTitle}>This Week&apos;s Plan</div>
-                <div className={styles.todayCount}>
-                  {completedCount}/{totalCount}
-                </div>
-              </div>
-
-              <div className={styles.todayBar}>
-                <div
-                  className={styles.todayBarFill}
-                  style={{ width: `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%` }}
-                />
-              </div>
-
-              <div className={styles.todayItems}>
-                {todayItems.slice(0, 6).map((item) => (
-                  <div
-                    key={item.id}
-                    className={`${styles.todayItem} ${item.completed ? styles.todayItemDone : ''}`}
-                  >
-                    <div
-                      className={styles.todayDot}
-                      style={{ background: item.type === 'health' ? 'var(--red)' : 'var(--tier-2)' }}
-                    />
-                    <div className={styles.todayItemContent}>
-                      <div className={styles.todayItemName}>{item.behaviour_name}</div>
-                      <div className={styles.todayItemTarget}>{item.target_text}</div>
-                    </div>
-                    {item.completed && <span className={styles.todayCheck}>&#10003;</span>}
-                  </div>
-                ))}
-              </div>
-
-              {totalCount > 6 && (
-                <Link href="/calendar" className={styles.todayMore}>
-                  + {totalCount - 6} more &rarr;
-                </Link>
-              )}
-
-              <Link href="/calendar" className={styles.todayViewAll}>
-                Open Calendar &rarr;
-              </Link>
-            </div>
-          )}
           {/* Key Dates */}
           {(() => {
             const checks = [
               { label: 'ULTM8 Assessment', icon: '🏥', last: healthAssessment?.completed_at, next: healthAssessment ? new Date(new Date(healthAssessment.completed_at).getTime() + 56 * 24 * 60 * 60 * 1000).toISOString() : null },
               { label: 'Dental', icon: '🦷', last: healthSnapshot?.dental_last, next: healthSnapshot?.dental_next },
-              { label: 'Full Body Check', icon: '👁', last: healthSnapshot?.eye_last, next: healthSnapshot?.eye_next },
+              { label: 'Full Body Check', icon: '🧍', last: healthSnapshot?.eye_last, next: healthSnapshot?.eye_next },
               { label: 'Cancer Check', icon: '🎗', last: healthSnapshot?.cancer_last, next: healthSnapshot?.cancer_next },
             ];
             const hasAnyDate = checks.some(c => c.last || c.next);
