@@ -20,9 +20,9 @@ export default async function Home() {
         </div>
 
         <h1 className={styles.heading}>
-          Score your health.<br />
-          Score your wealth.<br />
-          <em>Build your octagon.</em>
+          Build your body.<br />
+          Build your bank.<br />
+          <em>Transform your life.</em>
         </h1>
 
         <p className={styles.sub}>
