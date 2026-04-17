@@ -7,7 +7,6 @@ import { WEALTH_QUESTIONS } from '@/lib/data/wealth-questions';
 import { FINANCIAL_SCREENS, CREDIT_SCORE_OPTIONS } from '@/lib/data/wealth-indicators';
 import { computeWealthScores, WHWEIGHTS } from '@/lib/scoring/wealth-scoring';
 import { computeWeightedScore, computeBehaviourPct } from '@/lib/scoring/shared';
-import { generatePlan } from '@/lib/utils/plan-generator';
 import Button from '@/components/ui/Button';
 import OptionCard from '@/components/ui/OptionCard';
 import SelectCard from '@/components/ui/SelectCard';
@@ -277,18 +276,6 @@ export default function WealthAssessPage() {
 
     // If within 8 weeks, delete the old one first
     if (recentAssessment) {
-      console.log('[ULTM8 Wealth] Overwriting assessment:', recentAssessment.id);
-      // Delete old plan and progress
-      const { data: oldPlans } = await supabase
-        .from('action_plans')
-        .select('id')
-        .eq('assessment_id', recentAssessment.id);
-      if (oldPlans) {
-        for (const p of oldPlans) {
-          await supabase.from('daily_progress').delete().eq('plan_id', p.id);
-        }
-        await supabase.from('action_plans').delete().eq('assessment_id', recentAssessment.id);
-      }
       await supabase.from('wealth_assessments').delete().eq('id', recentAssessment.id);
     }
 
@@ -308,59 +295,8 @@ export default function WealthAssessPage() {
       assessmentId = data.id;
     }
 
-    // Generate 8-week plan
-    const bScoresArr = state.bAnswers.map(s => s || 1);
-    const { planData, dailyRows } = generatePlan('wealth', bScoresArr);
-
-    // Delete existing daily progress for any active wealth plan
-    const { data: existingPlans } = await supabase
-      .from('action_plans')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('assessment_type', 'wealth')
-      .eq('is_active', true);
-
-    if (existingPlans) {
-      for (const p of existingPlans) {
-        await supabase.from('daily_progress').delete().eq('plan_id', p.id);
-      }
-    }
-
-    // Deactivate previous wealth plans
-    await supabase
-      .from('action_plans')
-      .update({ is_active: false })
-      .eq('user_id', user.id)
-      .eq('assessment_type', 'wealth')
-      .eq('is_active', true);
-
-    // Create new plan
-    const { data: planRow } = await supabase
-      .from('action_plans')
-      .insert({
-        user_id: user.id,
-        assessment_type: 'wealth',
-        assessment_id: assessmentId,
-        plan_data: planData,
-        start_date: new Date().toISOString().split('T')[0],
-        is_active: true,
-      })
-      .select('id')
-      .single();
-
-    // Pre-generate daily progress rows
-    if (planRow?.id) {
-      const progressRows = dailyRows.map(r => ({
-        user_id: user.id,
-        plan_id: planRow.id,
-        ...r,
-        completed: false,
-      }));
-
-      for (let i = 0; i < progressRows.length; i += 100) {
-        await supabase.from('daily_progress').insert(progressRows.slice(i, i + 100));
-      }
-    }
+    // Plan generation removed — assessments now just store scores.
+    // Recommendations are derived from scores on the Plan page.
 
     router.push(`/results/wealth/${assessmentId}`);
   }, [state.bAnswers, state.fdValues, state.creditScore, ageGroup, currency, router]);
