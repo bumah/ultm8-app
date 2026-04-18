@@ -119,35 +119,9 @@
 .emptyCard {
   background: var(--bg2);
   border: 1px solid var(--border);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   padding: 2rem 1.5rem;
   margin-top: 1rem;
-  position: relative;
-}
-
-.emptyCard::before,
-.emptyCard::after {
-  content: '';
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  pointer-events: none;
-}
-
-.emptyCard::before {
-  top: 4px;
-  left: 4px;
-  border-top: 2px solid var(--red);
-  border-left: 2px solid var(--red);
-  opacity: 0.6;
-}
-
-.emptyCard::after {
-  bottom: 4px;
-  right: 4px;
-  border-bottom: 2px solid var(--red);
-  border-right: 2px solid var(--red);
-  opacity: 0.6;
 }
 
 .emptyTitle {
@@ -155,7 +129,7 @@
   font-size: 22px;
   font-weight: 900;
   color: var(--cream);
-  text-transform: uppercase;
+  letter-spacing: -0.3px;
   margin-bottom: 0.5rem;
 }
 
@@ -200,34 +174,13 @@
 .recCard {
   background: var(--bg2);
   border: 1px solid var(--border);
-  border-radius: 3px;
-  padding: 1.25rem;
-  position: relative;
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  transition: border-color 0.2s;
 }
 
-.recCard::before,
-.recCard::after {
-  content: '';
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  pointer-events: none;
-}
-
-.recCard::before {
-  top: 4px;
-  left: 4px;
-  border-top: 2px solid var(--red);
-  border-left: 2px solid var(--red);
-  opacity: 0.5;
-}
-
-.recCard::after {
-  bottom: 4px;
-  right: 4px;
-  border-bottom: 2px solid var(--red);
-  border-right: 2px solid var(--red);
-  opacity: 0.5;
+.recCard:hover {
+  border-color: rgba(242, 237, 228, 0.2);
 }
 
 .recHeader {
@@ -253,11 +206,10 @@
 
 .recName {
   font-family: var(--cond);
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 900;
   color: var(--cream);
-  text-transform: uppercase;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.4px;
 }
 
 .recGrade {

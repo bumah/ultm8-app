@@ -242,11 +242,10 @@
 
 .dayDetailTitle {
   font-family: var(--cond);
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 900;
   color: var(--cream);
-  text-transform: uppercase;
-  letter-spacing: -0.2px;
+  letter-spacing: -0.3px;
   margin-bottom: 1rem;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--border-dim);

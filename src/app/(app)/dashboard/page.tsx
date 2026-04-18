@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getOverallRating } from '@/lib/scoring/shared';
+import Icon, { IconName } from '@/components/ui/Icon';
 import Link from 'next/link';
 import styles from './dashboard.module.css';
 
@@ -197,10 +198,10 @@ export default async function DashboardPage() {
           {/* Key Dates */}
           {(() => {
             const checks = [
-              { label: 'ULTM8 Assessment', icon: '🏥', last: healthAssessment?.completed_at, next: healthAssessment ? new Date(new Date(healthAssessment.completed_at).getTime() + 56 * 24 * 60 * 60 * 1000).toISOString() : null },
-              { label: 'Dental', icon: '🦷', last: healthSnapshot?.dental_last, next: healthSnapshot?.dental_next },
-              { label: 'Full Body Check', icon: '🧍', last: healthSnapshot?.eye_last, next: healthSnapshot?.eye_next },
-              { label: 'Cancer Check', icon: '🎗', last: healthSnapshot?.cancer_last, next: healthSnapshot?.cancer_next },
+              { label: 'ULTM8 Assessment', icon: 'heart' as IconName, last: healthAssessment?.completed_at, next: healthAssessment ? new Date(new Date(healthAssessment.completed_at).getTime() + 56 * 24 * 60 * 60 * 1000).toISOString() : null },
+              { label: 'Dental', icon: 'tooth' as IconName, last: healthSnapshot?.dental_last, next: healthSnapshot?.dental_next },
+              { label: 'Full Body Check', icon: 'body' as IconName, last: healthSnapshot?.eye_last, next: healthSnapshot?.eye_next },
+              { label: 'Cancer Check', icon: 'ribbon' as IconName, last: healthSnapshot?.cancer_last, next: healthSnapshot?.cancer_next },
             ];
             const hasAnyDate = checks.some(c => c.last || c.next);
             const fmtDate = (d: string | null | undefined) => {
@@ -215,7 +216,7 @@ export default async function DashboardPage() {
                   <div className={styles.keyDatesList}>
                     {checks.map((check, i) => (
                       <div className={styles.keyDateRow} key={i}>
-                        <div className={styles.keyDateIcon}>{check.icon}</div>
+                        <div className={styles.keyDateIcon}><Icon name={check.icon} size={18} /></div>
                         <div className={styles.keyDateContent}>
                           <div className={styles.keyDateLabel}>{check.label}</div>
                           <div className={styles.keyDateDates}>

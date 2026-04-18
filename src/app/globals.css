@@ -11,17 +11,18 @@
   --red: #C8241A;
   --red2: #E63B2F;
   --red-glow: rgba(200, 36, 26, 0.2);
+  --red-soft: rgba(200, 36, 26, 0.35);
 
-  /* Text */
+  /* Text (improved contrast) */
   --cream: #F2EDE4;
   --text: #F2EDE4;
-  --text-muted: rgba(242, 237, 228, 0.55);
-  --text-dim: rgba(242, 237, 228, 0.3);
-  --text-faint: rgba(242, 237, 228, 0.12);
+  --text-muted: rgba(242, 237, 228, 0.72);
+  --text-dim: rgba(242, 237, 228, 0.5);
+  --text-faint: rgba(242, 237, 228, 0.18);
 
-  /* Borders */
-  --border: rgba(242, 237, 228, 0.12);
-  --border-dim: rgba(242, 237, 228, 0.07);
+  /* Borders (softer) */
+  --border: rgba(242, 237, 228, 0.1);
+  --border-dim: rgba(242, 237, 228, 0.06);
 
   /* Scoring tiers */
   --tier-1: #e74c3c;
@@ -39,6 +40,11 @@
   --bottom-nav-height: 64px;
   --page-pad: 20px;
   --max-width: 480px;
+
+  /* Radii */
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
 }
 
 *, *::before, *::after {
@@ -72,28 +78,15 @@ input, button, textarea, select {
   font-family: inherit;
 }
 
-/* ── Scanlines overlay ── */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background-image:
-    repeating-linear-gradient(45deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 14px),
-    repeating-linear-gradient(-45deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 14px);
-  background-size: 20px 20px;
-}
-
-/* ── Halftone dots ── */
+/* ── Subtle halftone only (removed scanlines for cleaner look) ── */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background-image: radial-gradient(circle, rgba(242,237,228,0.04) 1px, transparent 1px);
-  background-size: 8px 8px;
+  background-image: radial-gradient(circle, rgba(242,237,228,0.02) 1px, transparent 1px);
+  background-size: 12px 12px;
 }
 
 /* ── Scrollbar ── */

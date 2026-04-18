@@ -54,38 +54,13 @@
   position: relative;
 }
 
-.emptyCard::before,
-.emptyCard::after {
-  content: '';
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  pointer-events: none;
-}
-
-.emptyCard::before {
-  top: 4px;
-  left: 4px;
-  border-top: 2px solid var(--red);
-  border-left: 2px solid var(--red);
-  opacity: 0.6;
-}
-
-.emptyCard::after {
-  bottom: 4px;
-  right: 4px;
-  border-bottom: 2px solid var(--red);
-  border-right: 2px solid var(--red);
-  opacity: 0.6;
-}
-
 .emptyTitle {
   font-family: var(--cond);
   font-size: 24px;
   font-weight: 900;
-  text-transform: uppercase;
   color: var(--cream);
   margin-bottom: 0.5rem;
+  letter-spacing: -0.3px;
 }
 
 .emptyText {
@@ -121,10 +96,10 @@
 .assessLink strong {
   display: block;
   font-family: var(--cond);
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 900;
-  text-transform: uppercase;
   color: var(--cream);
+  letter-spacing: -0.2px;
 }
 
 .assessLink span {
@@ -158,44 +133,23 @@
   flex-direction: column;
   background: var(--bg2);
   border: 1px solid var(--border);
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   text-decoration: none;
   color: inherit;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, transform 0.2s;
   position: relative;
+}
+
+.scoreCard:active {
+  transform: scale(0.99);
 }
 
 .scoreCard:hover {
   border-color: var(--red);
 }
 
-.scoreCard::before,
-.scoreCard::after {
-  content: '';
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  pointer-events: none;
-}
-
-.scoreCard::before {
-  top: 4px;
-  left: 4px;
-  border-top: 2px solid var(--red);
-  border-left: 2px solid var(--red);
-  opacity: 0.6;
-}
-
-.scoreCard::after {
-  bottom: 4px;
-  right: 4px;
-  border-bottom: 2px solid var(--red);
-  border-right: 2px solid var(--red);
-  opacity: 0.6;
-}
-
 .scoreCardTop {
-  padding: 1.5rem;
+  padding: 1.75rem 1.5rem 1.25rem;
 }
 
 .scoreCta {
