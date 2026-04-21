@@ -41,6 +41,53 @@ function isWealthCheckinDue(lastDate: string | null | undefined): boolean {
   return daysSince(lastDate) >= 30;
 }
 
+/** ISO week key: YYYY-Www */
+function weekKey(dateStr: string): string {
+  const d = new Date(dateStr);
+  const target = new Date(d.valueOf());
+  const dayNr = (d.getDay() + 6) % 7;
+  target.setDate(target.getDate() - dayNr + 3);
+  const firstThursday = target.valueOf();
+  target.setMonth(0, 1);
+  if (target.getDay() !== 4) {
+    target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+  }
+  const week = 1 + Math.ceil((firstThursday - target.valueOf()) / 604800000);
+  return `${d.getFullYear()}-W${String(week).padStart(2, '0')}`;
+}
+
+/** Month key: YYYY-MM */
+function monthKey(dateStr: string): string {
+  const d = new Date(dateStr);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+/** Count consecutive weeks ending at current week that have a check-in. */
+function computeWeeklyStreak(dates: string[]): number {
+  if (dates.length === 0) return 0;
+  const weeks = new Set(dates.map(weekKey));
+  let streak = 0;
+  const cursor = new Date();
+  while (weeks.has(weekKey(cursor.toISOString()))) {
+    streak++;
+    cursor.setDate(cursor.getDate() - 7);
+  }
+  return streak;
+}
+
+/** Count consecutive months ending at current month that have a check-in. */
+function computeMonthlyStreak(dates: string[]): number {
+  if (dates.length === 0) return 0;
+  const months = new Set(dates.map(monthKey));
+  let streak = 0;
+  const cursor = new Date();
+  while (months.has(monthKey(cursor.toISOString()))) {
+    streak++;
+    cursor.setMonth(cursor.getMonth() - 1);
+  }
+  return streak;
+}
+
 export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -92,9 +139,33 @@ export default async function DashboardPage() {
 
   const healthLastAt = (healthAssessment?.completed_at as string | null | undefined) ?? null;
   const wealthLastAt = (wealthAssessment?.completed_at as string | null | undefined) ?? null;
+  const healthId = (healthAssessment?.id as string | undefined) ?? null;
+  const wealthId = (wealthAssessment?.id as string | undefined) ?? null;
   const healthDue = isHealthCheckinDue(healthLastAt);
   const wealthDue = isWealthCheckinDue(wealthLastAt);
   const anyCheckinDue = healthDue || wealthDue;
+
+  /* ── Streak calculation ──
+     Count consecutive weeks (health) / months (wealth) with check-ins,
+     ending at the current period. */
+  const { data: allHealthDates } = await supabase
+    .from('health_assessments')
+    .select('completed_at')
+    .eq('user_id', user.id)
+    .order('completed_at', { ascending: false });
+
+  const { data: allWealthDates } = await supabase
+    .from('wealth_assessments')
+    .select('completed_at')
+    .eq('user_id', user.id)
+    .order('completed_at', { ascending: false });
+
+  const healthStreak = computeWeeklyStreak(
+    (allHealthDates || []).map(r => r.completed_at as string)
+  );
+  const wealthStreak = computeMonthlyStreak(
+    (allWealthDates || []).map(r => r.completed_at as string)
+  );
 
   /* Upcoming events from Calendar */
   const today = new Date().toISOString().split('T')[0];
@@ -143,70 +214,82 @@ export default async function DashboardPage() {
       ) : (
         <div className={styles.octagonGrid}>
           {/* Health */}
-          <div className={styles.octagonCard}>
-            <div className={styles.octagonLabel}>Health</div>
-            {healthAssessment ? (
-              <>
-                <div className={styles.octagonChart}>
-                  <OctagonChart
-                    scores={healthScores}
-                    labels={[...BLABELS]}
-                    maxScore={4}
-                    size={180}
-                    showLabels={false}
-                    showScores={false}
-                  />
+          {healthAssessment && healthId ? (
+            <Link href={`/results/health/${healthId}`} className={styles.octagonCardLink}>
+              <div className={styles.octagonLabel}>Health</div>
+              <div className={styles.octagonChart}>
+                <OctagonChart
+                  scores={healthScores}
+                  labels={[...BLABELS]}
+                  maxScore={4}
+                  size={180}
+                  showLabels={false}
+                  showScores={false}
+                />
+              </div>
+              <div className={styles.octagonScore}>
+                <span className={styles.octagonPct}>{healthPct}%</span>
+                <span className={styles.octagonRating} style={{ color: healthRating.color }}>
+                  {healthRating.label}
+                </span>
+              </div>
+              <div className={styles.octagonMeta}>
+                Last: {fmtDate(healthLastAt)}
+              </div>
+              {healthStreak > 1 && (
+                <div className={styles.streakBadge}>
+                  🔥 {healthStreak}-week streak
                 </div>
-                <div className={styles.octagonScore}>
-                  <span className={styles.octagonPct}>{healthPct}%</span>
-                  <span className={styles.octagonRating} style={{ color: healthRating.color }}>
-                    {healthRating.label}
-                  </span>
-                </div>
-                <div className={styles.octagonMeta}>
-                  Last: {fmtDate(healthLastAt)}
-                </div>
-              </>
-            ) : (
+              )}
+            </Link>
+          ) : (
+            <div className={styles.octagonCard}>
+              <div className={styles.octagonLabel}>Health</div>
               <Link href="/assess/health" className={styles.octagonEmpty}>
                 <span>+</span>
                 Start health check-in
               </Link>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Wealth */}
-          <div className={styles.octagonCard}>
-            <div className={styles.octagonLabel}>Wealth</div>
-            {wealthAssessment ? (
-              <>
-                <div className={styles.octagonChart}>
-                  <OctagonChart
-                    scores={wealthScores}
-                    labels={[...WBLABELS]}
-                    maxScore={4}
-                    size={180}
-                    showLabels={false}
-                    showScores={false}
-                  />
+          {wealthAssessment && wealthId ? (
+            <Link href={`/results/wealth/${wealthId}`} className={styles.octagonCardLink}>
+              <div className={styles.octagonLabel}>Wealth</div>
+              <div className={styles.octagonChart}>
+                <OctagonChart
+                  scores={wealthScores}
+                  labels={[...WBLABELS]}
+                  maxScore={4}
+                  size={180}
+                  showLabels={false}
+                  showScores={false}
+                />
+              </div>
+              <div className={styles.octagonScore}>
+                <span className={styles.octagonPct}>{wealthPct}%</span>
+                <span className={styles.octagonRating} style={{ color: wealthRating.color }}>
+                  {wealthRating.label}
+                </span>
+              </div>
+              <div className={styles.octagonMeta}>
+                Last: {fmtDate(wealthLastAt)}
+              </div>
+              {wealthStreak > 1 && (
+                <div className={styles.streakBadge}>
+                  🔥 {wealthStreak}-month streak
                 </div>
-                <div className={styles.octagonScore}>
-                  <span className={styles.octagonPct}>{wealthPct}%</span>
-                  <span className={styles.octagonRating} style={{ color: wealthRating.color }}>
-                    {wealthRating.label}
-                  </span>
-                </div>
-                <div className={styles.octagonMeta}>
-                  Last: {fmtDate(wealthLastAt)}
-                </div>
-              </>
-            ) : (
+              )}
+            </Link>
+          ) : (
+            <div className={styles.octagonCard}>
+              <div className={styles.octagonLabel}>Wealth</div>
               <Link href="/assess/wealth" className={styles.octagonEmpty}>
                 <span>+</span>
                 Start wealth check-in
               </Link>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import styles from './calendar.module.css';
 
@@ -61,12 +62,27 @@ export default function CalendarPage() {
   });
 
   // Add event form state
+  const searchParams = useSearchParams();
   const [showAddForm, setShowAddForm] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newNotes, setNewNotes] = useState('');
   const [newCategory, setNewCategory] = useState<'health' | 'wealth' | 'other'>('other');
   const [newTime, setNewTime] = useState('');
   const [saving, setSaving] = useState(false);
+
+  /* Pre-fill from URL params (e.g., from Plan page "+ Schedule in Calendar") */
+  useEffect(() => {
+    const prefillTitle = searchParams.get('title');
+    const prefillCategory = searchParams.get('category');
+    if (prefillTitle) {
+      setNewTitle(prefillTitle);
+      if (prefillCategory === 'health' || prefillCategory === 'wealth') {
+        setNewCategory(prefillCategory);
+      }
+      setShowAddForm(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /* ── Load events for the current week ── */
   const loadEvents = useCallback(async () => {

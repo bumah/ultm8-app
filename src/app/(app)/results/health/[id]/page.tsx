@@ -401,7 +401,7 @@ export default function HealthResultsPage() {
           Back to Dashboard
         </Button>
         <Button variant="outline" fullWidth onClick={() => router.push('/assess/health')}>
-          Retake Assessment
+          New Check-in
         </Button>
       </div>
 

@@ -227,7 +227,10 @@ export default function PlanPage() {
               <div className={styles.recNextLabel}>Next step</div>
               <p className={styles.recNext}>{r.next}</p>
 
-              <Link href="/calendar" className={styles.recAction}>
+              <Link
+                href={`/calendar?title=${encodeURIComponent(`${r.name}: ${r.next}`)}&category=${activeTab}`}
+                className={styles.recAction}
+              >
                 + Schedule in Calendar
               </Link>
             </div>

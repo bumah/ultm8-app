@@ -433,7 +433,7 @@ export default function WealthResultsPage() {
           Back to Dashboard
         </Button>
         <Button variant="outline" fullWidth onClick={() => router.push('/assess/wealth')}>
-          Retake Assessment
+          New Check-in
         </Button>
       </div>
 
