@@ -1,0 +1,282 @@
+/* ── Indicator detail page ── */
+
+.container {
+  padding-top: 2rem;
+  padding-bottom: 4rem;
+}
+
+.loading {
+  padding: 2rem 0;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 13px;
+}
+
+.back {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--red2);
+  text-decoration: none;
+  margin-bottom: 1rem;
+  transition: color 0.2s;
+}
+
+.back:hover {
+  color: var(--cream);
+}
+
+.title {
+  font-family: var(--cond);
+  font-size: clamp(28px, 5vw, 36px);
+  font-weight: 900;
+  color: var(--cream);
+  letter-spacing: -0.5px;
+  margin-bottom: 1.25rem;
+}
+
+.error {
+  font-size: 14px;
+  color: var(--text-dim);
+  padding: 2rem 0;
+  text-align: center;
+}
+
+/* ── Latest reading ── */
+.latestBlock {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.latestValue {
+  font-family: var(--cond);
+  font-size: 40px;
+  font-weight: 900;
+  color: var(--red);
+  line-height: 1;
+  letter-spacing: -1px;
+  text-shadow: 0 0 30px rgba(200, 36, 26, 0.3);
+  margin-bottom: 4px;
+}
+
+.latestMeta {
+  font-family: var(--mono);
+  font-size: 0.48rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* ── Log button / form ── */
+.logBtn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: var(--red);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--cream);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 0 16px var(--red-glow);
+  transition: opacity 0.2s;
+  margin-bottom: 1rem;
+  font-family: var(--sans);
+}
+
+.logBtn:hover {
+  opacity: 0.9;
+}
+
+.logForm {
+  background: var(--bg2);
+  border: 1px solid var(--red);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.logFormRow {
+  display: grid;
+  grid-template-columns: 90px 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.logLabel {
+  font-family: var(--mono);
+  font-size: 0.46rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.logInput {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  color: var(--cream);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  color-scheme: dark;
+}
+
+.logInput:focus {
+  border-color: var(--red2);
+}
+
+.logUnit {
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  min-width: 40px;
+}
+
+.logActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.logSave,
+.logCancel {
+  flex: 1;
+  padding: 10px;
+  border-radius: 2px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: none;
+  font-family: var(--sans);
+  transition: opacity 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.logSave {
+  background: var(--red);
+  color: var(--cream);
+}
+
+.logSave:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.logCancel {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+
+.logCancel:hover {
+  color: var(--text-muted);
+}
+
+/* ── Chart block ── */
+.chartBlock {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.chartLabel {
+  font-family: var(--mono);
+  font-size: 0.46rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--red2);
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+/* ── History ── */
+.historyBlock {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+}
+
+.historyLabel {
+  font-family: var(--mono);
+  font-size: 0.46rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--red2);
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-dim);
+  font-weight: 700;
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+}
+
+.historyRow {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.historyRow:last-child {
+  border-bottom: none;
+}
+
+.historyDate {
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+.historyValue {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cream);
+  font-family: var(--cond);
+  letter-spacing: -0.1px;
+}
+
+.historyDelete {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.historyDelete:hover {
+  color: var(--red2);
+}

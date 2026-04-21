@@ -8,7 +8,7 @@ const navItems = [
   { href: '/dashboard', label: 'Home', icon: 'home' },
   { href: '/plan', label: 'Plan', icon: 'plan' },
   { href: '/calendar', label: 'Calendar', icon: 'calendar' },
-  { href: '/history', label: 'Progress', icon: 'progress' },
+  { href: '/trends', label: 'Trends', icon: 'trends' },
   { href: '/profile', label: 'Profile', icon: 'profile' },
 ];
 
@@ -42,6 +42,13 @@ function NavIcon({ icon, active }: { icon: string; active: boolean }) {
       return (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+        </svg>
+      );
+    case 'trends':
+      return (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="3 17 9 11 13 15 21 7" />
+          <polyline points="14 7 21 7 21 14" />
         </svg>
       );
     case 'profile':
