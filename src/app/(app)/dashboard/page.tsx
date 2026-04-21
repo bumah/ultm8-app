@@ -1,16 +1,51 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { getOverallRating } from '@/lib/scoring/shared';
-import Icon, { IconName } from '@/components/ui/Icon';
+import { BLABELS } from '@/lib/scoring/health-scoring';
+import { WBLABELS } from '@/lib/scoring/wealth-scoring';
+import { getOverallRating, computeBehaviourPct } from '@/lib/scoring/shared';
+import OctagonChart from '@/components/octagon/OctagonChart';
 import Link from 'next/link';
 import styles from './dashboard.module.css';
+
+/* ── DB column keys ── */
+const HEALTH_B_KEYS = [
+  'b_sleep', 'b_smoking', 'b_strength', 'b_sweat',
+  'b_sugar', 'b_salt', 'b_spirits', 'b_stress',
+] as const;
+const WEALTH_B_KEYS = [
+  'b_active_income', 'b_passive_income', 'b_expenses', 'b_discretionary',
+  'b_savings', 'b_debt_repayment', 'b_retirement', 'b_investment',
+] as const;
+
+/* ── Helpers ── */
+function fmtDate(d: string | null | undefined): string {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+}
+
+function daysSince(d: string): number {
+  const then = new Date(d);
+  const now = new Date();
+  return Math.floor((now.getTime() - then.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+/** Is a weekly health check-in due? (every 7 days) */
+function isHealthCheckinDue(lastDate: string | null | undefined): boolean {
+  if (!lastDate) return true;
+  return daysSince(lastDate) >= 7;
+}
+
+/** Is a monthly wealth check-in due? */
+function isWealthCheckinDue(lastDate: string | null | undefined): boolean {
+  if (!lastDate) return true;
+  return daysSince(lastDate) >= 30;
+}
 
 export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  // Check onboarding
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
@@ -21,228 +56,204 @@ export default async function DashboardPage() {
     redirect('/onboarding');
   }
 
-  // Get latest assessments (include id + key metrics for dashboard cards)
-  const { data: healthAssessment } = await supabase
+  /* Latest assessments (used as "last check-in" for now — will be replaced
+     by weekly_checkins table in Phase 2) */
+  const { data: healthAssessmentData } = await supabase
     .from('health_assessments')
-    .select('id, octagon_score_pct, behaviour_score_pct, completed_at, i_blood_pressure, i_blood_pressure_diastolic, i_body_fat')
+    .select('*')
     .eq('user_id', user.id)
     .order('completed_at', { ascending: false })
     .limit(1)
     .single();
 
-  const { data: wealthAssessment } = await supabase
+  const { data: wealthAssessmentData } = await supabase
     .from('wealth_assessments')
-    .select('id, octagon_score_pct, behaviour_score_pct, completed_at, computed_net_worth, fd_income, fd_expenses')
+    .select('*')
     .eq('user_id', user.id)
     .order('completed_at', { ascending: false })
     .limit(1)
     .single();
 
-  const hasAssessments = healthAssessment || wealthAssessment;
+  const healthAssessment = healthAssessmentData as Record<string, unknown> | null;
+  const wealthAssessment = wealthAssessmentData as Record<string, unknown> | null;
 
-  // Get health check dates
-  const { data: healthSnapshot } = await supabase
-    .from('health_snapshot')
-    .select('dental_last, dental_next, eye_last, eye_next, cancer_last, cancer_next')
+  /* Extract behaviour scores (1-4 each) */
+  const healthScores: number[] = healthAssessment
+    ? HEALTH_B_KEYS.map(k => (healthAssessment[k] as number) || 1)
+    : [];
+  const wealthScores: number[] = wealthAssessment
+    ? WEALTH_B_KEYS.map(k => (wealthAssessment[k] as number) || 1)
+    : [];
+
+  const healthPct = healthScores.length ? computeBehaviourPct(healthScores) : 0;
+  const wealthPct = wealthScores.length ? computeBehaviourPct(wealthScores) : 0;
+  const healthRating = getOverallRating(healthPct);
+  const wealthRating = getOverallRating(wealthPct);
+
+  const healthLastAt = (healthAssessment?.completed_at as string | null | undefined) ?? null;
+  const wealthLastAt = (wealthAssessment?.completed_at as string | null | undefined) ?? null;
+  const healthDue = isHealthCheckinDue(healthLastAt);
+  const wealthDue = isWealthCheckinDue(wealthLastAt);
+  const anyCheckinDue = healthDue || wealthDue;
+
+  /* Upcoming events from Calendar */
+  const today = new Date().toISOString().split('T')[0];
+  const { data: upcomingEvents } = await supabase
+    .from('user_events')
+    .select('id, title, event_date, category')
     .eq('user_id', user.id)
-    .single();
+    .gte('event_date', today)
+    .eq('completed', false)
+    .order('event_date', { ascending: true })
+    .limit(3);
 
   return (
     <div className={styles.container}>
       <div className={styles.greeting}>
-        <div className={styles.eyebrow}>Dashboard</div>
+        <div className={styles.eyebrow}>Welcome</div>
         <h1 className={styles.heading}>
-          Welcome,<br /><em>{profile.name || 'Fighter'}</em>
+          {profile.name || 'Fighter'}
         </h1>
       </div>
 
-      {!hasAssessments ? (
-        <div className={styles.emptyState}>
-          <div className={styles.emptyCard}>
-            <h3 className={styles.emptyTitle}>Start Your Journey</h3>
-            <p className={styles.emptyText}>
-              Take your first assessment to build your octagon and get a personalised 8-week plan.
-            </p>
-            <div className={styles.assessLinks}>
-              <a href="/assess/health" className={styles.assessLink}>
-                <span className={styles.assessIcon}>+</span>
-                <div>
-                  <strong>Health Assessment</strong>
-                  <span>8 behaviours + 8 indicators</span>
-                </div>
-              </a>
-              <a href="/assess/wealth" className={styles.assessLink}>
-                <span className={styles.assessIcon}>+</span>
-                <div>
-                  <strong>Wealth Assessment</strong>
-                  <span>8 behaviours + financial data</span>
-                </div>
-              </a>
-            </div>
+      {/* Octagons */}
+      {!healthAssessment && !wealthAssessment ? (
+        <div className={styles.emptyCard}>
+          <h3 className={styles.emptyTitle}>Start your journey</h3>
+          <p className={styles.emptyText}>
+            Take your first check-in to build your octagon and see where you stand.
+          </p>
+          <div className={styles.assessLinks}>
+            <Link href="/assess/health" className={styles.assessLink}>
+              <span className={styles.assessIcon}>+</span>
+              <div>
+                <strong>Health Check-in</strong>
+                <span>8 habits, 1 minute</span>
+              </div>
+            </Link>
+            <Link href="/assess/wealth" className={styles.assessLink}>
+              <span className={styles.assessIcon}>+</span>
+              <div>
+                <strong>Wealth Check-in</strong>
+                <span>8 habits, 1 minute</span>
+              </div>
+            </Link>
           </div>
         </div>
       ) : (
-        <>
-          {/* Score cards */}
-          <div className={styles.scores}>
-            {healthAssessment && (() => {
-              const octR = getOverallRating(healthAssessment.octagon_score_pct);
-              const behR = getOverallRating(healthAssessment.behaviour_score_pct);
-              return (
-              <a href={`/results/health/${healthAssessment.id}`} className={styles.scoreCard}>
-                <div className={styles.scoreCardTop}>
-                  <div className={styles.scoreLabel}>Health Octagon</div>
-                  <div className={styles.scoreColumns}>
-                    <div className={styles.scoreCol}>
-                      <div className={styles.scoreColLabel}>Indicators</div>
-                      <div className={styles.scoreColValue}>{healthAssessment.octagon_score_pct}%</div>
-                      <div className={styles.scoreColRating} style={{ color: octR.color }}>{octR.label}</div>
-                    </div>
-                    <div className={styles.scoreCol}>
-                      <div className={styles.scoreColLabel}>Behaviours</div>
-                      <div className={styles.scoreColValue}>{healthAssessment.behaviour_score_pct}%</div>
-                      <div className={styles.scoreColRating} style={{ color: behR.color }}>{behR.label}</div>
-                    </div>
-                  </div>
-                  <div className={styles.scoreMetrics}>
-                    <div className={styles.scoreMetric}>
-                      <span className={styles.scoreMetricLabel}>BP</span>
-                      <span className={styles.scoreMetricValue}>
-                        {healthAssessment.i_blood_pressure
-                          ? `${healthAssessment.i_blood_pressure}${healthAssessment.i_blood_pressure_diastolic ? '/' + healthAssessment.i_blood_pressure_diastolic : ''} mmHg`
-                          : '—'}
-                      </span>
-                    </div>
-                    <div className={styles.scoreMetric}>
-                      <span className={styles.scoreMetricLabel}>Body Fat</span>
-                      <span className={styles.scoreMetricValue}>
-                        {healthAssessment.i_body_fat ? `${healthAssessment.i_body_fat}%` : '—'}
-                      </span>
-                    </div>
-                  </div>
+        <div className={styles.octagonGrid}>
+          {/* Health */}
+          <div className={styles.octagonCard}>
+            <div className={styles.octagonLabel}>Health</div>
+            {healthAssessment ? (
+              <>
+                <div className={styles.octagonChart}>
+                  <OctagonChart
+                    scores={healthScores}
+                    labels={[...BLABELS]}
+                    maxScore={4}
+                    size={180}
+                    showLabels={false}
+                    showScores={false}
+                  />
                 </div>
-                <div className={styles.scoreCta}>
-                  View Results <span>&rarr;</span>
+                <div className={styles.octagonScore}>
+                  <span className={styles.octagonPct}>{healthPct}%</span>
+                  <span className={styles.octagonRating} style={{ color: healthRating.color }}>
+                    {healthRating.label}
+                  </span>
                 </div>
-              </a>
-              );
-            })()}
-            {wealthAssessment && (() => {
-              const octR = getOverallRating(wealthAssessment.octagon_score_pct);
-              const behR = getOverallRating(wealthAssessment.behaviour_score_pct);
-              return (
-              <a href={`/results/wealth/${wealthAssessment.id}`} className={styles.scoreCard}>
-                <div className={styles.scoreCardTop}>
-                  <div className={styles.scoreLabel}>Wealth Octagon</div>
-                  <div className={styles.scoreColumns}>
-                    <div className={styles.scoreCol}>
-                      <div className={styles.scoreColLabel}>Indicators</div>
-                      <div className={styles.scoreColValue}>{wealthAssessment.octagon_score_pct}%</div>
-                      <div className={styles.scoreColRating} style={{ color: octR.color }}>{octR.label}</div>
-                    </div>
-                    <div className={styles.scoreCol}>
-                      <div className={styles.scoreColLabel}>Behaviours</div>
-                      <div className={styles.scoreColValue}>{wealthAssessment.behaviour_score_pct}%</div>
-                      <div className={styles.scoreColRating} style={{ color: behR.color }}>{behR.label}</div>
-                    </div>
-                  </div>
-                  <div className={styles.scoreMetrics}>
-                    <div className={styles.scoreMetric}>
-                      <span className={styles.scoreMetricLabel}>Net Income</span>
-                      <span className={styles.scoreMetricValue}>
-                        {profile.currency}{Math.round((wealthAssessment.fd_income || 0) - (wealthAssessment.fd_expenses || 0)).toLocaleString()}/mo
-                      </span>
-                    </div>
-                    <div className={styles.scoreMetric}>
-                      <span className={styles.scoreMetricLabel}>Net Worth</span>
-                      <span className={styles.scoreMetricValue}>
-                        {wealthAssessment.computed_net_worth != null
-                          ? `${wealthAssessment.computed_net_worth >= 0 ? '' : '-'}${profile.currency}${Math.abs(Math.round(wealthAssessment.computed_net_worth)).toLocaleString()}`
-                          : '—'}
-                      </span>
-                    </div>
-                  </div>
+                <div className={styles.octagonMeta}>
+                  Last: {fmtDate(healthLastAt)}
                 </div>
-                <div className={styles.scoreCta}>
-                  View Results <span>&rarr;</span>
-                </div>
-              </a>
-              );
-            })()}
-            {(!healthAssessment || !wealthAssessment) && (
-              <a
-                href={!healthAssessment ? '/assess/health' : '/assess/wealth'}
-                className={styles.addAssessment}
-              >
+              </>
+            ) : (
+              <Link href="/assess/health" className={styles.octagonEmpty}>
                 <span>+</span>
-                Take {!healthAssessment ? 'Health' : 'Wealth'} Assessment
-              </a>
+                Start health check-in
+              </Link>
             )}
           </div>
 
-          {/* Retake assessments */}
-          <div className={styles.retakeSection}>
-            <div className={styles.retakeTitle}>Retake</div>
-            <div className={styles.retakeLinks}>
-              <a href="/assess/health" className={styles.retakeLink}>
-                <span className={styles.retakeIcon}>&#8635;</span>
-                Health
-              </a>
-              <a href="/assess/wealth" className={styles.retakeLink}>
-                <span className={styles.retakeIcon}>&#8635;</span>
-                Wealth
-              </a>
-            </div>
+          {/* Wealth */}
+          <div className={styles.octagonCard}>
+            <div className={styles.octagonLabel}>Wealth</div>
+            {wealthAssessment ? (
+              <>
+                <div className={styles.octagonChart}>
+                  <OctagonChart
+                    scores={wealthScores}
+                    labels={[...WBLABELS]}
+                    maxScore={4}
+                    size={180}
+                    showLabels={false}
+                    showScores={false}
+                  />
+                </div>
+                <div className={styles.octagonScore}>
+                  <span className={styles.octagonPct}>{wealthPct}%</span>
+                  <span className={styles.octagonRating} style={{ color: wealthRating.color }}>
+                    {wealthRating.label}
+                  </span>
+                </div>
+                <div className={styles.octagonMeta}>
+                  Last: {fmtDate(wealthLastAt)}
+                </div>
+              </>
+            ) : (
+              <Link href="/assess/wealth" className={styles.octagonEmpty}>
+                <span>+</span>
+                Start wealth check-in
+              </Link>
+            )}
           </div>
+        </div>
+      )}
 
-          {/* Key Dates */}
-          {(() => {
-            const checks = [
-              { label: 'ULTM8 Assessment', icon: 'heart' as IconName, last: healthAssessment?.completed_at, next: healthAssessment ? new Date(new Date(healthAssessment.completed_at).getTime() + 56 * 24 * 60 * 60 * 1000).toISOString() : null },
-              { label: 'Dental', icon: 'tooth' as IconName, last: healthSnapshot?.dental_last, next: healthSnapshot?.dental_next },
-              { label: 'Full Body Check', icon: 'body' as IconName, last: healthSnapshot?.eye_last, next: healthSnapshot?.eye_next },
-              { label: 'Cancer Check', icon: 'ribbon' as IconName, last: healthSnapshot?.cancer_last, next: healthSnapshot?.cancer_next },
-            ];
-            const hasAnyDate = checks.some(c => c.last || c.next);
-            const fmtDate = (d: string | null | undefined) => {
-              if (!d) return '—';
-              return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-            };
+      {/* Check-in prompt */}
+      {(healthAssessment || wealthAssessment) && anyCheckinDue && (
+        <div className={styles.checkinPrompt}>
+          <div className={styles.checkinPromptTitle}>
+            Check-in due
+          </div>
+          <p className={styles.checkinPromptText}>
+            {healthDue && wealthDue
+              ? 'Both your health and wealth check-ins are ready. Each takes 1 minute.'
+              : healthDue
+              ? 'Your weekly health check-in is ready. Takes 1 minute.'
+              : 'Your monthly wealth check-in is ready. Takes 1 minute.'}
+          </p>
+          <div className={styles.checkinPromptActions}>
+            {healthDue && (
+              <Link href="/assess/health" className={styles.checkinBtn}>
+                Health &rarr;
+              </Link>
+            )}
+            {wealthDue && (
+              <Link href="/assess/wealth" className={styles.checkinBtn}>
+                Wealth &rarr;
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
 
-            return (
-              <div className={styles.keyDatesSection}>
-                <div className={styles.keyDatesTitle}>Key Dates</div>
-                {hasAnyDate ? (
-                  <div className={styles.keyDatesList}>
-                    {checks.map((check, i) => (
-                      <div className={styles.keyDateRow} key={i}>
-                        <div className={styles.keyDateIcon}><Icon name={check.icon} size={18} /></div>
-                        <div className={styles.keyDateContent}>
-                          <div className={styles.keyDateLabel}>{check.label}</div>
-                          <div className={styles.keyDateDates}>
-                            <span className={styles.keyDatePair}>
-                              <span className={styles.keyDateTag}>Last</span> {fmtDate(check.last)}
-                            </span>
-                            <span className={styles.keyDatePair}>
-                              <span className={styles.keyDateTag}>Next</span> {fmtDate(check.next)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className={styles.keyDatesEmpty}>
-                    No upcoming appointments set.
-                  </div>
-                )}
-                <Link href="/profile" className={styles.keyDatesEdit}>
-                  Edit dates &rarr;
-                </Link>
+      {/* Upcoming events */}
+      {upcomingEvents && upcomingEvents.length > 0 && (
+        <div className={styles.upcomingSection}>
+          <div className={styles.upcomingTitle}>Upcoming</div>
+          <div className={styles.upcomingList}>
+            {upcomingEvents.map(ev => (
+              <div key={ev.id} className={styles.upcomingRow}>
+                <span className={styles.upcomingName}>{ev.title}</span>
+                <span className={styles.upcomingDate}>{fmtDate(ev.event_date)}</span>
               </div>
-            );
-          })()}
-        </>
+            ))}
+          </div>
+          <Link href="/calendar" className={styles.upcomingMore}>
+            View Calendar &rarr;
+          </Link>
+        </div>
       )}
     </div>
   );
