@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { getIndicatorDef, formatIndicatorValue } from '@/lib/data/indicator-library';
@@ -19,7 +19,6 @@ interface Log {
 
 export default function IndicatorDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const key = params.key as string;
   const def = getIndicatorDef(key);
 
@@ -34,6 +33,7 @@ export default function IndicatorDetailPage() {
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const supabase = createClient();
@@ -69,9 +69,10 @@ export default function IndicatorDetailPage() {
     const v2 = def?.dual && val2 ? parseFloat(val2) : null;
 
     setSaving(true);
+    setSaveError(null);
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setSaving(false); return; }
+    if (!user) { setSaving(false); setSaveError('Not signed in.'); return; }
 
     const { data, error } = await supabase
       .from('indicator_logs')
@@ -86,7 +87,13 @@ export default function IndicatorDetailPage() {
       .select()
       .single();
 
-    if (!error && data) {
+    if (error) {
+      setSaveError(error.message || 'Failed to save reading.');
+      setSaving(false);
+      return;
+    }
+
+    if (data) {
       setLogs(prev => [data as Log, ...prev]);
     }
 
@@ -216,6 +223,10 @@ export default function IndicatorDetailPage() {
             />
           </div>
 
+          {saveError && (
+            <div className={styles.saveError}>{saveError}</div>
+          )}
+
           <div className={styles.logActions}>
             <button
               className={styles.logSave}
@@ -226,7 +237,7 @@ export default function IndicatorDetailPage() {
             </button>
             <button
               className={styles.logCancel}
-              onClick={() => { setShowForm(false); setVal1(''); setVal2(''); setNotes(''); }}
+              onClick={() => { setShowForm(false); setVal1(''); setVal2(''); setNotes(''); setSaveError(null); }}
             >
               Cancel
             </button>
