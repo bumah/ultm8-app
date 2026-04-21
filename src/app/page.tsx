@@ -16,7 +16,7 @@ export default async function Home() {
       {/* Hero */}
       <div className={styles.hero}>
         <div className={styles.logo}>
-          ULTM<span className={styles.accent}>8</span> CHALLENGE
+          ULTM<span className={styles.accent}>8</span>
         </div>
 
         <h1 className={styles.heading}>
@@ -26,9 +26,9 @@ export default async function Home() {
         </h1>
 
         <p className={styles.sub}>
-          The personal assessment that maps your 8 health behaviours
-          and 8 wealth behaviours — then gives you an 8-week plan
-          to improve both.
+          A weekly health check-in and a monthly wealth check-in.
+          Two octagons. Eight habits each. Track the numbers that
+          matter and watch your trends over time.
         </p>
 
         <div className={styles.heroCtas}>
@@ -61,7 +61,7 @@ export default async function Home() {
             </div>
             <div>
               <div className={styles.featureName}>Plan</div>
-              <div className={styles.featureDesc}>8-week personalised action plan with weekly targets</div>
+              <div className={styles.featureDesc}>Personalised recommendations based on your latest check-in</div>
             </div>
           </div>
           <div className={styles.feature}>
@@ -70,45 +70,24 @@ export default async function Home() {
             </div>
             <div>
               <div className={styles.featureName}>Calendar</div>
-              <div className={styles.featureDesc}>Daily accountability with habit tracking</div>
+              <div className={styles.featureDesc}>Schedule check-ins, bill payments and health appointments</div>
             </div>
           </div>
           <div className={styles.feature}>
             <div className={styles.featureIcon}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
             </div>
             <div>
-              <div className={styles.featureName}>Progress</div>
-              <div className={styles.featureDesc}>Octagon history and score trends over time</div>
+              <div className={styles.featureName}>Trends</div>
+              <div className={styles.featureDesc}>Log the numbers you care about and see them over time</div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Try without account */}
-      <div className={styles.section}>
-        <div className={styles.sectionEyebrow}>Take the Challenge</div>
-
-        <p className={styles.trySub}>
-          Want to see where you stand before signing up?
-          Take the standalone assessment — no account required.
-        </p>
-
-        <div className={styles.challengeLinks}>
-          <a href="https://health.ultm8challenge.com" target="_blank" rel="noopener noreferrer" className={styles.challengeLink}>
-            <div className={styles.challengeLabel}>Health Challenge</div>
-            <div className={styles.challengeUrl}>health.ultm8challenge.com</div>
-          </a>
-          <a href="https://wealth.ultm8challenge.com" target="_blank" rel="noopener noreferrer" className={styles.challengeLink}>
-            <div className={styles.challengeLabel}>Wealth Challenge</div>
-            <div className={styles.challengeUrl}>wealth.ultm8challenge.com</div>
-          </a>
         </div>
       </div>
 
       {/* Bottom CTA */}
       <div className={styles.bottomCta}>
-        <div className={styles.bottomText}>Ready to track your progress?</div>
+        <div className={styles.bottomText}>Ready for your first check-in?</div>
         <Link href="/register" className={styles.ctaPrimary}>
           Create Account &rarr;
         </Link>
