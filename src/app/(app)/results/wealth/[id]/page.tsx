@@ -150,6 +150,9 @@ export default function WealthResultsPage() {
   const octagonPct: number = data.octagon_score_pct ?? 0;
   const currencySymbol = CURRENCY_SYMBOLS[data.currency_snapshot] || '';
 
+  /* Check-in mode: no indicator data (financial inputs) in new model */
+  const hasIndicators = iScores.some(s => s > 0);
+
   /* ── Toggle helpers ── */
   function toggleBehaviour(idx: number) {
     setOpenBehaviours((prev) => {
@@ -173,8 +176,9 @@ export default function WealthResultsPage() {
     <div className={styles.container}>
 
       {/* ===================================================
-          YOUR WEALTH OCTAGON
+          YOUR WEALTH OCTAGON (only if indicators submitted)
       =================================================== */}
+      {hasIndicators && (<>
       <section className={styles.section}>
         <div className={styles.sectionEyebrow}>Your Wealth Octagon</div>
         <h2 className={styles.sectionHeading}>
@@ -373,6 +377,7 @@ export default function WealthResultsPage() {
       </section>
 
       <div className={styles.divider} />
+      </>)}
 
       {/* ===================================================
           YOUR WEALTH BEHAVIOURS

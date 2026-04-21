@@ -108,6 +108,9 @@ export default function HealthResultsPage() {
   const behaviourPct: number = data.behaviour_score_pct ?? 0;
   const octagonPct: number = data.octagon_score_pct ?? 0;
 
+  /* Check-in mode: no indicator data collected (new model) */
+  const hasIndicators = iScores.some(s => s > 0);
+
   /* ── Toggle helpers ── */
   function toggleBehaviour(idx: number) {
     setOpenBehaviours((prev) => {
@@ -131,8 +134,9 @@ export default function HealthResultsPage() {
     <div className={styles.container}>
 
       {/* ═══════════════════════════════════════════
-          YOUR HEALTH OCTAGON
+          YOUR HEALTH OCTAGON (only shown if indicators were submitted)
       ═══════════════════════════════════════════ */}
+      {hasIndicators && (<>
       <section className={styles.section}>
         <div className={styles.sectionEyebrow}>Your Health Octagon</div>
         <h2 className={styles.sectionHeading}>
@@ -341,6 +345,7 @@ export default function HealthResultsPage() {
       </section>
 
       <div className={styles.divider} />
+      </>)}
 
       {/* ═══════════════════════════════════════════
           YOUR HEALTH BEHAVIOURS

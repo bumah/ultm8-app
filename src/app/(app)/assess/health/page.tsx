@@ -4,24 +4,19 @@ import { useReducer, useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { HEALTH_QUESTIONS } from '@/lib/data/health-questions';
-import { HEALTH_INDICATORS } from '@/lib/data/health-indicators';
-import { calcH, HWEIGHTS } from '@/lib/scoring/health-scoring';
-import { computeWeightedScore, computeBehaviourPct, HSTATUS, getTierColor } from '@/lib/scoring/shared';
+import { computeBehaviourPct } from '@/lib/scoring/shared';
 import Button from '@/components/ui/Button';
 import OptionCard from '@/components/ui/OptionCard';
 import ProgressBar from '@/components/ui/ProgressBar';
 import styles from './health.module.css';
 
 /* ── Types ── */
-type Screen = 'intro' | 'behaviour' | 'bridge' | 'indicator' | 'computing';
+type Screen = 'intro' | 'behaviour' | 'computing';
 
 interface State {
   screen: Screen;
   bIndex: number;
-  hIndex: number;
   bAnswers: (number | null)[];
-  hValues: (number | null)[];
-  bpDiastolic: number | null;
 }
 
 type Action =
@@ -29,21 +24,12 @@ type Action =
   | { type: 'SET_B_ANSWER'; index: number; score: number }
   | { type: 'NEXT_B' }
   | { type: 'PREV_B' }
-  | { type: 'GO_BRIDGE' }
-  | { type: 'START_INDICATORS' }
-  | { type: 'SET_H_VALUE'; index: number; value: number | null }
-  | { type: 'SET_BP_DIASTOLIC'; value: number | null }
-  | { type: 'NEXT_H' }
-  | { type: 'PREV_H' }
   | { type: 'GO_COMPUTING' };
 
 const initialState: State = {
   screen: 'intro',
   bIndex: 0,
-  hIndex: 0,
   bAnswers: Array(8).fill(null),
-  hValues: Array(8).fill(null),
-  bpDiastolic: null,
 };
 
 function reducer(state: State, action: Action): State {
@@ -61,40 +47,13 @@ function reducer(state: State, action: Action): State {
       if (state.bIndex < 7) {
         return { ...state, bIndex: state.bIndex + 1 };
       }
-      return { ...state, screen: 'bridge' };
+      return { ...state, screen: 'computing' };
 
     case 'PREV_B':
       if (state.bIndex > 0) {
         return { ...state, bIndex: state.bIndex - 1 };
       }
       return state;
-
-    case 'GO_BRIDGE':
-      return { ...state, screen: 'bridge' };
-
-    case 'START_INDICATORS':
-      return { ...state, screen: 'indicator', hIndex: 0 };
-
-    case 'SET_H_VALUE': {
-      const hValues = [...state.hValues];
-      hValues[action.index] = action.value;
-      return { ...state, hValues };
-    }
-
-    case 'SET_BP_DIASTOLIC':
-      return { ...state, bpDiastolic: action.value };
-
-    case 'NEXT_H':
-      if (state.hIndex < 7) {
-        return { ...state, hIndex: state.hIndex + 1 };
-      }
-      return { ...state, screen: 'computing' };
-
-    case 'PREV_H':
-      if (state.hIndex > 0) {
-        return { ...state, hIndex: state.hIndex - 1 };
-      }
-      return { ...state, screen: 'bridge' };
 
     case 'GO_COMPUTING':
       return { ...state, screen: 'computing' };
@@ -104,33 +63,29 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-/* ── Behaviour column keys matching the database ── */
+/* ── DB column keys ── */
 const B_COLS = [
   'b_sleep', 'b_smoking', 'b_strength', 'b_sweat',
   'b_sugar', 'b_salt', 'b_spirits', 'b_stress',
 ] as const;
 
-/* ── Indicator raw-value column keys ── */
-const I_COLS = [
-  'i_blood_pressure', 'i_blood_sugar', 'i_cholesterol', 'i_resting_hr',
-  'i_body_fat', 'i_muscle_mass', 'i_pushups', 'i_5km_time',
-] as const;
+/** Get the Monday of the current ISO week (YYYY-MM-DD) */
+function getWeekStart(date = new Date()): string {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday start
+  d.setDate(diff);
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString().split('T')[0];
+}
 
-/* ── Indicator score column keys ── */
-const IS_COLS = [
-  'is_blood_pressure', 'is_blood_sugar', 'is_cholesterol', 'is_resting_hr',
-  'is_body_fat', 'is_muscle_mass', 'is_pushups', 'is_5km_time',
-] as const;
-
-/* ── Component ── */
-export default function HealthAssessPage() {
+/** Component */
+export default function HealthCheckinPage() {
   const router = useRouter();
   const [state, dispatch] = useReducer(reducer, initialState);
   const [gender, setGender] = useState<string>('male');
   const [ageGroup, setAgeGroup] = useState<string>('30-44');
   const [profileLoaded, setProfileLoaded] = useState(false);
-  const [inputStr, setInputStr] = useState('');
-  const [diaStr, setDiaStr] = useState('');
 
   /* Load user profile on mount */
   useEffect(() => {
@@ -156,45 +111,11 @@ export default function HealthAssessPage() {
     loadProfile();
   }, [router]);
 
-  /* Reset input string when indicator changes */
-  useEffect(() => {
-    if (state.screen === 'indicator') {
-      const current = state.hValues[state.hIndex];
-      setInputStr(current !== null ? String(current) : '');
-      if (state.hIndex === 0) {
-        setDiaStr(state.bpDiastolic !== null ? String(state.bpDiastolic) : '');
-      }
-    }
-  }, [state.hIndex, state.screen, state.hValues, state.bpDiastolic]);
-
   /* Compute and save to Supabase */
   const computeAndSave = useCallback(async () => {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-
-    /* Calculate indicator scores */
-    const indicatorScores = state.hValues.map((val, i) => {
-      if (val === null) return null;
-      return calcH(i, val, gender);
-    });
-
-    /* Compute aggregate scores */
-    const validScores = indicatorScores.filter((s): s is number => s !== null);
-    const validWeights: number[] = [];
-    indicatorScores.forEach((s, i) => {
-      if (s !== null) validWeights.push(HWEIGHTS[i]);
-    });
-
-    /* Normalise weights if some indicators were skipped */
-    const weightSum = validWeights.reduce((a, b) => a + b, 0);
-    const normWeights = weightSum > 0
-      ? validWeights.map(w => w / weightSum)
-      : validWeights;
-
-    const octagonPct = validScores.length > 0
-      ? computeWeightedScore(validScores, normWeights)
-      : 0;
 
     const bScoresAll = state.bAnswers.map(s => s ?? 1);
     const behaviourPct = computeBehaviourPct(bScoresAll);
@@ -205,101 +126,54 @@ export default function HealthAssessPage() {
       gender_snapshot: gender,
       age_group_snapshot: ageGroup,
       behaviour_score_pct: behaviourPct,
-      octagon_score_pct: octagonPct,
+      octagon_score_pct: behaviourPct, // use behaviour pct as octagon pct
     };
 
     B_COLS.forEach((col, i) => {
       row[col] = state.bAnswers[i];
     });
 
-    I_COLS.forEach((col, i) => {
-      row[col] = state.hValues[i];
-    });
+    /* Delete any check-in from this same week before inserting new one */
+    const weekStart = getWeekStart();
+    const weekEndDate = new Date(weekStart);
+    weekEndDate.setDate(weekEndDate.getDate() + 7);
+    const weekEnd = weekEndDate.toISOString().split('T')[0];
 
-    IS_COLS.forEach((col, i) => {
-      row[col] = indicatorScores[i];
-    });
-
-    // Add diastolic BP
-    row['i_blood_pressure_diastolic'] = state.bpDiastolic;
-
-    // Always create a new assessment (delete recent one if within 8 weeks)
-    const eightWeeksAgo = new Date();
-    eightWeeksAgo.setDate(eightWeeksAgo.getDate() - 56);
-    const { data: recentAssessment } = await supabase
+    await supabase
       .from('health_assessments')
-      .select('id')
+      .delete()
       .eq('user_id', user.id)
-      .gte('completed_at', eightWeeksAgo.toISOString())
-      .order('completed_at', { ascending: false })
-      .limit(1)
+      .gte('completed_at', weekStart)
+      .lt('completed_at', weekEnd);
+
+    /* Insert fresh */
+    const { data, error } = await supabase
+      .from('health_assessments')
+      .insert(row)
+      .select('id')
       .single();
 
-    // If within 8 weeks, delete the old one first
-    if (recentAssessment) {
-      await supabase.from('health_assessments').delete().eq('id', recentAssessment.id);
+    if (error || !data) {
+      console.error('Failed to save health check-in:', error);
+      return;
     }
 
-    // Always insert fresh
-    let assessmentId: string;
-    {
-      const { data, error } = await supabase
-        .from('health_assessments')
-        .insert(row)
-        .select('id')
-        .single();
-
-      if (error || !data) {
-        console.error('Failed to save health assessment:', error);
-        return;
-      }
-      assessmentId = data.id;
-    }
-
-    // Plan generation removed — assessments now just store scores.
-    // Recommendations are derived from scores on the Plan page.
-
-    router.push(`/results/health/${assessmentId}`);
-  }, [state.bAnswers, state.hValues, gender, ageGroup, router]);
+    router.push(`/results/health/${data.id}`);
+  }, [state.bAnswers, gender, ageGroup, router]);
 
   /* Trigger computation when entering computing screen */
   useEffect(() => {
     if (state.screen === 'computing') {
       const timer = setTimeout(() => {
         computeAndSave();
-      }, 1200);
+      }, 1000);
       return () => clearTimeout(timer);
     }
   }, [state.screen, computeAndSave]);
 
-  /* ── Progress calculation ── */
+  /* ── Progress ── */
   const completedBehaviours = state.bAnswers.filter(a => a !== null).length;
-  const completedIndicators = state.hValues.filter(v => v !== null).length;
-  const totalCompleted = completedBehaviours + completedIndicators;
-  const progressPct = Math.round((totalCompleted / 16) * 100);
-
-  const progressLabel = state.screen === 'behaviour'
-    ? 'Part 1 — Behaviours'
-    : state.screen === 'indicator'
-      ? 'Part 2 — Indicators'
-      : 'Health Assessment';
-
-  const progressCount = state.screen === 'behaviour'
-    ? `${completedBehaviours}/8`
-    : state.screen === 'indicator'
-      ? `${completedBehaviours + completedIndicators}/16`
-      : undefined;
-
-  /* ── Live score preview for indicators ── */
-  function getIndicatorPreview(index: number, value: number | null) {
-    if (value === null || isNaN(value)) {
-      return { score: '—', status: 'Enter a value', color: 'var(--text-dim)' };
-    }
-    const score = calcH(index, value, gender);
-    const status = HSTATUS[score - 1];
-    const color = getTierColor(score, 8);
-    return { score: String(score), status, color };
-  }
+  const progressPct = Math.round((completedBehaviours / 8) * 100);
 
   if (!profileLoaded) {
     return (
@@ -309,19 +183,18 @@ export default function HealthAssessPage() {
     );
   }
 
-  /* ──────────── INTRO SCREEN ──────────── */
+  /* ──────────── INTRO ──────────── */
   if (state.screen === 'intro') {
     return (
       <div className={`${styles.container} ${styles.screen}`}>
         <div className={styles.intro}>
-          <div className={styles.eyebrow}>Health Assessment</div>
+          <div className={styles.eyebrow}>Weekly Health Check-in</div>
           <h1 className={styles.heading}>
-            Know your<br /><em>Health Octagon.</em>
+            How was your<br /><em>week?</em>
           </h1>
           <p className={styles.body}>
-            This assessment maps your health across 8 behaviours and 8
-            indicators to build your personalised Health Octagon. It takes
-            about 5 minutes. Answer honestly — this is your baseline.
+            Rate your 8 health habits for the last 7 days. Takes 1 minute.
+            Your octagon will update with your new score.
           </p>
           <Button onClick={() => dispatch({ type: 'START' })}>
             Start &rarr;
@@ -340,21 +213,15 @@ export default function HealthAssessPage() {
       <div className={`${styles.container} ${styles.screen}`} key={`b-${state.bIndex}`}>
         <div className={styles.progressWrap}>
           <ProgressBar
-            label={progressLabel}
-            count={progressCount}
+            label="Weekly Health Check-in"
+            count={`${completedBehaviours}/8`}
             percent={progressPct}
           />
         </div>
 
-        <div className={styles.partLabel}>Part 1 of 2 — Behaviours</div>
-        <div className={styles.questionNum}>Behaviour {state.bIndex + 1} of 8</div>
+        <div className={styles.questionNum}>Habit {state.bIndex + 1} of 8</div>
         <h2 className={styles.questionTitle}>{q.name}</h2>
         <p className={styles.hook}>{q.hook}</p>
-        <div className={styles.drives}>
-          <span>Drives</span>
-          <span className={styles.drivesArrow}>&rarr;</span>
-          <span className={styles.drivesValue}>{q.drives}</span>
-        </div>
 
         <div className={styles.options}>
           {q.options.map(opt => (
@@ -378,199 +245,24 @@ export default function HealthAssessPage() {
             disabled={selected === null}
             onClick={() => dispatch({ type: 'NEXT_B' })}
           >
-            {state.bIndex < 7 ? 'Next \u2192' : 'Continue \u2192'}
+            {state.bIndex < 7 ? 'Next \u2192' : 'Finish \u2192'}
           </Button>
         </div>
       </div>
     );
   }
 
-  /* ──────────── BRIDGE SCREEN ──────────── */
-  if (state.screen === 'bridge') {
-    return (
-      <div className={`${styles.container} ${styles.screen}`}>
-        <div className={styles.progressWrap}>
-          <ProgressBar
-            label={progressLabel}
-            count={progressCount}
-            percent={progressPct}
-          />
-        </div>
-
-        <div className={styles.bridge}>
-          <div className={styles.eyebrow}>Part 2 of 2</div>
-          <h1 className={styles.heading}>
-            Your health<br /><em>Indicators.</em>
-          </h1>
-          <p className={styles.body}>
-            Now enter your health indicators — real numbers from tests, devices
-            or estimates. These are the measurable outcomes your behaviours
-            drive. Skip any you do not know — you can update them later.
-          </p>
-          <Button onClick={() => dispatch({ type: 'START_INDICATORS' })}>
-            Enter My Indicators &rarr;
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  /* ──────────── INDICATOR SCREEN ──────────── */
-  if (state.screen === 'indicator') {
-    const ind = HEALTH_INDICATORS[state.hIndex];
-    const numericInput = inputStr !== '' ? parseFloat(inputStr) : null;
-    const preview = getIndicatorPreview(state.hIndex, numericInput);
-    const hasValue = inputStr !== '' && !isNaN(Number(inputStr));
-
-    function handleInputChange(val: string) {
-      setInputStr(val);
-      const num = parseFloat(val);
-      if (val === '' || isNaN(num)) {
-        dispatch({ type: 'SET_H_VALUE', index: state.hIndex, value: null });
-      } else {
-        dispatch({ type: 'SET_H_VALUE', index: state.hIndex, value: num });
-      }
-    }
-
-    function handleSkip() {
-      dispatch({ type: 'SET_H_VALUE', index: state.hIndex, value: null });
-      dispatch({ type: 'NEXT_H' });
-    }
-
-    function handleNext() {
-      dispatch({ type: 'NEXT_H' });
-    }
-
-    function handleBack() {
-      dispatch({ type: 'PREV_H' });
-    }
-
-    return (
-      <div className={`${styles.container} ${styles.screen}`} key={`h-${state.hIndex}`}>
-        <div className={styles.progressWrap}>
-          <ProgressBar
-            label={progressLabel}
-            count={progressCount}
-            percent={progressPct}
-          />
-        </div>
-
-        <div className={styles.partLabel}>Part 2 of 2 — Indicators</div>
-        <div className={styles.questionNum}>Indicator {state.hIndex + 1} of 8</div>
-        <h2 className={styles.questionTitle}>{ind.name}</h2>
-        <p className={styles.hook}>{ind.hook}</p>
-        <div className={styles.drivenBy}>
-          <span className={styles.drivenByLabel}>Driven by</span>
-          <span className={styles.drivesArrow}>&rarr;</span>
-          <span className={styles.drivenByValue}>{ind.drivenBy}</span>
-        </div>
-
-        {state.hIndex === 0 ? (
-          /* Blood Pressure — dual input (systolic / diastolic) */
-          <>
-            <div className={styles.inputWrap} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <input
-                type="number"
-                className={styles.numInput}
-                placeholder="Systolic"
-                value={inputStr}
-                onChange={(e) => handleInputChange(e.target.value)}
-                min={60}
-                max={220}
-                step={1}
-                autoFocus
-                style={{ flex: 1 }}
-              />
-              <span style={{ fontFamily: 'var(--cond)', fontSize: '24px', fontWeight: 900, color: 'var(--text-dim)' }}>/</span>
-              <input
-                type="number"
-                className={styles.numInput}
-                placeholder="Diastolic"
-                value={diaStr}
-                onChange={(e) => {
-                  setDiaStr(e.target.value);
-                  const num = parseFloat(e.target.value);
-                  dispatch({ type: 'SET_BP_DIASTOLIC', value: isNaN(num) ? null : num });
-                }}
-                min={30}
-                max={140}
-                step={1}
-                style={{ flex: 1 }}
-              />
-              <span className={styles.unitLabel}>{ind.unit}</span>
-            </div>
-            <div className={styles.rangeHint}>Systolic (top number) / Diastolic (bottom number)</div>
-          </>
-        ) : (
-          /* All other indicators — single input */
-          <>
-            <div className={styles.inputWrap}>
-              <input
-                type="number"
-                className={styles.numInput}
-                placeholder={ind.placeholder}
-                value={inputStr}
-                onChange={(e) => handleInputChange(e.target.value)}
-                min={ind.min}
-                max={ind.max}
-                step={ind.step}
-                autoFocus
-              />
-              <span className={styles.unitLabel}>{ind.unit}</span>
-            </div>
-            <div className={styles.rangeHint}>{ind.range}</div>
-          </>
-        )}
-
-        <div
-          className={`${styles.scorePreview} ${hasValue ? styles.scorePreviewActive : ''}`}
-        >
-          <span
-            className={styles.previewScore}
-            style={{ color: hasValue ? preview.color : 'var(--text-dim)' }}
-          >
-            {preview.score}
-          </span>
-          <div className={styles.previewLabel}>
-            <span className={styles.previewTitle}>Score Preview</span>
-            <span
-              className={styles.previewStatus}
-              style={{ color: hasValue ? preview.color : 'var(--text-dim)' }}
-            >
-              {preview.status}
-            </span>
-          </div>
-        </div>
-
-        <div className={styles.actions}>
-          <Button variant="ghost" onClick={handleBack}>
-            &larr; Back
-          </Button>
-          <Button variant="outline" onClick={handleSkip}>
-            Skip
-          </Button>
-          <Button
-            disabled={!hasValue}
-            onClick={handleNext}
-          >
-            {state.hIndex < 7 ? 'Next \u2192' : 'Finish \u2192'}
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  /* ──────────── COMPUTING SCREEN ──────────── */
+  /* ──────────── COMPUTING ──────────── */
   if (state.screen === 'computing') {
     return (
       <div className={`${styles.container} ${styles.screen}`}>
         <div className={styles.computing}>
           <div className={styles.spinner} />
           <h2 className={styles.computingTitle}>
-            Computing your octagon...
+            Updating your octagon...
           </h2>
           <p className={styles.computingSub}>
-            Scoring your behaviours and indicators.
+            Scoring your habits.
           </p>
         </div>
       </div>
