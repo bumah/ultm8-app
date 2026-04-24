@@ -336,7 +336,6 @@ export default function ProfilePage() {
       {hasHealthData ? (
         <Link href="/profile/health" className={styles.snapshotCard}>
           <div className={styles.cardTop}>
-            <span className={styles.cardIcon}>{'\ud83c\udfe5'}</span>
             <span className={styles.cardTitle}>Health Snapshot</span>
           </div>
           <div className={styles.cardMetrics}>
@@ -363,7 +362,6 @@ export default function ProfilePage() {
       ) : (
         <Link href="/profile/health" className={styles.emptyCard}>
           <div className={styles.emptyTitle}>
-            <span>{'\ud83c\udfe5'}</span>
             <span>Health Snapshot</span>
           </div>
           <span className={styles.emptyText}>
@@ -376,7 +374,6 @@ export default function ProfilePage() {
       {hasWealthData ? (
         <Link href="/profile/wealth" className={styles.snapshotCard}>
           <div className={styles.cardTop}>
-            <span className={styles.cardIcon}>{'\ud83d\udcb0'}</span>
             <span className={styles.cardTitle}>Wealth Snapshot</span>
           </div>
           <div className={styles.cardMetrics}>
@@ -401,7 +398,6 @@ export default function ProfilePage() {
       ) : (
         <Link href="/profile/wealth" className={styles.emptyCard}>
           <div className={styles.emptyTitle}>
-            <span>{'\ud83d\udcb0'}</span>
             <span>Wealth Snapshot</span>
           </div>
           <span className={styles.emptyText}>

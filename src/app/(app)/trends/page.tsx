@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { INDICATOR_LIBRARY, getIndicatorDef, formatIndicatorValue } from '@/lib/data/indicator-library';
@@ -24,31 +24,47 @@ export default function TrendsPage() {
   const [currency, setCurrency] = useState<string>('£');
   const [showPicker, setShowPicker] = useState(false);
 
-  useEffect(() => {
-    async function load() {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setLoading(false); return; }
+  const load = useCallback(async () => {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setLoading(false); return; }
 
-      const [logsRes, profRes] = await Promise.all([
-        supabase
-          .from('indicator_logs')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('logged_date', { ascending: false }),
-        supabase
-          .from('profiles')
-          .select('currency')
-          .eq('id', user.id)
-          .single(),
-      ]);
+    const [logsRes, profRes] = await Promise.all([
+      supabase
+        .from('indicator_logs')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('logged_date', { ascending: false }),
+      supabase
+        .from('profiles')
+        .select('currency')
+        .eq('id', user.id)
+        .single(),
+    ]);
 
-      setLogs((logsRes.data || []) as Log[]);
-      if (profRes.data?.currency) setCurrency(profRes.data.currency);
-      setLoading(false);
-    }
-    load();
+    setLogs((logsRes.data || []) as Log[]);
+    if (profRes.data?.currency) setCurrency(profRes.data.currency);
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  // Refetch whenever the tab/page becomes visible again (e.g. returning from
+  // the detail page after logging a reading — Next.js' router cache can
+  // otherwise re-show stale client state).
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') load();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', load);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', load);
+    };
+  }, [load]);
 
   /** Group logs by indicator_key. */
   const grouped = useMemo(() => {

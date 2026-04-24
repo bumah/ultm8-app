@@ -93,9 +93,13 @@ export default function IndicatorDetailPage() {
       return;
     }
 
-    if (data) {
-      setLogs(prev => [data as Log, ...prev]);
+    if (!data) {
+      setSaveError('Reading saved but could not be read back. Check Supabase RLS policies on indicator_logs.');
+      setSaving(false);
+      return;
     }
+
+    setLogs(prev => [data as Log, ...prev]);
 
     setVal1('');
     setVal2('');
