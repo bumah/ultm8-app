@@ -27,6 +27,7 @@ export function getAgeGroup(dob: string | null): '18-29' | '30-44' | '45-59' | '
 export interface HealthAssessment {
   id: string;
   user_id: string;
+  // 8 behaviour scores (1-4)
   b_sleep: number | null;
   b_smoking: number | null;
   b_strength: number | null;
@@ -35,22 +36,26 @@ export interface HealthAssessment {
   b_salt: number | null;
   b_spirits: number | null;
   b_stress: number | null;
+  // 8 indicator raw values (nullable; filled via Trends)
   i_blood_pressure: number | null;
-  i_blood_sugar: number | null;
-  i_cholesterol: number | null;
+  i_blood_pressure_diastolic: number | null;
+  i_weight: number | null;
+  i_waist: number | null;
   i_resting_hr: number | null;
   i_body_fat: number | null;
-  i_muscle_mass: number | null;
-  i_pushups: number | null;
-  i_5km_time: number | null;
+  i_sleep_quality: number | null;
+  i_blood_sugar: number | null;
+  i_wellbeing: number | null;
+  // 8 indicator scores (1-8)
   is_blood_pressure: number | null;
-  is_blood_sugar: number | null;
-  is_cholesterol: number | null;
+  is_weight: number | null;
+  is_waist: number | null;
   is_resting_hr: number | null;
   is_body_fat: number | null;
-  is_muscle_mass: number | null;
-  is_pushups: number | null;
-  is_5km_time: number | null;
+  is_sleep_quality: number | null;
+  is_blood_sugar: number | null;
+  is_wellbeing: number | null;
+  // Aggregates
   behaviour_score_pct: number;
   octagon_score_pct: number;
   gender_snapshot: string;
@@ -61,36 +66,25 @@ export interface HealthAssessment {
 export interface WealthAssessment {
   id: string;
   user_id: string;
-  b_active_income: number | null;
-  b_passive_income: number | null;
-  b_expenses: number | null;
-  b_discretionary: number | null;
-  b_savings: number | null;
-  b_debt_repayment: number | null;
-  b_retirement: number | null;
-  b_investment: number | null;
-  fd_income: number;
-  fd_passive: number;
-  fd_expenses: number;
-  fd_discretionary: number;
-  fd_savings: number;
-  fd_savings_total: number;
-  fd_pension: number;
-  fd_debt: number;
-  fd_credit_score: number;
-  is_net_worth: number | null;
-  is_debt_level: number | null;
-  is_savings_capacity: number | null;
+  // 8 behaviour scores (1-4)
+  b_income: number | null;
+  b_spending: number | null;
+  b_saving: number | null;
+  b_debt: number | null;
+  b_investments: number | null;
+  b_pension: number | null;
+  b_protection: number | null;
+  b_tax: number | null;
+  // 8 indicator scores (1-8, optional — filled from Trends)
+  is_net_income: number | null;
+  is_discretionary_spend: number | null;
   is_emergency_fund: number | null;
-  is_retirement_pot: number | null;
+  is_debt_level: number | null;
+  is_net_worth: number | null;
+  is_pension_fund: number | null;
   is_fi_ratio: number | null;
-  is_lifestyle_creep: number | null;
-  is_credit_score: number | null;
-  computed_net_worth: number | null;
-  computed_savings_rate: number | null;
-  computed_emergency_months: number | null;
-  computed_fi_ratio: number | null;
-  computed_disc_pct: number | null;
+  is_passive_income: number | null;
+  // Aggregates
   behaviour_score_pct: number;
   octagon_score_pct: number;
   age_group_snapshot: string;

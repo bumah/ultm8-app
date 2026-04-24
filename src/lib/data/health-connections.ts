@@ -1,111 +1,109 @@
 type InsightFn = (bs: number[], hs: number[]) => string;
 
+// Insight generators per indicator. Order matches HLABELS v2:
+// 0 Blood Pressure, 1 Weight, 2 Waist, 3 Resting HR, 4 Body Fat,
+// 5 Sleep Quality, 6 Blood Sugar, 7 Wellbeing Score.
+// Each generator inspects behaviour scores (bs, 0-7 by behaviour index) and
+// summarises which habits are helping vs holding the indicator back.
+
+function summarise(
+  drivers: [number, string][],
+  bs: number[],
+  indicatorPhrase: string,
+  improveHint: string,
+  maintainHint: string,
+): string {
+  const weak: string[] = [];
+  const strong: string[] = [];
+  drivers.forEach(([bIndex, name]) => {
+    const score = bs[bIndex] ?? 0;
+    if (score <= 2) weak.push(name);
+    else strong.push(name);
+  });
+  const list = drivers.map(d => d[1]).join(', ').replace(/, ([^,]*)$/, ' and $1');
+  let txt = `Your ${indicatorPhrase} is directly impacted by your ${list} habits. `;
+  if (weak.length && strong.length) {
+    txt += `${weak.join(' and ')} ${weak.length > 1 ? 'are' : 'is'} working against you. `;
+    txt += `${strong.join(' and ')} ${strong.length > 1 ? 'are' : 'is'} working in your favour. `;
+  } else if (weak.length) {
+    txt += `${weak.join(' and ')} ${weak.length > 1 ? 'are' : 'is'} actively working against you. `;
+  } else {
+    txt += 'All these habits are currently working in your favour. ';
+  }
+  txt += weak.length ? `Improving ${weak[0]} is your fastest route to ${improveHint}.` : maintainHint;
+  return txt;
+}
+
 export const CONN_INSIGHTS: InsightFn[] = [
   // 0: Blood Pressure
-  (bs, hs) => {
-    const weak: string[] = [];
-    const strong: string[] = [];
-    ([[1, bs[1], 'Smoking'], [5, bs[5], 'Salt'], [6, bs[6], 'Spirits'], [7, bs[7], 'Stress']] as [number, number, string][]).forEach(([, score, name]) => {
-      if (score <= 2) weak.push(name); else strong.push(name);
-    });
-    let txt = 'Your blood pressure is directly impacted by your Salt, Spirits, Smoking and Stress habits. ';
-    if (weak.length && strong.length) txt += weak.join(' and ') + ' are actively pushing your blood pressure up. ' + strong.join(' and ') + ' are working in your favour. ';
-    else if (weak.length) txt += weak.join(', ') + ' are actively pushing your blood pressure up. ';
-    else txt += 'All four habits are currently working in your favour. ';
-    if (weak.length) txt += 'Improving ' + weak[0] + ' can be your fastest route to a better blood pressure reading.';
-    else txt += 'Keep these habits consistent to maintain your reading.';
-    return txt;
-  },
+  (bs) => summarise(
+    [[1, 'Smoking'], [5, 'Salt'], [6, 'Spirits'], [7, 'Stress']],
+    bs,
+    'blood pressure',
+    'a better reading',
+    'Keep these habits consistent to maintain your reading.',
+  ),
 
-  // 1: Blood Sugar
-  (bs, hs) => {
-    const s = bs[4];
-    let txt = 'Your blood sugar is directly impacted by your Sugar habit. ';
-    if (s <= 2) txt += 'Your current sugar consumption is actively pushing your blood glucose up. Improving your Sugar habit can be your fastest route to a better reading.';
-    else txt += 'Your Sugar habit is currently working in your favour. Keep it consistent to maintain your blood glucose level.';
-    return txt;
-  },
+  // 1: Weight
+  (bs) => summarise(
+    [[2, 'Strength'], [3, 'Sweat'], [4, 'Sugar']],
+    bs,
+    'weight',
+    'a healthier weight',
+    'Keep training and diet consistent to hold this weight.',
+  ),
 
-  // 2: Cholesterol
-  (bs, hs) => {
-    const weak: string[] = [];
-    const strong: string[] = [];
-    ([[1, bs[1], 'Smoking'], [6, bs[6], 'Spirits']] as [number, number, string][]).forEach(([, score, name]) => {
-      if (score <= 2) weak.push(name); else strong.push(name);
-    });
-    let txt = 'Your cholesterol is directly impacted by your Smoking and Spirits habits. ';
-    if (weak.length && strong.length) txt += weak.join(' and ') + ' are actively pushing your cholesterol up. ' + strong.join(' and ') + ' are working in your favour. ';
-    else if (weak.length) txt += weak.join(' and ') + ' are actively working against your cholesterol. ';
-    else txt += 'Both habits are currently working in your favour. ';
-    if (weak.length) txt += 'Improving ' + weak[0] + ' can be your fastest route to a better reading.';
-    else txt += 'Keep these habits consistent to protect your cholesterol level.';
-    return txt;
-  },
+  // 2: Waist
+  (bs) => summarise(
+    [[3, 'Sweat'], [4, 'Sugar']],
+    bs,
+    'waist',
+    'a lower waist measurement',
+    'Keep cardio and sugar low to protect this measurement.',
+  ),
 
   // 3: Resting HR
-  (bs, hs) => {
-    const weak: string[] = [];
-    const strong: string[] = [];
-    ([[0, bs[0], 'Sleep'], [1, bs[1], 'Smoking'], [3, bs[3], 'Sweat'], [7, bs[7], 'Stress']] as [number, number, string][]).forEach(([, score, name]) => {
-      if (score <= 2) weak.push(name); else strong.push(name);
-    });
-    let txt = 'Your resting heart rate is directly impacted by your Sleep, Smoking, Sweat and Stress habits. ';
-    if (strong.length) txt += strong.join(' and ') + ' are working in your favour. ';
-    if (weak.length) txt += weak.join(' and ') + ' are actively keeping it elevated. ';
-    if (weak.length) txt += 'Improving ' + weak[0] + ' can be your fastest route to a lower resting heart rate.';
-    else txt += 'Keep these habits consistent to maintain your reading.';
-    return txt;
-  },
+  (bs) => summarise(
+    [[0, 'Sleep'], [1, 'Smoking'], [3, 'Sweat'], [7, 'Stress']],
+    bs,
+    'resting heart rate',
+    'a lower resting heart rate',
+    'Keep these habits consistent to maintain your reading.',
+  ),
 
   // 4: Body Fat
-  (bs, hs) => {
-    const weak: string[] = [];
-    const strong: string[] = [];
-    ([[3, bs[3], 'Sweat'], [4, bs[4], 'Sugar']] as [number, number, string][]).forEach(([, score, name]) => {
-      if (score <= 2) weak.push(name); else strong.push(name);
-    });
-    let txt = 'Your body fat is directly impacted by your Sweat and Sugar habits. ';
-    if (weak.length && strong.length) txt += weak.join(' and ') + ' are actively working against you here. ' + strong.join(' and ') + ' are working in your favour. ';
-    else if (weak.length) txt += weak.join(' and ') + ' are actively working against your body composition. ';
-    else txt += 'Both habits are currently working in your favour. ';
-    if (weak.length) txt += 'Improving ' + weak[0] + ' can be your fastest route to a better body fat reading.';
-    else txt += 'Keep these habits consistent to maintain your body composition.';
-    return txt;
-  },
+  (bs) => summarise(
+    [[2, 'Strength'], [3, 'Sweat'], [4, 'Sugar']],
+    bs,
+    'body fat',
+    'a better body composition',
+    'Keep these habits consistent to maintain your composition.',
+  ),
 
-  // 5: Muscle Mass
-  (bs, hs) => {
-    const s = bs[2];
-    let txt = 'Your muscle mass is directly impacted by your Strength habit. ';
-    if (s <= 2) txt += 'Your current strength training frequency is actively limiting your muscle mass. Improving your Strength habit can be your fastest route to a better reading.';
-    else if (s === 3) txt += 'Your Strength habit is working in your favour. Adding one more session per week can push your muscle mass to the next level.';
-    else txt += 'Your Strength habit is at its best. Keep your training consistent and protein intake high to maintain your muscle mass.';
-    return txt;
-  },
+  // 5: Sleep Quality
+  (bs) => summarise(
+    [[0, 'Sleep'], [6, 'Spirits'], [7, 'Stress']],
+    bs,
+    'sleep quality',
+    'better sleep',
+    'Protect these habits to keep sleep quality high.',
+  ),
 
-  // 6: Push-ups
-  (bs, hs) => {
-    const weak: string[] = [];
-    const strong: string[] = [];
-    ([[2, bs[2], 'Strength'], [3, bs[3], 'Sweat']] as [number, number, string][]).forEach(([, score, name]) => {
-      if (score <= 2) weak.push(name); else strong.push(name);
-    });
-    let txt = 'Your push-up performance is directly impacted by your Strength and Sweat habits. ';
-    if (weak.length && strong.length) txt += weak.join(' and ') + ' are holding your performance back. ' + strong.join(' and ') + ' are working in your favour. ';
-    else if (weak.length) txt += weak.join(' and ') + ' are actively limiting your push-up capacity. ';
-    else txt += 'Both habits are working in your favour. ';
-    if (weak.length) txt += 'Improving ' + weak[0] + ' can be your fastest route to a higher push-up score.';
-    else txt += 'Keep training consistently to maintain and improve your performance.';
-    return txt;
-  },
+  // 6: Blood Sugar
+  (bs) => summarise(
+    [[4, 'Sugar'], [3, 'Sweat']],
+    bs,
+    'blood sugar',
+    'a better reading',
+    'Keep sugar low and cardio consistent to maintain your level.',
+  ),
 
-  // 7: 5km Run
-  (bs, hs) => {
-    const s = bs[3];
-    let txt = 'Your 5km time is directly impacted by your Sweat habit. ';
-    if (s <= 2) txt += 'Your current cardio frequency is actively limiting your endurance. Improving your Sweat habit can be your fastest route to a better 5km time.';
-    else if (s === 3) txt += 'Your Sweat habit is working in your favour. Adding one interval session per week can push your time to the next level.';
-    else txt += 'Your Sweat habit is at its best. Mix steady state, intervals and tempo sessions to keep improving.';
-    return txt;
-  },
+  // 7: Wellbeing Score
+  (bs) => summarise(
+    [[0, 'Sleep'], [2, 'Strength'], [3, 'Sweat'], [7, 'Stress']],
+    bs,
+    'overall wellbeing',
+    'feeling better overall',
+    'Protect these foundations to keep feeling good.',
+  ),
 ];

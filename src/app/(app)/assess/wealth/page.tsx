@@ -63,10 +63,10 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-/* ── DB column keys ── */
+/* ── DB column keys (v2 model) ── */
 const B_COLS = [
-  'b_active_income', 'b_passive_income', 'b_expenses', 'b_discretionary',
-  'b_savings', 'b_debt_repayment', 'b_retirement', 'b_investment',
+  'b_income', 'b_spending', 'b_saving', 'b_debt',
+  'b_investments', 'b_pension', 'b_protection', 'b_tax',
 ] as const;
 
 /** Get the 1st day of the current month (YYYY-MM-DD) */

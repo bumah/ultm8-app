@@ -140,13 +140,12 @@ export default function OctagonOverlay({
 
       const abbrev = labels[i]
         .replace('Blood Pressure', 'BP').replace('Blood Sugar', 'BS')
-        .replace('Cholesterol', 'CHOL').replace('Resting HR', 'RHR')
-        .replace('Body Fat', 'BF').replace('Muscle Mass', 'MM')
-        .replace('Push-ups', 'PU').replace('5km Run', '5KM')
-        .replace('Net Worth', 'NW').replace('Debt Level', 'DEBT')
-        .replace('Savings Capacity', 'SAVE').replace('Emergency Fund', 'EMRG')
-        .replace('Retirement Pot', 'RET').replace('FI Ratio', 'FI')
-        .replace('Lifestyle Creep', 'LIFE').replace('Credit Score', 'CRED');
+        .replace('Resting HR', 'RHR').replace('Body Fat', 'BF')
+        .replace('Sleep Quality', 'SLEEP').replace('Wellbeing Score', 'WELL')
+        .replace('Net Income', 'NINC').replace('Discretionary Spend', 'DISC')
+        .replace('Emergency Fund', 'EMRG').replace('Debt Level', 'DEBT')
+        .replace('Net Worth', 'NW').replace('Pension Fund', 'PEN')
+        .replace('FI Ratio', 'FI').replace('Passive Income', 'PASS');
 
       ctx.fillText(abbrev.toUpperCase(), x, y);
     }

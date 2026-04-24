@@ -13,8 +13,8 @@ import styles from './results.module.css';
 
 /* ── DB column keys ── */
 const B_KEYS = ['b_sleep', 'b_smoking', 'b_strength', 'b_sweat', 'b_sugar', 'b_salt', 'b_spirits', 'b_stress'] as const;
-const IS_KEYS = ['is_blood_pressure', 'is_blood_sugar', 'is_cholesterol', 'is_resting_hr', 'is_body_fat', 'is_muscle_mass', 'is_pushups', 'is_5km_time'] as const;
-const I_KEYS = ['i_blood_pressure', 'i_blood_sugar', 'i_cholesterol', 'i_resting_hr', 'i_body_fat', 'i_muscle_mass', 'i_pushups', 'i_5km_time'] as const;
+const IS_KEYS = ['is_blood_pressure', 'is_weight', 'is_waist', 'is_resting_hr', 'is_body_fat', 'is_sleep_quality', 'is_blood_sugar', 'is_wellbeing'] as const;
+const I_KEYS = ['i_blood_pressure', 'i_weight', 'i_waist', 'i_resting_hr', 'i_body_fat', 'i_sleep_quality', 'i_blood_sugar', 'i_wellbeing'] as const;
 
 /* ── Summary helpers ── */
 function getBehaviourSummary(pct: number): string {

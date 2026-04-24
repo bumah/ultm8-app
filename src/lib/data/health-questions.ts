@@ -15,7 +15,7 @@ export const HEALTH_QUESTIONS: BehaviourQuestion[] = [
   {
     id: 1, name: 'Sleep',
     hook: 'Sleep is the foundation of recovery. It directly affects your heart rate, stress hormones, metabolism and mental performance.',
-    drives: 'Resting Heart Rate',
+    drives: 'Sleep Quality, Resting HR, Wellbeing Score',
     options: [
       { score: 1, text: 'I regularly get less than 5 hours of sleep' },
       { score: 2, text: 'I get around 5–6 hours most nights' },
@@ -26,7 +26,7 @@ export const HEALTH_QUESTIONS: BehaviourQuestion[] = [
   {
     id: 2, name: 'Smoking',
     hook: 'The single most impactful lifestyle behaviour on long-term health. Raises blood pressure, lowers good cholesterol, elevates resting heart rate.',
-    drives: 'Blood Pressure, Cholesterol, Resting Heart Rate',
+    drives: 'Blood Pressure, Resting HR',
     options: [
       { score: 1, text: 'I smoke daily — 10 or more cigarettes, or equivalent' },
       { score: 2, text: 'I smoke daily but fewer than 10, or I vape regularly' },
@@ -37,7 +37,7 @@ export const HEALTH_QUESTIONS: BehaviourQuestion[] = [
   {
     id: 3, name: 'Strength',
     hook: 'Strength training builds and preserves muscle mass — one of the strongest predictors of long-term health and longevity.',
-    drives: 'Muscle Mass, Push-ups',
+    drives: 'Weight, Body Fat, Wellbeing Score',
     options: [
       { score: 1, text: 'I do no strength or resistance training' },
       { score: 2, text: 'I strength train once a week or less' },
@@ -48,7 +48,7 @@ export const HEALTH_QUESTIONS: BehaviourQuestion[] = [
   {
     id: 4, name: 'Sweat',
     hook: 'Intentional cardiovascular exercise — running, cycling, swimming, HIIT — strengthens your heart and lowers resting heart rate.',
-    drives: 'Resting Heart Rate, 5km Run',
+    drives: 'Resting HR, Weight, Waist, Wellbeing Score',
     options: [
       { score: 1, text: 'I do no intentional cardio exercise' },
       { score: 2, text: 'I do light cardio once a week or less' },
@@ -59,7 +59,7 @@ export const HEALTH_QUESTIONS: BehaviourQuestion[] = [
   {
     id: 5, name: 'Sugar',
     hook: 'Excess sugar drives blood sugar spikes, insulin resistance, inflammation, and fat accumulation.',
-    drives: 'Blood Sugar, Body Fat',
+    drives: 'Blood Sugar, Weight, Waist, Body Fat',
     options: [
       { score: 1, text: 'I consume sugary food or drinks every day — sodas, juice, desserts' },
       { score: 2, text: 'I have sugar most days but try to limit it' },
@@ -81,7 +81,7 @@ export const HEALTH_QUESTIONS: BehaviourQuestion[] = [
   {
     id: 7, name: 'Spirits',
     hook: 'Alcohol disrupts sleep, raises blood pressure, lowers good cholesterol, and impairs recovery — even at moderate levels.',
-    drives: 'Blood Pressure, Cholesterol, Resting Heart Rate',
+    drives: 'Blood Pressure, Sleep Quality, Resting HR',
     options: [
       { score: 1, text: 'I drink most days or have heavy drinking sessions most weekends' },
       { score: 2, text: 'I drink several times a week' },
@@ -92,7 +92,7 @@ export const HEALTH_QUESTIONS: BehaviourQuestion[] = [
   {
     id: 8, name: 'Stress',
     hook: 'Chronic stress elevates cortisol — raising blood pressure, disrupting sleep, suppressing immunity, and driving inflammation.',
-    drives: 'Blood Pressure, Resting Heart Rate',
+    drives: 'Blood Pressure, Resting HR, Sleep Quality, Wellbeing Score',
     options: [
       { score: 1, text: 'I feel chronically stressed with no management strategy' },
       { score: 2, text: 'I manage stress inconsistently — some days better than others' },

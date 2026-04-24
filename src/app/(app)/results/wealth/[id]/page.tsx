@@ -12,8 +12,8 @@ import Button from '@/components/ui/Button';
 import styles from './results.module.css';
 
 /* ── DB column keys ── */
-const B_KEYS = ['b_active_income', 'b_passive_income', 'b_expenses', 'b_discretionary', 'b_savings', 'b_debt_repayment', 'b_retirement', 'b_investment'] as const;
-const IS_KEYS = ['is_net_worth', 'is_debt_level', 'is_savings_capacity', 'is_emergency_fund', 'is_retirement_pot', 'is_fi_ratio', 'is_lifestyle_creep', 'is_credit_score'] as const;
+const B_KEYS = ['b_income', 'b_spending', 'b_saving', 'b_debt', 'b_investments', 'b_pension', 'b_protection', 'b_tax'] as const;
+const IS_KEYS = ['is_net_income', 'is_discretionary_spend', 'is_emergency_fund', 'is_debt_level', 'is_net_worth', 'is_pension_fund', 'is_fi_ratio', 'is_passive_income'] as const;
 
 /* ── Currency symbols ── */
 const CURRENCY_SYMBOLS: Record<string, string> = {
@@ -22,33 +22,22 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   EUR: '\u20AC',
 };
 
-/* ── Computed value display helpers ── */
-function formatCurrency(value: number, symbol: string): string {
-  if (value < 0) return '-' + symbol + Math.round(Math.abs(value)).toLocaleString();
-  return symbol + Math.round(value).toLocaleString();
-}
-
-function getComputedDisplay(index: number, data: AssessmentRow, currencySymbol: string): string {
-  switch (index) {
-    case 0: // Net Worth
-      return formatCurrency((data.computed_net_worth as number) || 0, currencySymbol);
-    case 1: // Debt Level
-      return formatCurrency((data.fd_debt as number) || 0, currencySymbol);
-    case 2: // Savings Capacity
-      return Math.round((data.computed_savings_rate as number) || 0) + '%';
-    case 3: // Emergency Fund
-      return Math.round((data.computed_emergency_months as number) || 0) + ' months';
-    case 4: // Retirement Pot
-      return formatCurrency((data.fd_pension as number) || 0, currencySymbol);
-    case 5: // FI Ratio
-      return ((data.computed_fi_ratio as number) || 0).toFixed(2);
-    case 6: // Lifestyle Creep
-      return Math.round((data.computed_disc_pct as number) || 0) + '%';
-    case 7: // Credit Score
-      return 'Self-assessed';
-    default:
-      return '';
-  }
+/* ── Indicator display helpers ── */
+// In v2 the wealth check-in is behaviour-only; indicator values are user-logged
+// on the Trends page. On the results screen we just show the category label
+// rather than a derived value.
+function getComputedDisplay(index: number): string {
+  const suffixes = [
+    'monthly',      // Net Income
+    'monthly',      // Discretionary Spend
+    'months',       // Emergency Fund
+    'of income',    // Debt Level
+    'of income',    // Net Worth
+    'of income',    // Pension Fund
+    '% covered',    // FI Ratio
+    'monthly',      // Passive Income
+  ];
+  return suffixes[index] ?? '';
 }
 
 /* ── Summary helpers ── */
@@ -72,13 +61,6 @@ interface AssessmentRow {
   behaviour_score_pct: number;
   octagon_score_pct: number;
   currency_snapshot: string;
-  computed_net_worth: number;
-  computed_savings_rate: number;
-  computed_emergency_months: number;
-  computed_fi_ratio: number;
-  computed_disc_pct: number;
-  fd_debt: number;
-  fd_pension: number;
   [key: string]: unknown;
 }
 
@@ -148,8 +130,6 @@ export default function WealthResultsPage() {
   const iScores: number[] = IS_KEYS.map((k) => (data[k] as number) || 0);
   const behaviourPct: number = data.behaviour_score_pct ?? 0;
   const octagonPct: number = data.octagon_score_pct ?? 0;
-  const currencySymbol = CURRENCY_SYMBOLS[data.currency_snapshot] || '';
-
   /* Check-in mode: no indicator data (financial inputs) in new model */
   const hasIndicators = iScores.some(s => s > 0);
 
@@ -209,7 +189,7 @@ export default function WealthResultsPage() {
         <div className={styles.barRows}>
           {WHLABELS.map((label, i) => {
             const score = iScores[i];
-            const displayVal = getComputedDisplay(i, data, currencySymbol);
+            const displayVal = getComputedDisplay(i);
             const statusIdx = Math.max(0, Math.min(7, score - 1));
             const statusLabel = HSTATUS[statusIdx];
             const color = getTierColor(score, 8);
@@ -248,7 +228,7 @@ export default function WealthResultsPage() {
           <div className={styles.indicatorCards}>
             {WHLABELS.map((label, i) => {
               const score = iScores[i];
-              const displayVal = getComputedDisplay(i, data, currencySymbol);
+              const displayVal = getComputedDisplay(i);
               const statusIdx = Math.max(0, Math.min(7, score - 1));
               const statusLabel = HSTATUS[statusIdx];
               const color = getTierColor(score, 8);

@@ -13,8 +13,8 @@ const HEALTH_B_KEYS = [
   'b_sugar', 'b_salt', 'b_spirits', 'b_stress',
 ] as const;
 const WEALTH_B_KEYS = [
-  'b_active_income', 'b_passive_income', 'b_expenses', 'b_discretionary',
-  'b_savings', 'b_debt_repayment', 'b_retirement', 'b_investment',
+  'b_income', 'b_spending', 'b_saving', 'b_debt',
+  'b_investments', 'b_pension', 'b_protection', 'b_tax',
 ] as const;
 
 /* ── Helpers ── */

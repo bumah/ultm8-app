@@ -199,13 +199,11 @@ export default function ProfilePage() {
 
   const totalAssets = assetItems.reduce((s, i) => s + (i.value || 0), 0);
   const totalLiabilities = liabilityItems.reduce((s, i) => s + (i.value || 0), 0);
-  const netWorth = wealthAssessment?.computed_net_worth ?? (totalAssets - totalLiabilities);
+  const netWorth = totalAssets - totalLiabilities;
   const totalIncome = incomeActiveItems.reduce((s, i) => s + (i.value || 0), 0)
     + incomePassiveItems.reduce((s, i) => s + (i.value || 0), 0);
   const totalExpenses = expenseItems.reduce((s, i) => s + (i.value || 0), 0);
-  const netIncome = wealthAssessment
-    ? (wealthAssessment.fd_income - wealthAssessment.fd_expenses)
-    : (totalIncome - totalExpenses);
+  const netIncome = totalIncome - totalExpenses;
 
   const hasWealthData = wealthAssessment || wealthItems.length > 0;
   const hasHealthData = healthAssessment || healthSnapshot;

@@ -1,107 +1,109 @@
 type InsightFn = (ws: number[], hs: number[]) => string;
 
+// Insight generators per indicator. Order matches WHLABELS v2:
+// 0 Net Income, 1 Discretionary Spend, 2 Emergency Fund, 3 Debt Level,
+// 4 Net Worth, 5 Pension Fund, 6 FI Ratio, 7 Passive Income.
+// Behaviour indices (ws): 0 Income, 1 Spending, 2 Saving, 3 Debt,
+// 4 Investments, 5 Pension, 6 Protection, 7 Tax.
+
+function summarise(
+  drivers: [number, string][],
+  ws: number[],
+  indicatorPhrase: string,
+  improveHint: string,
+  maintainHint: string,
+): string {
+  const weak: string[] = [];
+  const strong: string[] = [];
+  drivers.forEach(([bIndex, name]) => {
+    const score = ws[bIndex] ?? 0;
+    if (score <= 2) weak.push(name);
+    else strong.push(name);
+  });
+  const list = drivers.map(d => d[1]).join(', ').replace(/, ([^,]*)$/, ' and $1');
+  let txt = `Your ${indicatorPhrase} is directly impacted by your ${list} habits. `;
+  if (weak.length && strong.length) {
+    txt += `${weak.join(' and ')} ${weak.length > 1 ? 'are' : 'is'} working against you. `;
+    txt += `${strong.join(' and ')} ${strong.length > 1 ? 'are' : 'is'} working in your favour. `;
+  } else if (weak.length) {
+    txt += `${weak.join(' and ')} ${weak.length > 1 ? 'are' : 'is'} actively working against you. `;
+  } else {
+    txt += 'All these habits are currently working in your favour. ';
+  }
+  txt += weak.length ? `Improving ${weak[0]} is your fastest route to ${improveHint}.` : maintainHint;
+  return txt;
+}
+
 export const WCONN_INSIGHTS: InsightFn[] = [
-  // 0: Net Worth
-  (ws, hs) => {
-    const weak: string[] = [];
-    const strong: string[] = [];
-    ([[0, ws[0], 'Active Income'], [7, ws[7], 'Investment']] as [number, number, string][]).forEach(([, score, name]) => {
-      if (score <= 2) weak.push(name); else strong.push(name);
-    });
-    let txt = 'Your net worth is directly impacted by your Active Income and Investment habits. ';
-    if (weak.length && strong.length) txt += weak.join(' and ') + ' are holding your net worth back. ' + strong.join(' and ') + ' are working in your favour. ';
-    else if (weak.length) txt += weak.join(' and ') + ' are actively limiting your net worth growth. ';
-    else txt += 'Both habits are currently working in your favour. ';
-    txt += weak.length ? 'Improving ' + weak[0] + ' can be your fastest route to a higher net worth.' : 'Keep these habits consistent to protect and grow your net worth.';
-    return txt;
-  },
+  // 0: Net Income
+  (ws) => summarise(
+    [[0, 'Income'], [7, 'Tax']],
+    ws,
+    'net income',
+    'a higher take-home',
+    'Keep income growing and tax efficiency tight.',
+  ),
 
-  // 1: Debt Level
-  (ws, hs) => {
-    const s5 = ws[4], s6 = ws[5];
-    let txt = 'Your debt level is directly impacted by your Savings and Debt Repayment habits. ';
-    txt += s6 <= 2 ? 'Your Debt Repayment habit is actively slowing progress. ' : 'Your Debt Repayment habit is working in your favour. ';
-    txt += s5 <= 2 ? 'Improving your Savings habit can free up more money for repayments.' : 'Your Savings habit is supporting your debt reduction. Keep both consistent.';
-    return txt;
-  },
+  // 1: Discretionary Spend
+  (ws) => summarise(
+    [[1, 'Spending']],
+    ws,
+    'discretionary spend',
+    'lower non-essential spending',
+    'Keep spending inside your plan each month.',
+  ),
 
-  // 2: Savings Capacity
-  (ws, hs) => {
-    const weak: string[] = [];
-    const strong: string[] = [];
-    ([[2, ws[2], 'Expenses'], [3, ws[3], 'Discretionary'], [4, ws[4], 'Savings']] as [number, number, string][]).forEach(([, score, name]) => {
-      if (score <= 2) weak.push(name); else strong.push(name);
-    });
-    let txt = 'Your savings capacity is directly impacted by your Expenses, Discretionary and Savings habits. ';
-    if (weak.length) txt += weak.join(' and ') + ' are actively limiting how much you can save. ';
-    if (strong.length) txt += strong.join(' and ') + ' are working in your favour. ';
-    txt += weak.length ? 'Improving ' + weak[0] + ' can be your fastest route to a higher savings rate.' : 'Keep these habits consistent.';
-    return txt;
-  },
+  // 2: Emergency Fund
+  (ws) => summarise(
+    [[2, 'Saving']],
+    ws,
+    'emergency fund',
+    'a stronger safety buffer',
+    'Keep saving consistently to grow and protect your buffer.',
+  ),
 
-  // 3: Emergency Fund
-  (ws, hs) => {
-    const s = ws[4];
-    let txt = 'Your emergency fund is directly impacted by your Savings habit. ';
-    txt += s <= 2
-      ? 'Your current savings behaviour is actively limiting your financial resilience. Improving your Savings habit can be your fastest route to a stronger emergency fund.'
-      : 'Your Savings habit is building your emergency fund effectively. Keep it consistent.';
-    return txt;
-  },
+  // 3: Debt Level
+  (ws) => summarise(
+    [[3, 'Debt']],
+    ws,
+    'debt level',
+    'lower debt',
+    'Keep overpaying and avoid new bad debt.',
+  ),
 
-  // 4: Retirement Pot
-  (ws, hs) => {
-    const weak: string[] = [];
-    const strong: string[] = [];
-    ([[1, ws[1], 'Passive Income'], [6, ws[6], 'Retirement'], [7, ws[7], 'Investment']] as [number, number, string][]).forEach(([, score, name]) => {
-      if (score <= 2) weak.push(name); else strong.push(name);
-    });
-    let txt = 'Your retirement pot is directly impacted by your Passive Income, Retirement and Investment habits. ';
-    if (weak.length) txt += weak.join(' and ') + ' are actively limiting your retirement pot growth. ';
-    if (strong.length) txt += strong.join(' and ') + ' are working in your favour. ';
-    txt += weak.length ? 'Improving ' + weak[0] + ' can be your fastest route to a stronger retirement position.' : 'Keep contributing consistently.';
-    return txt;
-  },
+  // 4: Net Worth
+  (ws) => summarise(
+    [[0, 'Income'], [2, 'Saving'], [3, 'Debt'], [4, 'Investments']],
+    ws,
+    'net worth',
+    'faster net worth growth',
+    'Keep all four habits pulling in the same direction.',
+  ),
 
-  // 5: FI Ratio
-  (ws, hs) => {
-    const weak: string[] = [];
-    const strong: string[] = [];
-    ([[0, ws[0], 'Active Income'], [1, ws[1], 'Passive Income'], [7, ws[7], 'Investment']] as [number, number, string][]).forEach(([, score, name]) => {
-      if (score <= 2) weak.push(name); else strong.push(name);
-    });
-    let txt = 'Your FI ratio is directly impacted by your Active Income, Passive Income and Investment habits. ';
-    if (weak.length) txt += weak.join(' and ') + ' are holding your financial independence progress back. ';
-    if (strong.length) txt += strong.join(' and ') + ' are working in your favour. ';
-    txt += weak.length ? 'Improving ' + weak[0] + ' can be your fastest route to a higher FI ratio.' : 'Keep building passive income and investments.';
-    return txt;
-  },
+  // 5: Pension Fund
+  (ws) => summarise(
+    [[5, 'Pension'], [7, 'Tax']],
+    ws,
+    'pension fund',
+    'a stronger retirement position',
+    'Keep contributing and using your tax allowances.',
+  ),
 
-  // 6: Lifestyle Creep
-  (ws, hs) => {
-    const weak: string[] = [];
-    const strong: string[] = [];
-    ([[2, ws[2], 'Expenses'], [3, ws[3], 'Discretionary']] as [number, number, string][]).forEach(([, score, name]) => {
-      if (score <= 2) weak.push(name); else strong.push(name);
-    });
-    let txt = 'Your lifestyle creep is directly impacted by your Expenses and Discretionary habits. ';
-    if (weak.length) txt += weak.join(' and ') + ' are actively driving lifestyle creep. ';
-    if (strong.length) txt += strong.join(' and ') + ' are working in your favour. ';
-    txt += weak.length ? 'Improving ' + weak[0] + ' can be your fastest route to controlling lifestyle creep.' : 'Keep your spending controlled as your income grows.';
-    return txt;
-  },
+  // 6: FI Ratio
+  (ws) => summarise(
+    [[4, 'Investments'], [5, 'Pension'], [2, 'Saving']],
+    ws,
+    'FI ratio',
+    'financial independence',
+    'Keep building passive income and investing consistently.',
+  ),
 
-  // 7: Credit Score
-  (ws, hs) => {
-    const weak: string[] = [];
-    const strong: string[] = [];
-    ([[4, ws[4], 'Savings'], [5, ws[5], 'Debt Repayment']] as [number, number, string][]).forEach(([, score, name]) => {
-      if (score <= 2) weak.push(name); else strong.push(name);
-    });
-    let txt = 'Your credit score is directly impacted by your Savings and Debt Repayment habits. ';
-    if (weak.length) txt += weak.join(' and ') + ' are actively working against your credit score. ';
-    if (strong.length) txt += strong.join(' and ') + ' are working in your favour. ';
-    txt += weak.length ? 'Improving ' + weak[0] + ' can be your fastest route to a better credit score.' : 'Keep paying on time and managing debt consistently.';
-    return txt;
-  },
+  // 7: Passive Income
+  (ws) => summarise(
+    [[4, 'Investments'], [6, 'Protection']],
+    ws,
+    'passive income',
+    'more income that doesn\u2019t require your time',
+    'Keep investing and protect what you\u2019ve built.',
+  ),
 ];

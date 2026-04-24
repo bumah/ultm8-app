@@ -19,8 +19,8 @@ const HEALTH_B_KEYS = [
 ] as const;
 
 const WEALTH_B_KEYS = [
-  'b_active_income', 'b_passive_income', 'b_expenses', 'b_discretionary',
-  'b_savings', 'b_debt_repayment', 'b_retirement', 'b_investment',
+  'b_income', 'b_spending', 'b_saving', 'b_debt',
+  'b_investments', 'b_pension', 'b_protection', 'b_tax',
 ] as const;
 
 /* ── Types ── */
@@ -65,7 +65,7 @@ export default function PlanPage() {
           .single(),
         supabase
           .from('wealth_assessments')
-          .select('b_active_income, b_passive_income, b_expenses, b_discretionary, b_savings, b_debt_repayment, b_retirement, b_investment')
+          .select('b_income, b_spending, b_saving, b_debt, b_investments, b_pension, b_protection, b_tax')
           .eq('user_id', user.id)
           .order('completed_at', { ascending: false })
           .limit(1)
