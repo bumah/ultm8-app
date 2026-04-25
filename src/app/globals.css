@@ -1,34 +1,65 @@
-/* ── ULTM8 Design System ── */
+/* ── ULTM8 Design System (dark mode) ── */
 @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800;900&family=Barlow+Condensed:wght@700;800;900&family=Space+Mono:wght@400;700&display=swap');
 
 :root {
-  /* Backgrounds */
-  --bg: #0E0C0A;
-  --bg2: #151210;
-  --bg3: #1A1714;
+  /* ── Canvas (backgrounds) ── */
+  --canvas: #12171F;
+  --canvas-alt: #1A1F28;
+  --canvas-raised: rgba(245, 240, 232, 0.04);
 
-  /* Accent */
-  --red: #C8241A;
-  --red2: #E63B2F;
+  /* ── Text ── */
+  --text: rgba(245, 240, 232, 0.55);            /* body copy — 55% cream */
+  --text-heading: #F5F0E8;                      /* headings — full cream */
+  --text-muted: rgba(245, 240, 232, 0.35);
+  --text-light: rgba(245, 240, 232, 0.20);
+  --text-emphasis: rgba(245, 240, 232, 0.80);
+
+  /* ── Brand ── */
+  --brand: #F5F0E8;
+  --brand-dark: rgba(245, 240, 232, 0.85);
+
+  /* ── Action (red — rare, only CTAs / urgency) ── */
+  --action: #C8241A;
+  --action-hover: #E63B2F;
+  --action-subtle: rgba(200, 36, 26, 0.08);
+
+  /* ── Data (blue — indicators, positive status) ── */
+  --data: #1D6FA4;
+  --data-subtle: rgba(29, 111, 164, 0.08);
+
+  /* ── Borders ── */
+  --border: rgba(245, 240, 232, 0.12);
+  --border-subtle: rgba(245, 240, 232, 0.06);
+  --border-strong: rgba(245, 240, 232, 0.25);
+
+  /* ── Status ── */
+  --success: #1D6FA4;
+  --warning: #C49A2A;
+  --error: #C8241A;
+
+  /* ─────────────────────────────────────────────────────────────
+     Legacy aliases — keeps every existing CSS module working.
+     New components should use the canonical tokens above.
+     ───────────────────────────────────────────────────────────── */
+  --bg: var(--canvas);
+  --bg2: var(--canvas-alt);
+  --bg3: rgba(245, 240, 232, 0.06);
+
+  --red: var(--action);
+  --red2: var(--action-hover);
   --red-glow: rgba(200, 36, 26, 0.2);
   --red-soft: rgba(200, 36, 26, 0.35);
 
-  /* Text (improved contrast) */
-  --cream: #F2EDE4;
-  --text: #F2EDE4;
-  --text-muted: rgba(242, 237, 228, 0.72);
-  --text-dim: rgba(242, 237, 228, 0.5);
-  --text-faint: rgba(242, 237, 228, 0.18);
+  --cream: var(--text-heading);
+  --text-dim: var(--text-muted);
+  --text-faint: var(--text-light);
+  --border-dim: var(--border-subtle);
 
-  /* Borders (softer) */
-  --border: rgba(242, 237, 228, 0.1);
-  --border-dim: rgba(242, 237, 228, 0.06);
-
-  /* Scoring tiers */
-  --tier-1: #e74c3c;
-  --tier-2: #F5A623;
-  --tier-3: #00D4AA;
-  --tier-4: #C8F135;
+  /* Scoring tiers — kept */
+  --tier-1: #C8241A;        /* red — bottom tier, shares with action */
+  --tier-2: #C49A2A;        /* gold */
+  --tier-3: #1D6FA4;        /* blue — top tier, shares with data */
+  --tier-4: #1D6FA4;        /* alias */
 
   /* Typography */
   --sans: 'Barlow', -apple-system, sans-serif;
@@ -60,13 +91,18 @@ html {
 }
 
 body {
-  background: var(--bg);
-  color: var(--cream);
+  background: var(--canvas);
+  color: var(--text);
   font-family: var(--sans);
   line-height: 1.7;
   min-height: 100vh;
   min-height: 100dvh;
   overflow-x: hidden;
+}
+
+/* Headings get the full cream */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-heading);
 }
 
 a {
@@ -78,14 +114,14 @@ input, button, textarea, select {
   font-family: inherit;
 }
 
-/* ── Subtle halftone only (removed scanlines for cleaner look) ── */
+/* ── Subtle halftone for warmth ── */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background-image: radial-gradient(circle, rgba(242,237,228,0.02) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(245, 240, 232, 0.02) 1px, transparent 1px);
   background-size: 12px 12px;
 }
 
@@ -96,6 +132,6 @@ body::before {
 
 /* ── Selection ── */
 ::selection {
-  background: rgba(200, 36, 26, 0.3);
-  color: var(--cream);
+  background: rgba(245, 240, 232, 0.15);
+  color: var(--text-heading);
 }
