@@ -301,17 +301,22 @@ export default function CalendarPage() {
 
     const interval = Math.max(1, parseInt(newInterval, 10) || 1);
 
-    const payload = {
+    // Build payload defensively — only include recurrence fields if the user
+    // actually picked a frequency. This means non-recurring events work even
+    // when migration 008 (recurrence columns) hasn't been applied yet.
+    const payload: Record<string, unknown> = {
       user_id: user.id,
       title: newTitle.trim(),
       notes: newNotes.trim() || null,
       event_date: formatDate(selectedDate),
       event_time: newTime || null,
       category: newCategory,
-      recurrence_freq: newFreq || null,
-      recurrence_interval: newFreq ? interval : null,
-      recurrence_end_date: newFreq && newEndDate ? newEndDate : null,
     };
+    if (newFreq) {
+      payload.recurrence_freq = newFreq;
+      payload.recurrence_interval = interval;
+      if (newEndDate) payload.recurrence_end_date = newEndDate;
+    }
 
     const { data, error } = await supabase
       .from('user_events')

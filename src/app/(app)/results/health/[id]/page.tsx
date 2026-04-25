@@ -403,6 +403,9 @@ export default function HealthResultsPage() {
         <Button variant="outline" fullWidth onClick={() => router.push('/assess/health')}>
           New Check-in
         </Button>
+        <Button variant="ghost" fullWidth onClick={() => router.push('/compare/health')}>
+          Compare past check-ins
+        </Button>
       </div>
 
       <div className={styles.deleteSection}>

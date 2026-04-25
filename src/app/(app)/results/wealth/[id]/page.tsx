@@ -415,6 +415,9 @@ export default function WealthResultsPage() {
         <Button variant="outline" fullWidth onClick={() => router.push('/assess/wealth')}>
           New Check-in
         </Button>
+        <Button variant="ghost" fullWidth onClick={() => router.push('/compare/wealth')}>
+          Compare past check-ins
+        </Button>
       </div>
 
       <div className={styles.deleteSection}>

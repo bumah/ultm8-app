@@ -42,9 +42,15 @@
 /* ── Octagon grid ── */
 .octagonGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 10px;
   margin-bottom: 1.25rem;
+}
+
+@media (min-width: 600px) {
+  .octagonGrid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .octagonCard,
