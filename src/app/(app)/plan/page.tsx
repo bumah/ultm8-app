@@ -19,8 +19,8 @@ const HEALTH_B_KEYS = [
 ] as const;
 
 const WEALTH_B_KEYS = [
-  'b_income', 'b_spending', 'b_saving', 'b_debt',
-  'b_investments', 'b_pension', 'b_protection', 'b_tax',
+  'b_active_income', 'b_passive_income', 'b_expenses', 'b_discretionary',
+  'b_savings', 'b_debt_repayment', 'b_retirement', 'b_investment',
 ] as const;
 
 /* ── Types ── */
@@ -65,7 +65,7 @@ export default function PlanPage() {
           .single(),
         supabase
           .from('wealth_assessments')
-          .select('b_income, b_spending, b_saving, b_debt, b_investments, b_pension, b_protection, b_tax')
+          .select('b_active_income, b_passive_income, b_expenses, b_discretionary, b_savings, b_debt_repayment, b_retirement, b_investment')
           .eq('user_id', user.id)
           .order('completed_at', { ascending: false })
           .limit(1)
@@ -87,17 +87,17 @@ export default function PlanPage() {
   function buildHealthRecs(): Recommendation[] {
     if (!healthAssessment) return [];
     return HEALTH_B_KEYS.map((key, i) => {
-      const score = (healthAssessment[key] as number) || 1;
+      const score = (healthAssessment[key] as number) ?? 0;
       const rec = BRECS[i]?.[score] || { rec: '', next: '' };
       return {
         behaviourIndex: i,
         name: BLABELS[i],
         score,
         grade: BGRADES[getBehaviourTierIndex(score)],
-        color: getTierColor(score, 4),
+        color: getTierColor(score),
         direction: HEALTH_PLAN[i].type === 'increase' ? 'increase' : 'reduce',
         rec: rec.rec,
-        next: rec.next,
+        next: rec.next ?? '',
       };
     });
   }
@@ -105,17 +105,17 @@ export default function PlanPage() {
   function buildWealthRecs(): Recommendation[] {
     if (!wealthAssessment) return [];
     return WEALTH_B_KEYS.map((key, i) => {
-      const score = (wealthAssessment[key] as number) || 1;
+      const score = (wealthAssessment[key] as number) ?? 0;
       const rec = WBRECS[i]?.[score] || { rec: '', next: '' };
       return {
         behaviourIndex: i,
         name: WBLABELS[i],
         score,
         grade: BGRADES[getBehaviourTierIndex(score)],
-        color: getTierColor(score, 4),
+        color: getTierColor(score),
         direction: WEALTH_PLAN[i].type === 'increase' ? 'increase' : 'reduce',
         rec: rec.rec,
-        next: rec.next,
+        next: rec.next ?? '',
       };
     });
   }

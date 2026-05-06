@@ -66,15 +66,15 @@ export interface HealthAssessment {
 export interface WealthAssessment {
   id: string;
   user_id: string;
-  // 8 behaviour scores (1-4)
-  b_income: number | null;
-  b_spending: number | null;
-  b_saving: number | null;
-  b_debt: number | null;
-  b_investments: number | null;
-  b_pension: number | null;
-  b_protection: number | null;
-  b_tax: number | null;
+  // 8 behaviour scores (-1/0/+1/+2)
+  b_active_income: number | null;
+  b_passive_income: number | null;
+  b_expenses: number | null;
+  b_discretionary: number | null;
+  b_savings: number | null;
+  b_debt_repayment: number | null;
+  b_retirement: number | null;
+  b_investment: number | null;
   // 8 indicator scores (1-8, optional — filled from Trends)
   is_net_income: number | null;
   is_discretionary_spend: number | null;

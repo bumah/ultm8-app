@@ -3,55 +3,57 @@
 import { useReducer, useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { WEALTH_QUESTIONS } from '@/lib/data/wealth-questions';
-import { computeBehaviourPct } from '@/lib/scoring/shared';
+import { WEALTH_QUESTIONS, WEALTH_INDICATOR_QUESTIONS } from '@/lib/data/wealth-questions';
+import { computeBehaviourPct, computeIndicatorPct, computeCombinedPct } from '@/lib/scoring/shared';
 import Button from '@/components/ui/Button';
 import OptionCard from '@/components/ui/OptionCard';
 import ProgressBar from '@/components/ui/ProgressBar';
 import styles from './wealth.module.css';
 
 /* ── Types ── */
-type Screen = 'intro' | 'behaviour' | 'computing';
+type Screen = 'intro' | 'question' | 'computing';
 
 interface State {
   screen: Screen;
-  bIndex: number;
-  bAnswers: (number | null)[];
+  qIndex: number;
+  answers: (number | null)[];
 }
 
 type Action =
   | { type: 'START' }
-  | { type: 'SET_B_ANSWER'; index: number; score: number }
-  | { type: 'NEXT_B' }
-  | { type: 'PREV_B' }
+  | { type: 'SET_ANSWER'; index: number; score: number }
+  | { type: 'NEXT' }
+  | { type: 'PREV' }
   | { type: 'GO_COMPUTING' };
+
+const TOTAL_QS = 16;
 
 const initialState: State = {
   screen: 'intro',
-  bIndex: 0,
-  bAnswers: Array(8).fill(null),
+  qIndex: 0,
+  answers: Array(TOTAL_QS).fill(null),
 };
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case 'START':
-      return { ...state, screen: 'behaviour', bIndex: 0 };
+      return { ...state, screen: 'question', qIndex: 0 };
 
-    case 'SET_B_ANSWER': {
-      const bAnswers = [...state.bAnswers];
-      bAnswers[action.index] = action.score;
-      return { ...state, bAnswers };
+    case 'SET_ANSWER': {
+      const answers = [...state.answers];
+      answers[action.index] = action.score;
+      return { ...state, answers };
     }
 
-    case 'NEXT_B':
-      if (state.bIndex < 7) {
-        return { ...state, bIndex: state.bIndex + 1 };
+    case 'NEXT':
+      if (state.qIndex < TOTAL_QS - 1) {
+        return { ...state, qIndex: state.qIndex + 1 };
       }
       return { ...state, screen: 'computing' };
 
-    case 'PREV_B':
-      if (state.bIndex > 0) {
-        return { ...state, bIndex: state.bIndex - 1 };
+    case 'PREV':
+      if (state.qIndex > 0) {
+        return { ...state, qIndex: state.qIndex - 1 };
       }
       return state;
 
@@ -63,13 +65,18 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-/* ── DB column keys (v2 model) ── */
+/* ── DB column keys (16 total) — file's wealth behaviour set ── */
 const B_COLS = [
-  'b_income', 'b_spending', 'b_saving', 'b_debt',
-  'b_investments', 'b_pension', 'b_protection', 'b_tax',
+  'b_active_income', 'b_passive_income', 'b_expenses', 'b_discretionary',
+  'b_savings', 'b_debt_repayment', 'b_retirement', 'b_investment',
 ] as const;
 
-/** Get the 1st day of the current month (YYYY-MM-DD) */
+const IS_COLS = [
+  'is_net_income', 'is_discretionary_spend', 'is_emergency_fund', 'is_debt_level',
+  'is_net_worth', 'is_pension_fund', 'is_passive_income', 'is_fi_ratio',
+] as const;
+
+/** Get the 1st of the current month (YYYY-MM-DD) */
 function getMonthStart(date = new Date()): string {
   const d = new Date(date.getFullYear(), date.getMonth(), 1);
   return d.toISOString().split('T')[0];
@@ -117,22 +124,25 @@ export default function WealthCheckinPage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const bScoresAll = state.bAnswers.map(s => s ?? 1);
-    const behaviourPct = computeBehaviourPct(bScoresAll);
+    const bScores = state.answers.slice(0, 8).map(s => s ?? 0);
+    const iScores = state.answers.slice(8, 16).map(s => s ?? 0);
+    const behaviourPct = computeBehaviourPct(bScores);
+    const indicatorPct = computeIndicatorPct(iScores);
+    const octagonPct = computeCombinedPct(behaviourPct, indicatorPct);
 
     const row: Record<string, unknown> = {
       user_id: user.id,
       age_group_snapshot: ageGroup,
       currency_snapshot: currency,
       behaviour_score_pct: behaviourPct,
-      octagon_score_pct: behaviourPct,
+      indicator_score_pct: indicatorPct,
+      octagon_score_pct: octagonPct,
     };
 
-    B_COLS.forEach((col, i) => {
-      row[col] = state.bAnswers[i];
-    });
+    B_COLS.forEach((col, i) => { row[col] = bScores[i]; });
+    IS_COLS.forEach((col, i) => { row[col] = iScores[i]; });
 
-    /* Delete any check-in from this same month before inserting new */
+    /* Replace any existing check-in from this same month */
     const monthStart = getMonthStart();
     const monthEnd = getMonthEnd();
 
@@ -155,7 +165,7 @@ export default function WealthCheckinPage() {
     }
 
     router.push(`/results/wealth/${data.id}`);
-  }, [state.bAnswers, ageGroup, currency, router]);
+  }, [state.answers, ageGroup, currency, router]);
 
   useEffect(() => {
     if (state.screen === 'computing') {
@@ -166,13 +176,13 @@ export default function WealthCheckinPage() {
     }
   }, [state.screen, computeAndSave]);
 
-  const completedBehaviours = state.bAnswers.filter(a => a !== null).length;
-  const progressPct = Math.round((completedBehaviours / 8) * 100);
+  const completed = state.answers.filter(a => a !== null).length;
+  const progressPct = Math.round((completed / TOTAL_QS) * 100);
 
   if (!profileLoaded) {
     return (
       <div className={styles.container}>
-        <p style={{ color: 'var(--text-dim)' }}>Loading...</p>
+        <p style={{ color: 'var(--text-muted)' }}>Loading...</p>
       </div>
     );
   }
@@ -182,13 +192,13 @@ export default function WealthCheckinPage() {
     return (
       <div className={`${styles.container} ${styles.screen}`}>
         <div className={styles.intro}>
-          <div className={styles.eyebrow}>Monthly Wealth Check-in</div>
+          <div className={styles.eyebrow}>Wealth Check-in</div>
           <h1 className={styles.heading}>
             How was your<br /><em>month?</em>
           </h1>
           <p className={styles.body}>
-            Rate your 8 wealth habits for the last 30 days. Takes 1 minute.
-            Your octagon will update with your new score.
+            16 quick questions {'\u2014'} 8 habits, then 8 indicators.
+            Takes 2 minutes. Your octagon updates with the new scores.
           </p>
           <Button onClick={() => dispatch({ type: 'START' })}>
             Start &rarr;
@@ -198,48 +208,52 @@ export default function WealthCheckinPage() {
     );
   }
 
-  /* ──────────── BEHAVIOUR SCREEN ──────────── */
-  if (state.screen === 'behaviour') {
-    const q = WEALTH_QUESTIONS[state.bIndex];
-    const selected = state.bAnswers[state.bIndex];
+  /* ──────────── QUESTION SCREEN ──────────── */
+  if (state.screen === 'question') {
+    const isBehaviour = state.qIndex < 8;
+    const q = isBehaviour
+      ? WEALTH_QUESTIONS[state.qIndex]
+      : WEALTH_INDICATOR_QUESTIONS[state.qIndex - 8];
+    const phase = isBehaviour ? 'Wealth \u00B7 Behaviour' : 'Wealth \u00B7 Indicator';
+    const selected = state.answers[state.qIndex];
 
     return (
-      <div className={`${styles.container} ${styles.screen}`} key={`b-${state.bIndex}`}>
+      <div className={`${styles.container} ${styles.screen}`} key={`q-${state.qIndex}`}>
         <div className={styles.progressWrap}>
           <ProgressBar
-            label="Monthly Wealth Check-in"
-            count={`${completedBehaviours}/8`}
+            label={phase}
+            count={`${state.qIndex + 1}/${TOTAL_QS}`}
             percent={progressPct}
           />
         </div>
 
-        <div className={styles.questionNum}>Habit {state.bIndex + 1} of 8</div>
+        <div className={styles.questionNum}>Question {state.qIndex + 1} of {TOTAL_QS}</div>
         <h2 className={styles.questionTitle}>{q.name}</h2>
         <p className={styles.hook}>{q.hook}</p>
 
         <div className={styles.options}>
-          {q.options.map(opt => (
+          {q.options.map((opt, i) => (
             <OptionCard
-              key={opt.score}
+              key={i}
               score={opt.score}
               text={opt.text}
               selected={selected === opt.score}
-              onClick={() => dispatch({ type: 'SET_B_ANSWER', index: state.bIndex, score: opt.score })}
+              onClick={() => dispatch({ type: 'SET_ANSWER', index: state.qIndex, score: opt.score })}
             />
           ))}
         </div>
 
         <div className={styles.actions}>
-          {state.bIndex > 0 && (
-            <Button variant="ghost" onClick={() => dispatch({ type: 'PREV_B' })}>
+          {state.qIndex > 0 && (
+            <Button variant="ghost" onClick={() => dispatch({ type: 'PREV' })}>
               &larr; Back
             </Button>
           )}
           <Button
             disabled={selected === null}
-            onClick={() => dispatch({ type: 'NEXT_B' })}
+            onClick={() => dispatch({ type: 'NEXT' })}
           >
-            {state.bIndex < 7 ? 'Next \u2192' : 'Finish \u2192'}
+            {state.qIndex < TOTAL_QS - 1 ? 'Next \u2192' : 'Finish \u2192'}
           </Button>
         </div>
       </div>
@@ -256,7 +270,7 @@ export default function WealthCheckinPage() {
             Updating your octagon...
           </h2>
           <p className={styles.computingSub}>
-            Scoring your habits.
+            Scoring your habits and indicators.
           </p>
         </div>
       </div>

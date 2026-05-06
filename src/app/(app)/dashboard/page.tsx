@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { BLABELS } from '@/lib/scoring/health-scoring';
 import { WBLABELS } from '@/lib/scoring/wealth-scoring';
-import { getOverallRating, computeBehaviourPct } from '@/lib/scoring/shared';
+import { getOverallRating, computeBehaviourPct, signedScoreToRing } from '@/lib/scoring/shared';
 import OctagonChart from '@/components/octagon/OctagonChart';
 import Link from 'next/link';
 import styles from './dashboard.module.css';
@@ -13,8 +13,8 @@ const HEALTH_B_KEYS = [
   'b_sugar', 'b_salt', 'b_spirits', 'b_stress',
 ] as const;
 const WEALTH_B_KEYS = [
-  'b_income', 'b_spending', 'b_saving', 'b_debt',
-  'b_investments', 'b_pension', 'b_protection', 'b_tax',
+  'b_active_income', 'b_passive_income', 'b_expenses', 'b_discretionary',
+  'b_savings', 'b_debt_repayment', 'b_retirement', 'b_investment',
 ] as const;
 
 /* ── Helpers ── */
@@ -124,16 +124,24 @@ export default async function DashboardPage() {
   const healthAssessment = healthAssessmentData as Record<string, unknown> | null;
   const wealthAssessment = wealthAssessmentData as Record<string, unknown> | null;
 
-  /* Extract behaviour scores (1-4 each) */
+  /* Extract behaviour scores (-1/0/+1/+2 each) and project onto the octagon's 1..8 ring scale. */
   const healthScores: number[] = healthAssessment
-    ? HEALTH_B_KEYS.map(k => (healthAssessment[k] as number) || 1)
+    ? HEALTH_B_KEYS.map(k => signedScoreToRing(healthAssessment[k] as number | null))
     : [];
   const wealthScores: number[] = wealthAssessment
-    ? WEALTH_B_KEYS.map(k => (wealthAssessment[k] as number) || 1)
+    ? WEALTH_B_KEYS.map(k => signedScoreToRing(wealthAssessment[k] as number | null))
     : [];
 
-  const healthPct = healthScores.length ? computeBehaviourPct(healthScores) : 0;
-  const wealthPct = wealthScores.length ? computeBehaviourPct(wealthScores) : 0;
+  /* Raw signed scores (used for behaviour pct). */
+  const healthRaw: number[] = healthAssessment
+    ? HEALTH_B_KEYS.map(k => (healthAssessment[k] as number) ?? 0)
+    : [];
+  const wealthRaw: number[] = wealthAssessment
+    ? WEALTH_B_KEYS.map(k => (wealthAssessment[k] as number) ?? 0)
+    : [];
+
+  const healthPct = healthRaw.length ? computeBehaviourPct(healthRaw) : 0;
+  const wealthPct = wealthRaw.length ? computeBehaviourPct(wealthRaw) : 0;
   const healthRating = getOverallRating(healthPct);
   const wealthRating = getOverallRating(wealthPct);
 
@@ -221,7 +229,7 @@ export default async function DashboardPage() {
                 <OctagonChart
                   scores={healthScores}
                   labels={[...BLABELS]}
-                  maxScore={4}
+                  maxScore={8}
                   size={180}
                   showLabels={false}
                   showScores={false}
@@ -260,7 +268,7 @@ export default async function DashboardPage() {
                 <OctagonChart
                   scores={wealthScores}
                   labels={[...WBLABELS]}
-                  maxScore={4}
+                  maxScore={8}
                   size={180}
                   showLabels={false}
                   showScores={false}

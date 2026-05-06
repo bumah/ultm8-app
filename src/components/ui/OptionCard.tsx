@@ -9,14 +9,14 @@ interface OptionCardProps {
   onClick: () => void;
 }
 
-export default function OptionCard({ score, text, selected, onClick }: OptionCardProps) {
+export default function OptionCard({ text, selected, onClick }: OptionCardProps) {
   return (
     <button
       type="button"
       className={`${styles.opt} ${selected ? styles.selected : ''}`}
       onClick={onClick}
     >
-      <span className={styles.score}>{score}</span>
+      <span className={styles.marker} aria-hidden />
       <span className={styles.text}>{text}</span>
     </button>
   );

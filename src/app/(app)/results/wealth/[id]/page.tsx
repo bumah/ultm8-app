@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { WBLABELS, WHLABELS, WBMAP } from '@/lib/scoring/wealth-scoring';
-import { BTIERS, BGRADES, HSTATUS, getBehaviourTierIndex, getTierColor } from '@/lib/scoring/shared';
+import { BTIERS, BGRADES, HSTATUS, getBehaviourTierIndex, getTierColor, signedScoreToRing } from '@/lib/scoring/shared';
 import { WHRECS } from '@/lib/data/wealth-recommendations';
 import { WCONN_INSIGHTS } from '@/lib/data/wealth-connections';
 import OctagonChart from '@/components/octagon/OctagonChart';
@@ -12,8 +12,8 @@ import Button from '@/components/ui/Button';
 import styles from './results.module.css';
 
 /* ── DB column keys ── */
-const B_KEYS = ['b_income', 'b_spending', 'b_saving', 'b_debt', 'b_investments', 'b_pension', 'b_protection', 'b_tax'] as const;
-const IS_KEYS = ['is_net_income', 'is_discretionary_spend', 'is_emergency_fund', 'is_debt_level', 'is_net_worth', 'is_pension_fund', 'is_fi_ratio', 'is_passive_income'] as const;
+const B_KEYS = ['b_active_income', 'b_passive_income', 'b_expenses', 'b_discretionary', 'b_savings', 'b_debt_repayment', 'b_retirement', 'b_investment'] as const;
+const IS_KEYS = ['is_net_income', 'is_discretionary_spend', 'is_emergency_fund', 'is_debt_level', 'is_net_worth', 'is_pension_fund', 'is_passive_income', 'is_fi_ratio'] as const;
 
 /* ── Currency symbols ── */
 const CURRENCY_SYMBOLS: Record<string, string> = {
@@ -125,13 +125,17 @@ export default function WealthResultsPage() {
     );
   }
 
-  /* ── Extract scores ── */
-  const bScores: number[] = B_KEYS.map((k) => (data[k] as number) || 0);
-  const iScores: number[] = IS_KEYS.map((k) => (data[k] as number) || 0);
+  /* ── Extract scores ──
+     Behaviour + indicator scores are signed -1/0/+1/+2.
+     iScores is the ring-projected (2/4/6/8) version used for octagon + bar UI;
+     iScoresRaw keeps the signed value for recommendations + analysis. */
+  const bScores: number[] = B_KEYS.map((k) => (data[k] as number) ?? 0);
+  const iScoresRaw: number[] = IS_KEYS.map((k) => (data[k] as number) ?? 0);
+  const iScores: number[] = iScoresRaw.map(signedScoreToRing);
   const behaviourPct: number = data.behaviour_score_pct ?? 0;
+  const indicatorPct: number = (data.indicator_score_pct as number) ?? 0;
   const octagonPct: number = data.octagon_score_pct ?? 0;
-  /* Check-in mode: no indicator data (financial inputs) in new model */
-  const hasIndicators = iScores.some(s => s > 0);
+  const hasIndicators = iScoresRaw.some(s => s !== 0) || indicatorPct > 0;
 
   /* ── Toggle helpers ── */
   function toggleBehaviour(idx: number) {
@@ -233,8 +237,7 @@ export default function WealthResultsPage() {
               const statusLabel = HSTATUS[statusIdx];
               const color = getTierColor(score, 8);
               const isOpen = openIndicators.has(i);
-              const recIdx = 8 - score; // index 0 = best score of 8
-              const rec = WHRECS[i]?.[recIdx];
+              const rec = WHRECS[i]?.[iScoresRaw[i]];
 
               return (
                 <div className={styles.indicatorCard} key={i}>
@@ -291,8 +294,8 @@ export default function WealthResultsPage() {
 
                       {(() => {
                         const drivers = WBMAP[i] || [];
-                        const strong = drivers.filter(bIdx => bScores[bIdx] >= 3);
-                        const weak = drivers.filter(bIdx => bScores[bIdx] <= 2);
+                        const strong = drivers.filter(bIdx => bScores[bIdx] >= 1);
+                        const weak = drivers.filter(bIdx => bScores[bIdx] <= 0);
                         const insightText = WCONN_INSIGHTS[i]?.(bScores, iScores) || '';
                         const sentences = insightText.split(/(?<=\.)\s+/);
                         const wellSentences = sentences.filter(s => /working in your favour|currently working|at its best|consistent|building|supporting/i.test(s));
@@ -377,7 +380,8 @@ export default function WealthResultsPage() {
           {WBLABELS.map((label, i) => {
             const score = bScores[i];
             const tierIdx = getBehaviourTierIndex(score);
-            const color = getTierColor(score, 4);
+            const color = getTierColor(score);
+            const filled = score + 2;
             return (
               <div className={styles.barRow} key={i}>
                 <div className={styles.barLabel}>{label}</div>
@@ -386,11 +390,11 @@ export default function WealthResultsPage() {
                     <div
                       key={seg}
                       className={
-                        seg <= score
+                        seg <= filled
                           ? `${styles.barSegment} ${styles.barSegmentFilled}`
                           : `${styles.barSegment} ${styles.barSegmentEmpty}`
                       }
-                      style={seg <= score ? { background: color } : undefined}
+                      style={seg <= filled ? { background: color } : undefined}
                     />
                   ))}
                 </div>

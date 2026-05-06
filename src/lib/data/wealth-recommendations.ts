@@ -1,158 +1,128 @@
+// Verbatim from data.js — wealth behaviour recommendations indexed by [behaviourIndex][score].
+// Score keys are -1, 0, 1, 2.
+
 export interface Recommendation {
   rec: string;
-  next: string;
+  next?: string;
 }
 
-// WBRECS: behaviour recommendations indexed by [behaviourIndex][tierScore (1-4)].
-// Order matches WBLABELS v2: Income, Spending, Saving, Debt, Investments, Pension, Protection, Tax.
 export const WBRECS: Record<number, Recommendation>[] = [
-  // 0: Income
+  // 0: Active Income
   {
-    1: { rec: 'You are flying blind on income. Not knowing your exact take-home makes every other financial decision a guess.', next: 'Find your exact monthly take-home this week.' },
-    2: { rec: 'You have a rough sense but no precision. Precision enables good decisions.', next: 'Track your income exactly for one month.' },
-    3: { rec: 'You know your income and track it. The next level is actively growing it.', next: 'Identify one income growth opportunity this month.' },
-    4: { rec: 'You know, track and actively grow your income. This is the foundation of everything.', next: 'Maintain. Review income growth progress monthly.' },
+    [-1]: { rec: 'You are flying blind on income. Not knowing your exact take-home makes every other financial decision a guess.' },
+    0:    { rec: 'You have a rough sense but no precision. Precision enables good decisions.' },
+    1:    { rec: 'You know your income and track it. The next level is actively growing it.' },
+    2:    { rec: 'You know, track and actively grow your income. This is the foundation of everything.' },
   },
-  // 1: Spending
+  // 1: Passive Income
   {
-    1: { rec: 'Spending outside any plan is where money quietly disappears. Get a simple budget in place this week.', next: 'Track every spend for 7 days to see the leaks.' },
-    2: { rec: 'A rough budget you often exceed is effectively no budget. Tighten it and automate as much as possible.', next: 'Set a weekly cap for discretionary spend and review every Sunday.' },
-    3: { rec: 'You follow a budget most of the time. Consistency is the last mile.', next: 'Hit your budget 4 weeks in a row.' },
-    4: { rec: 'You rarely go outside your planned budget \u2014 this is the habit that protects everything else.', next: 'Maintain. Review monthly for lifestyle creep.' },
+    [-1]: { rec: 'No passive income means your financial freedom depends entirely on your ability to work.' },
+    0:    { rec: 'You have started building passive income. Inconsistency limits its impact.' },
+    1:    { rec: 'You have passive income and track it. The next level is building multiple streams.' },
+    2:    { rec: 'Multiple growing passive income streams is the wealth multiplier. Keep building.' },
   },
-  // 2: Saving
+  // 2: Expenses
   {
-    1: { rec: 'No saving means no buffer, no growth, no resilience. Start with any amount \u2014 the habit matters most.', next: 'Save any amount this month. The habit matters more than the amount.' },
-    2: { rec: 'Saving when money is left over means savings are last priority. Flip it.', next: 'Automate a transfer on payday. Pay yourself first.' },
-    3: { rec: 'You save consistently most months. Making it automatic removes the decision.', next: 'Automate savings on payday so willpower isn\u2019t required.' },
-    4: { rec: 'Paying yourself first every month is one of the most powerful financial habits.', next: 'Maintain. Increase your savings rate by 1% this quarter.' },
+    [-1]: { rec: 'Not knowing where your money goes means leakage is guaranteed.' },
+    0:    { rec: 'Rough awareness is not enough. Financial clarity requires precision.' },
+    1:    { rec: 'You track and know your expenses. The next level is actively reducing them.' },
+    2:    { rec: 'You track, know, and actively manage your expenses. This is financial control.' },
   },
-  // 3: Debt
+  // 3: Discretionary
   {
-    1: { rec: 'Minimum payments only means debt costs you maximum. You need a plan.', next: 'List all debts + interest rates. Focus extra payments on the highest rate first.' },
-    2: { rec: 'Occasional extra payments without a plan are inefficient.', next: 'Create a simple debt repayment plan this week.' },
-    3: { rec: 'You have a plan and follow it. Overpaying accelerates freedom.', next: 'Increase monthly repayment by even a small amount.' },
-    4: { rec: 'Consistent overpayment on a clear plan is the fastest route to a clean financial position.', next: 'Maintain. Track your total debt monthly.' },
+    [-1]: { rec: 'Uncontrolled discretionary spending is where most wealth quietly disappears.' },
+    0:    { rec: 'Awareness without action allows overspending to continue.' },
+    1:    { rec: 'You mostly control discretionary spending. Consistency is the final step.' },
+    2:    { rec: 'Controlled discretionary spending is one of the most powerful wealth habits.' },
   },
-  // 4: Investments
+  // 4: Savings
   {
-    1: { rec: 'No investments outside a workplace pension means your wealth isn\u2019t working as hard as it could.', next: 'Open an ISA or investment account this month.' },
-    2: { rec: 'Occasional investing without a strategy produces inconsistent results.', next: 'Define your investment strategy this month.' },
-    3: { rec: 'Monthly investing with a clear strategy is building long-term wealth.', next: 'Diversify across one additional asset class this quarter.' },
-    4: { rec: 'Monthly diversified investing with quarterly review is the wealth-building standard.', next: 'Maintain. Rebalance quarterly.' },
+    [-1]: { rec: 'Not saving means no buffer, no growth, and no financial resilience.' },
+    0:    { rec: 'Saving when money is left over means savings are last priority. Flip it.' },
+    1:    { rec: 'You save consistently most months. Making it automatic removes the decision.' },
+    2:    { rec: 'Paying yourself first every month is one of the most powerful financial habits.' },
   },
-  // 5: Pension
+  // 5: Debt Repayment
   {
-    1: { rec: 'No pension contributions means time is working against you.', next: 'Start any pension contribution this month. Time matters more than amount.' },
-    2: { rec: 'Contributing without reviewing means you don\u2019t know if it\u2019s enough.', next: 'Review your pension pot value and projected retirement income.' },
-    3: { rec: 'You contribute and know your pot. The next level is increasing when possible.', next: 'Increase contributions by 1% this quarter.' },
-    4: { rec: 'Consistent contributions with regular review is the gold standard.', next: 'Maintain. Increase contributions with every pay rise.' },
+    [-1]: { rec: 'Minimum payments only means debt costs you maximum. You need a plan.' },
+    0:    { rec: 'Occasional extra payments without a plan are inefficient.' },
+    1:    { rec: 'You have a plan and follow it. Consistency and overpaying accelerates freedom.' },
+    2:    { rec: 'Consistent overpayment on a clear plan is the fastest route to a clean financial position.' },
   },
-  // 6: Protection
+  // 6: Retirement
   {
-    1: { rec: 'No protection means a single bad event can wipe out years of progress. Start with the basics.', next: 'Get a quote for life + income protection this month.' },
-    2: { rec: 'Old cover you haven\u2019t reviewed may be inadequate. Review it this quarter.', next: 'Review your existing cover against your current needs.' },
-    3: { rec: 'Life and income protection reviewed annually is solid. Consider critical illness and health cover next.', next: 'Add critical illness or health cover this year.' },
-    4: { rec: 'Comprehensive, reviewed cover is real financial resilience.', next: 'Maintain. Review annually or after any life change.' },
+    [-1]: { rec: 'No retirement contributions means time is working against you.' },
+    0:    { rec: 'Contributing but not reviewing means you do not know if it is enough.' },
+    1:    { rec: 'You contribute and know your pot. The next level is increasing when possible.' },
+    2:    { rec: 'Consistent contributions with regular review is the gold standard.' },
   },
-  // 7: Tax
+  // 7: Investment
   {
-    1: { rec: 'Not using tax-advantaged accounts leaves money on the table every year.', next: 'Open an ISA or pension this month if you don\u2019t have one.' },
-    2: { rec: 'Using one allowance inconsistently loses the compounding benefit. Make it automatic.', next: 'Set up a monthly ISA/pension contribution.' },
-    3: { rec: 'Using your ISA or pension allowance most years is strong. Fill both each year when possible.', next: 'Target using your full ISA and pension allowance every tax year.' },
-    4: { rec: 'Fully using all allowances every year is elite tax discipline.', next: 'Maintain. Review allowances each April.' },
+    [-1]: { rec: 'No investments outside pension means your wealth is not working as hard as it could.' },
+    0:    { rec: 'Occasional investing without a strategy produces inconsistent results.' },
+    1:    { rec: 'Monthly investing with a clear strategy is building long-term wealth.' },
+    2:    { rec: 'Monthly diversified investing with quarterly review is the wealth building standard.' },
   },
 ];
 
-// WHRECS: indicator recommendations indexed by [indicatorIndex][0-7 where 0=score 8 (best), 7=worst].
-// Order matches WHLABELS v2: Net Income, Discretionary Spend, Emergency Fund, Debt Level, Net Worth, Pension Fund, FI Ratio, Passive Income.
-export const WHRECS: Recommendation[][] = [
+// Indicator recommendations indexed by [indicatorIndex][score]. Scores are -1/0/1/2.
+// Order matches WHLABELS: Net Income, Discretionary Spend, Emergency Fund, Debt Level,
+// Net Worth, Pension Fund, Passive Income, FI Ratio.
+export const WHRECS: Record<number, Recommendation>[] = [
   // 0: Net Income
-  [
-    { rec: 'High net income. Your earnings ceiling is strong \u2014 focus on deploying it well.', next: 'Maintain. Direct surplus to investments.' },
-    { rec: 'Very strong net income.', next: 'Aim to invest 25%+ of each month.' },
-    { rec: 'Strong net income. Good base for building wealth.', next: 'Automate savings + investments on payday.' },
-    { rec: 'Solid take-home. Focus on growing savings rate.', next: 'Target saving 20% of net income.' },
-    { rec: 'Moderate. Focus on income growth as much as spending control.', next: 'Identify one income growth lever this year.' },
-    { rec: 'Modest. Prioritise skills or a side income to raise take-home.', next: 'Identify one earning skill to develop this year.' },
-    { rec: 'Low. Cost control and income growth need equal attention.', next: 'Audit spending + start a side income.' },
-    { rec: 'Very low. Both income and expenses need urgent attention.', next: 'Seek help \u2014 career, benefits, or debt advice.' },
-  ],
+  {
+    [-1]: { rec: 'A net income that doesn\u2019t cover the basics needs urgent attention. Earning capacity comes before optimisation.' },
+    0:    { rec: 'You don\u2019t know your exact take-home. Find out \u2014 it\u2019s the simplest financial number to know precisely.' },
+    1:    { rec: 'Income just covers needs. Build a small buffer first, then look at growing earnings.' },
+    2:    { rec: 'Comfortable surplus is exactly what enables saving, investing, and freedom. Direct the surplus deliberately.' },
+  },
   // 1: Discretionary Spend
-  [
-    { rec: 'Under 5% of income on discretionary. Exceptional discipline.', next: 'Maintain. Protect against lifestyle inflation.' },
-    { rec: '5\u201310% discretionary. Very controlled.', next: 'Maintain. Review monthly.' },
-    { rec: '10\u201315% discretionary. Good control.', next: 'Target under 10%.' },
-    { rec: '15\u201320% discretionary. Room to reduce.', next: 'Target 15%.' },
-    { rec: '20\u201325% discretionary. A material chunk going to non-essentials.', next: 'Target 20%.' },
-    { rec: '25\u201330% discretionary. Limiting savings significantly.', next: 'Target 25%.' },
-    { rec: '30\u201340% discretionary. A major wealth barrier.', next: 'Run a full spending audit this week.' },
-    { rec: '40%+ discretionary. Lifestyle creep is your biggest challenge.', next: 'Spending audit now. Cut ruthlessly.' },
-  ],
+  {
+    [-1]: { rec: 'High, regretful discretionary spending is where wealth leaks. A simple weekly cap will move this fast.' },
+    0:    { rec: 'You don\u2019t track discretionary spend. Track every non-essential for one week to see where it goes.' },
+    1:    { rec: 'Moderate spending is fine if it matches your plan. Keep checking it against your savings rate.' },
+    2:    { rec: 'Tight discretionary control is one of the most powerful long-term wealth habits.' },
+  },
   // 2: Emergency Fund
-  [
-    { rec: '2+ years covered. Exceptional resilience.', next: 'Maintain. Invest anything above 2 years.' },
-    { rec: '13\u201324 months covered. Strong buffer.', next: 'Target 24 months.' },
-    { rec: '7\u201312 months covered. Above the minimum.', next: 'Target 13 months.' },
-    { rec: '4\u20136 months covered. At or above the standard.', next: 'Target 7 months.' },
-    { rec: '3 months covered. At the minimum recommended level.', next: 'Target 4\u20136 months.' },
-    { rec: '2 months covered. Getting close to the minimum.', next: 'Target 3 months.' },
-    { rec: 'Less than 1 month covered. One unexpected event could cause serious stress.', next: 'Target 1 month as first milestone.' },
-    { rec: 'No emergency fund. Most urgent financial priority.', next: 'Save 1 month of expenses before any other goal.' },
-  ],
+  {
+    [-1]: { rec: 'Less than a month of expenses means a single bad event becomes a crisis. Building this is the urgent first goal.' },
+    0:    { rec: 'You\u2019re unsure of your buffer. Confirm liquid cash equivalent in months of expenses today.' },
+    1:    { rec: '1\u20133 months is a start \u2014 keep building toward 3+ months as your floor.' },
+    2:    { rec: '3+ months is solid resilience. Keep it liquid and protected; invest anything above 6 months.' },
+  },
   // 3: Debt Level
-  [
-    { rec: 'Debt-free. One of the most powerful financial positions.', next: 'Maintain. Stay debt-free.' },
-    { rec: 'Minimal debt. Almost there.', next: 'Target zero debt.' },
-    { rec: 'Low debt. Good progress.', next: 'Target under 0.25x annual income.' },
-    { rec: 'Manageable debt. A repayment plan is working.', next: 'Prioritise highest interest debt first.' },
-    { rec: 'Moderate debt. A clear plan is essential.', next: 'Target 1x annual income.' },
-    { rec: 'Significant debt. Needs focused attention.', next: 'Consider consolidation to reduce interest.' },
-    { rec: 'High debt. Limiting your progress significantly.', next: 'Seek financial advice if needed.' },
-    { rec: 'Very high debt. Needs urgent attention.', next: 'Speak to a debt adviser immediately.' },
-  ],
+  {
+    [-1]: { rec: 'High debt is the headwind on every other metric. Focus on the highest-rate debt first.' },
+    0:    { rec: 'You\u2019re unsure of your debt picture. List balances and rates so you can attack it.' },
+    1:    { rec: 'Manageable debt on a plan is fine. Stay disciplined and overpay where possible.' },
+    2:    { rec: 'Debt-free or near it is one of the strongest financial positions. Keep it that way.' },
+  },
   // 4: Net Worth
-  [
-    { rec: 'Optimal. Net worth is 10x+ annual income.', next: 'Maintain. Review net worth quarterly.' },
-    { rec: 'Excellent. 5\u201310x annual income.', next: 'Target 10x annual income.' },
-    { rec: 'Strong. 2\u20135x annual income.', next: 'Target 5x annual income.' },
-    { rec: 'Getting there. 1\u20132x annual income.', next: 'Target 2x annual income.' },
-    { rec: 'Building. 0.5\u20131x annual income.', next: 'Target 1x annual income.' },
-    { rec: 'Early stage. Under 0.5x annual income.', next: 'Target 0.5x annual income.' },
-    { rec: 'Starting out. Under 0.25x annual income.', next: 'Target 0.25x annual income.' },
-    { rec: 'Net worth is negative. This is your starting point.', next: 'Target zero net worth first.' },
-  ],
+  {
+    [-1]: { rec: 'Negative net worth is your starting point. Tackle high-rate debt and start building any positive net worth.' },
+    0:    { rec: 'You don\u2019t track net worth. Calculate assets minus liabilities once a quarter to see direction of travel.' },
+    1:    { rec: 'Close to zero. The next milestone is consistently positive and growing.' },
+    2:    { rec: 'Positive and growing is the headline. Keep accelerating with savings and investments.' },
+  },
   // 5: Pension Fund
-  [
-    { rec: 'Exceptional pension pot for your age.', next: 'Maintain contributions. Review annually.' },
-    { rec: 'Strong pension pot for your age.', next: 'Increase contributions with every pay rise.' },
-    { rec: 'Solid pension pot.', next: 'Review projected income. Increase if below target.' },
-    { rec: 'Developing pension pot. Time is still on your side.', next: 'Increase contributions by 1\u20132% this quarter.' },
-    { rec: 'Pension pot needs attention.', next: 'Increase contributions. Even 1% more makes a big difference.' },
-    { rec: 'Pension pot is below target for your age.', next: 'Consider increasing contributions significantly.' },
-    { rec: 'Pension pot is well below target. Urgent action needed.', next: 'Speak to a financial adviser.' },
-    { rec: 'No pension savings. Start immediately.', next: 'Start any pension contribution this month.' },
-  ],
-  // 6: FI Ratio
-  [
-    { rec: 'FI Ratio 2.0+. Super comfortable.', next: 'Maintain. Grow passive income if desired.' },
-    { rec: 'FI Ratio 1.0\u20131.99. Financially independent.', next: 'Target 2.0.' },
-    { rec: 'FI Ratio 0.51\u20130.99. Over halfway to financial independence.', next: 'Target 1.0.' },
-    { rec: 'FI Ratio 0.26\u20130.50. Passive income covers a meaningful portion.', next: 'Target 0.51.' },
-    { rec: 'FI Ratio 0.11\u20130.25. A start.', next: 'Target 0.26.' },
-    { rec: 'FI Ratio 0.06\u20130.10. Minimal but exists.', next: 'Target 0.11. Invest consistently.' },
-    { rec: 'FI Ratio 0.01\u20130.05. Just starting.', next: 'Target 0.06. Reinvest all returns.' },
-    { rec: 'No passive income. Freedom depends entirely on your ability to work.', next: 'Start building one passive income source this quarter.' },
-  ],
-  // 7: Passive Income
-  [
-    { rec: 'Substantial passive income. You have real optionality.', next: 'Maintain. Diversify across 3+ streams.' },
-    { rec: 'Strong passive income. Build further diversity.', next: 'Add a second or third stream this year.' },
-    { rec: 'Meaningful passive income. Keep compounding it.', next: 'Reinvest all returns back into assets.' },
-    { rec: 'Growing passive income. A good foundation.', next: 'Increase monthly investments to accelerate.' },
-    { rec: 'Modest passive income. The habit exists.', next: 'Raise contributions and track monthly.' },
-    { rec: 'Small passive income. Keep going.', next: 'Focus on one primary source until consistent.' },
-    { rec: 'Minimal passive income. Just starting out.', next: 'Pick one vehicle (ISA, dividend fund) and automate.' },
-    { rec: 'No passive income. Your freedom depends entirely on work.', next: 'Start building one passive stream this quarter.' },
-  ],
+  {
+    [-1]: { rec: 'Nothing or almost nothing for retirement means time is working against you. Start any contribution this month.' },
+    0:    { rec: 'You don\u2019t know where your pension stands. Log into the provider and check today.' },
+    1:    { rec: 'Behind for your age but contributing. Increase by 1% with every pay rise to catch up.' },
+    2:    { rec: 'On track or ahead is exactly where you want to be. Maintain and protect your contributions.' },
+  },
+  // 6: Passive Income
+  {
+    [-1]: { rec: 'No passive income means freedom depends entirely on your ability to work. Build one stream this quarter.' },
+    0:    { rec: 'You\u2019re unsure of your passive income. Total it monthly to see the picture.' },
+    1:    { rec: 'A small or starting stream is the right shape. Compound it through reinvestment.' },
+    2:    { rec: 'Meaningful or multiple streams is the wealth multiplier. Keep diversifying.' },
+  },
+  // 7: FI Ratio
+  {
+    [-1]: { rec: 'Zero passive coverage of expenses means full dependence on income. Start the smallest stream possible.' },
+    0:    { rec: 'You don\u2019t know your FI ratio. Calculate passive / monthly expenses today.' },
+    1:    { rec: '1\u201349% covered is a real start. Keep growing the numerator and watching the denominator.' },
+    2:    { rec: '50%+ is over the halfway line. Compounding will accelerate from here.' },
+  },
 ];

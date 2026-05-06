@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { BLABELS, HLABELS } from '@/lib/scoring/health-scoring';
 import { WBLABELS, WHLABELS } from '@/lib/scoring/wealth-scoring';
+import { signedScoreToRing } from '@/lib/scoring/shared';
 import OctagonOverlay from '@/components/octagon/OctagonOverlay';
 import styles from './compare.module.css';
 
@@ -15,8 +16,8 @@ const HEALTH_B_KEYS = [
 ] as const;
 
 const WEALTH_B_KEYS = [
-  'b_income', 'b_spending', 'b_saving', 'b_debt',
-  'b_investments', 'b_pension', 'b_protection', 'b_tax',
+  'b_active_income', 'b_passive_income', 'b_expenses', 'b_discretionary',
+  'b_savings', 'b_debt_repayment', 'b_retirement', 'b_investment',
 ] as const;
 
 // Distinct overlay colours — drawn from the v2 palette.
@@ -67,7 +68,7 @@ export default function ComparePage() {
       const items: CheckIn[] = rows.map(r => ({
         id: r.id as string,
         completed_at: r.completed_at as string,
-        scores: keys.map(k => (r[k] as number) || 1),
+        scores: keys.map(k => (r[k] as number) ?? 0),
         pct: (r.behaviour_score_pct as number) ?? 0,
       }));
 
@@ -82,7 +83,9 @@ export default function ComparePage() {
   const layers = useMemo(() => {
     const picked = checkins.filter(c => selected.has(c.id));
     return picked.map((c, i) => ({
-      scores: c.scores,
+      // Octagon expects 1..maxScore; project signed scores onto 1..8.
+      scores: c.scores.map(s => signedScoreToRing(s)),
+      raw: c.scores,
       color: COLORS[i % COLORS.length],
       label: shortDate(c.completed_at),
       opacity: 0.18,
@@ -98,7 +101,7 @@ export default function ComparePage() {
     });
   }
 
-  // Octagon overlay uses behaviour scale (1-4) — pass maxScore=4
+  // Signed scores are projected onto rings 2..8 via signedScoreToRing — maxScore=8.
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -132,7 +135,7 @@ export default function ComparePage() {
             <OctagonOverlay
               layers={layers}
               labels={[...labels]}
-              maxScore={4}
+              maxScore={8}
               size={320}
             />
           </div>
@@ -181,7 +184,7 @@ export default function ComparePage() {
                       className={styles.brScore}
                       style={{ color: l.color }}
                     >
-                      {l.scores[idx]}
+                      {l.raw[idx] > 0 ? `+${l.raw[idx]}` : l.raw[idx]}
                     </span>
                   ))}
                 </div>

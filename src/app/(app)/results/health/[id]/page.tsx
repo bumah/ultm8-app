@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { BLABELS, HLABELS, HUNITS, BMAP } from '@/lib/scoring/health-scoring';
-import { BTIERS, BGRADES, HSTATUS, getBehaviourTierIndex, getTierColor } from '@/lib/scoring/shared';
+import { BTIERS, BGRADES, HSTATUS, getBehaviourTierIndex, getTierColor, signedScoreToRing } from '@/lib/scoring/shared';
 import { HRECS } from '@/lib/data/health-recommendations';
 import { CONN_INSIGHTS } from '@/lib/data/health-connections';
 import OctagonChart from '@/components/octagon/OctagonChart';
@@ -100,16 +100,21 @@ export default function HealthResultsPage() {
     );
   }
 
-  /* ── Extract scores ── */
-  const bScores: number[] = B_KEYS.map((k) => (data[k] as number) || 0);
-  const iScores: number[] = IS_KEYS.map((k) => (data[k] as number) || 0);
-  const iRaw: number[] = I_KEYS.map((k) => (data[k] as number) || 0);
+  /* ── Extract scores ──
+     Behaviour + indicator scores are signed (-1/0/+1/+2). The octagon expects
+     1..maxScore, so we project signed scores onto rings 2..8 for drawing while
+     keeping the raw signed values for analysis. */
+  const bScores: number[] = B_KEYS.map((k) => (data[k] as number) ?? 0);
+  const iScoresRaw: number[] = IS_KEYS.map((k) => (data[k] as number) ?? 0);
+  const iScores: number[] = iScoresRaw.map(signedScoreToRing); // 2/4/6/8 for the bar UI
+  const iRaw: number[] = I_KEYS.map((k) => (data[k] as number) ?? 0);
   const bpDiastolic = (data['i_blood_pressure_diastolic'] as number) || null;
   const behaviourPct: number = data.behaviour_score_pct ?? 0;
+  const indicatorPct: number = (data.indicator_score_pct as number) ?? 0;
   const octagonPct: number = data.octagon_score_pct ?? 0;
 
-  /* Check-in mode: no indicator data collected (new model) */
-  const hasIndicators = iScores.some(s => s > 0);
+  /* Indicator section is only meaningful if any indicator answer was given. */
+  const hasIndicators = iScoresRaw.some(s => s !== 0) || indicatorPct > 0;
 
   /* ── Toggle helpers ── */
   function toggleBehaviour(idx: number) {
@@ -216,8 +221,7 @@ export default function HealthResultsPage() {
               const statusLabel = HSTATUS[statusIdx];
               const color = getTierColor(score, 8);
               const isOpen = openIndicators.has(i);
-              const recIdx = 8 - score; // index 0 = best score of 8
-              const rec = HRECS[i]?.[recIdx];
+              const rec = HRECS[i]?.[iScoresRaw[i]];
 
               return (
                 <div className={styles.indicatorCard} key={i}>
@@ -275,8 +279,8 @@ export default function HealthResultsPage() {
 
                       {(() => {
                         const drivers = BMAP[i] || [];
-                        const strong = drivers.filter(bIdx => bScores[bIdx] >= 3);
-                        const weak = drivers.filter(bIdx => bScores[bIdx] <= 2);
+                        const strong = drivers.filter(bIdx => bScores[bIdx] >= 1);
+                        const weak = drivers.filter(bIdx => bScores[bIdx] <= 0);
                         const insightText = CONN_INSIGHTS[i]?.(bScores, iScores) || '';
                         // Split insight into going well / needs attention parts
                         const sentences = insightText.split(/(?<=\.)\s+/);
@@ -365,7 +369,9 @@ export default function HealthResultsPage() {
           {BLABELS.map((label, i) => {
             const score = bScores[i];
             const tierIdx = getBehaviourTierIndex(score);
-            const color = getTierColor(score, 4);
+            const color = getTierColor(score);
+            // Map signed score (-1..2) onto 4 segments: -1 -> 1, 0 -> 2, +1 -> 3, +2 -> 4.
+            const filled = score + 2;
             return (
               <div className={styles.barRow} key={i}>
                 <div className={styles.barLabel}>{label}</div>
@@ -374,11 +380,11 @@ export default function HealthResultsPage() {
                     <div
                       key={seg}
                       className={
-                        seg <= score
+                        seg <= filled
                           ? `${styles.barSegment} ${styles.barSegmentFilled}`
                           : `${styles.barSegment} ${styles.barSegmentEmpty}`
                       }
-                      style={seg <= score ? { background: color } : undefined}
+                      style={seg <= filled ? { background: color } : undefined}
                     />
                   ))}
                 </div>

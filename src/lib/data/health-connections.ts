@@ -17,7 +17,7 @@ function summarise(
   const strong: string[] = [];
   drivers.forEach(([bIndex, name]) => {
     const score = bs[bIndex] ?? 0;
-    if (score <= 2) weak.push(name);
+    if (score <= 0) weak.push(name);
     else strong.push(name);
   });
   const list = drivers.map(d => d[1]).join(', ').replace(/, ([^,]*)$/, ' and $1');
