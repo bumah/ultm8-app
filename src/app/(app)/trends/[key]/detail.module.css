@@ -200,6 +200,159 @@
   color: var(--text-muted);
 }
 
+/* ── Goal block ── */
+.goalAdd {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+  font-family: var(--sans);
+  margin-bottom: 1rem;
+}
+
+.goalAdd:hover {
+  border-color: var(--data);
+  color: var(--data);
+}
+
+.goalBlock {
+  background: var(--canvas-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.goalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.goalLabel {
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.goalStatus {
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid;
+}
+
+.goalStatusAchieved {
+  color: var(--data);
+  border-color: var(--data);
+  background: var(--data-subtle);
+}
+
+.goalStatusProgressing {
+  color: var(--text-emphasis);
+  border-color: var(--border);
+  background: transparent;
+}
+
+.goalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 6px 0;
+}
+
+.goalRowLabel {
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-light);
+}
+
+.goalRowValue {
+  font-family: var(--cond);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.goalProgressBar {
+  margin-top: 10px;
+  height: 6px;
+  background: rgba(245, 240, 232, 0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.goalProgressFill {
+  height: 100%;
+  background: var(--data);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.goalRowMeta {
+  margin-top: 6px;
+  font-family: var(--mono);
+  font-size: 0.46rem;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.goalActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.goalEdit,
+.goalDelete {
+  flex: 1;
+  padding: 8px;
+  border-radius: 2px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: var(--sans);
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.goalEdit:hover {
+  color: var(--text-heading);
+  border-color: var(--border-strong);
+}
+
+.goalDelete:hover {
+  color: var(--action-hover);
+  border-color: var(--action);
+}
+
 /* ── Chart block ── */
 .chartBlock {
   background: var(--bg2);
