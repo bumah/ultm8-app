@@ -13,12 +13,16 @@ export default async function Home() {
 
   return (
     <div className={styles.page}>
-      {/* Hero */}
-      <div className={styles.hero}>
+      {/* Top bar — small sign-in link, not the main event */}
+      <div className={styles.topBar}>
         <div className={styles.logo}>
           ULTM<span className={styles.accent}>8</span>
         </div>
+        <Link href="/login" className={styles.topSignIn}>Sign in</Link>
+      </div>
 
+      {/* Hero */}
+      <div className={styles.hero}>
         <h1 className={styles.heading}>
           Build your body.<br />
           Build your bank.<br />
@@ -26,24 +30,30 @@ export default async function Home() {
         </h1>
 
         <p className={styles.sub}>
-          A weekly health check-in and a monthly wealth check-in.
-          Two octagons. Eight habits each. Track the numbers that
-          matter and watch your trends over time.
+          Take the assessment in 2 minutes and see exactly where you stand.
+          No account needed.
         </p>
 
-        <div className={styles.heroCtas}>
-          <Link href="/register" className={styles.ctaPrimary}>
-            Create Account &rarr;
+        <div className={styles.assessLinks}>
+          <Link href="/try/health" className={styles.assessCard}>
+            <div className={styles.assessCardLabel}>Health</div>
+            <div className={styles.assessCardTitle}>Take the Health Assessment</div>
+            <div className={styles.assessCardSub}>16 questions {'\u2014'} 2 minutes</div>
+            <div className={styles.assessCardArrow}>{'\u2192'}</div>
           </Link>
-          <Link href="/login" className={styles.ctaGhost}>
-            Sign In
+
+          <Link href="/try/wealth" className={styles.assessCard}>
+            <div className={styles.assessCardLabel}>Wealth</div>
+            <div className={styles.assessCardTitle}>Take the Wealth Assessment</div>
+            <div className={styles.assessCardSub}>16 questions {'\u2014'} 2 minutes</div>
+            <div className={styles.assessCardArrow}>{'\u2192'}</div>
           </Link>
         </div>
       </div>
 
-      {/* What you get */}
+      {/* What an account gives you — secondary, after they've considered the assessment */}
       <div className={styles.section}>
-        <div className={styles.sectionEyebrow}>Your Toolkit</div>
+        <div className={styles.sectionEyebrow}>What an account gives you</div>
 
         <div className={styles.features}>
           <div className={styles.feature}>
@@ -85,11 +95,11 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* Bottom CTA */}
+      {/* Bottom CTA — secondary path for those who want to commit now */}
       <div className={styles.bottomCta}>
-        <div className={styles.bottomText}>Ready for your first check-in?</div>
-        <Link href="/register" className={styles.ctaPrimary}>
-          Create Account &rarr;
+        <div className={styles.bottomText}>Ready to track over time?</div>
+        <Link href="/register" className={styles.ctaSecondary}>
+          Create account &rarr;
         </Link>
         <div className={styles.bottomSignIn}>
           Already have an account? <Link href="/login" className={styles.bottomLink}>Sign in</Link>

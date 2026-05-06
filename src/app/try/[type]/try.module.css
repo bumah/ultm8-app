@@ -1,0 +1,400 @@
+/* ── Guest assessment flow ── */
+
+.container {
+  min-height: 100vh;
+  min-height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 1.5rem var(--page-pad) 4rem;
+  position: relative;
+  z-index: 1;
+}
+
+.loading {
+  padding: 3rem 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.back {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-decoration: none;
+  margin-bottom: 1rem;
+  transition: color 0.2s;
+}
+
+.back:hover {
+  color: var(--text-heading);
+}
+
+/* ── Intro ── */
+.intro {
+  padding-top: 1.5rem;
+}
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--action);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 2px;
+  background: var(--action);
+}
+
+.heading {
+  font-family: var(--cond);
+  font-size: clamp(36px, 8vw, 52px);
+  font-weight: 900;
+  color: var(--text-heading);
+  line-height: 0.98;
+  letter-spacing: -0.5px;
+  margin-bottom: 1.25rem;
+}
+
+.heading em {
+  font-style: normal;
+  color: var(--action);
+}
+
+.body {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.7;
+  margin-bottom: 0.75rem;
+  max-width: 380px;
+}
+
+.bodyDim {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 1.75rem;
+  font-family: var(--mono);
+  letter-spacing: 0.06em;
+}
+
+.swap {
+  margin-top: 1.25rem;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.swapLink {
+  color: var(--action);
+  font-weight: 600;
+}
+
+.swapLink:hover {
+  color: var(--action-hover);
+}
+
+/* ── Question screen ── */
+.progressWrap {
+  margin-bottom: 1.5rem;
+}
+
+.questionNum {
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.questionTitle {
+  font-family: var(--cond);
+  font-size: clamp(28px, 6vw, 40px);
+  font-weight: 900;
+  color: var(--text-heading);
+  letter-spacing: -0.5px;
+  margin-bottom: 0.75rem;
+}
+
+.hook {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.65;
+  margin-bottom: 1.25rem;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* ── Computing ── */
+.computing {
+  padding-top: 4rem;
+  text-align: center;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--border-subtle);
+  border-top-color: var(--action);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1.25rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.computingTitle {
+  font-family: var(--cond);
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--text-heading);
+  margin-bottom: 0.5rem;
+}
+
+.computingSub {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ── Result ── */
+.resultHead {
+  text-align: left;
+  margin-bottom: 1.5rem;
+}
+
+.rating {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.scoreRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--canvas-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.scoreCell {
+  flex: 1;
+  text-align: center;
+}
+
+.scoreCellLabel {
+  font-family: var(--mono);
+  font-size: 0.46rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.scoreCellValue {
+  font-family: var(--cond);
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--text-heading);
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+
+.scoreCellDivider {
+  width: 1px;
+  height: 36px;
+  background: var(--border);
+  margin: 0 0.75rem;
+}
+
+.octagonWrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+/* ── Breakdown blocks ── */
+.breakdownBlock {
+  background: var(--canvas-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.blockLabel {
+  font-family: var(--mono);
+  font-size: 0.46rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-subtle);
+  font-weight: 700;
+}
+
+.barRow {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.barRow:last-child { border-bottom: none; }
+
+.barName {
+  font-family: var(--cond);
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-heading);
+  letter-spacing: -0.1px;
+}
+
+.barSegments {
+  display: flex;
+  gap: 3px;
+}
+
+.barSeg {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--border-subtle);
+}
+
+.barTier {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  min-width: 1.6em;
+  text-align: right;
+}
+
+/* ── Save prompt ── */
+.savePrompt {
+  background: var(--canvas-alt);
+  border: 1px solid var(--action);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.savePromptTitle {
+  font-family: var(--cond);
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--text-heading);
+  letter-spacing: -0.3px;
+  margin-bottom: 0.5rem;
+}
+
+.savePromptText {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.65;
+  margin-bottom: 1.25rem;
+}
+
+.ctaPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--action);
+  color: var(--canvas);
+  padding: 14px 28px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background 0.2s, opacity 0.2s;
+  font-family: var(--sans);
+}
+
+.ctaPrimary:hover {
+  background: var(--action-hover);
+}
+
+.signInRow {
+  margin-top: 0.75rem;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.signInLink {
+  color: var(--action);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.signInLink:hover {
+  color: var(--action-hover);
+}
+
+/* ── Sub actions ── */
+.subActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 1rem;
+}
+
+.retake,
+.swapBtn {
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--text-muted);
+  padding: 12px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 3px;
+  font-family: var(--sans);
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.retake:hover,
+.swapBtn:hover {
+  border-color: var(--action);
+  color: var(--text-heading);
+}
