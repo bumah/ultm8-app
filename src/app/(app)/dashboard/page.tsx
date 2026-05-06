@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { BLABELS } from '@/lib/scoring/health-scoring';
 import { WBLABELS } from '@/lib/scoring/wealth-scoring';
-import { getOverallRating, computeBehaviourPct, signedScoreToRing } from '@/lib/scoring/shared';
+import { computeBehaviourPct, signedScoreToRing, levelFromPct } from '@/lib/scoring/shared';
 import OctagonChart from '@/components/octagon/OctagonChart';
 import Link from 'next/link';
 import styles from './dashboard.module.css';
@@ -140,10 +140,14 @@ export default async function DashboardPage() {
     ? WEALTH_B_KEYS.map(k => (wealthAssessment[k] as number) ?? 0)
     : [];
 
-  const healthPct = healthRaw.length ? computeBehaviourPct(healthRaw) : 0;
-  const wealthPct = wealthRaw.length ? computeBehaviourPct(wealthRaw) : 0;
-  const healthRating = getOverallRating(healthPct);
-  const wealthRating = getOverallRating(wealthPct);
+  /* Headline: combined octagon % (saved by the check-in). Fall back to the
+     behaviour-only pct if a row pre-dates the indicator_score_pct column. */
+  const healthPct = (healthAssessment?.octagon_score_pct as number)
+    ?? (healthRaw.length ? computeBehaviourPct(healthRaw) : 0);
+  const wealthPct = (wealthAssessment?.octagon_score_pct as number)
+    ?? (wealthRaw.length ? computeBehaviourPct(wealthRaw) : 0);
+  const healthLevel = levelFromPct(healthPct);
+  const wealthLevel = levelFromPct(wealthPct);
 
   const healthLastAt = (healthAssessment?.completed_at as string | null | undefined) ?? null;
   const wealthLastAt = (wealthAssessment?.completed_at as string | null | undefined) ?? null;
@@ -236,9 +240,11 @@ export default async function DashboardPage() {
                 />
               </div>
               <div className={styles.octagonScore}>
-                <span className={styles.octagonPct}>{healthPct}%</span>
-                <span className={styles.octagonRating} style={{ color: healthRating.color }}>
-                  {healthRating.label}
+                <span className={styles.octagonPct} style={{ color: healthLevel.color }}>
+                  {healthLevel.label}
+                </span>
+                <span className={styles.octagonRating}>
+                  {healthPct}% combined
                 </span>
               </div>
               <div className={styles.octagonMeta}>
@@ -275,9 +281,11 @@ export default async function DashboardPage() {
                 />
               </div>
               <div className={styles.octagonScore}>
-                <span className={styles.octagonPct}>{wealthPct}%</span>
-                <span className={styles.octagonRating} style={{ color: wealthRating.color }}>
-                  {wealthRating.label}
+                <span className={styles.octagonPct} style={{ color: wealthLevel.color }}>
+                  {wealthLevel.label}
+                </span>
+                <span className={styles.octagonRating}>
+                  {wealthPct}% combined
                 </span>
               </div>
               <div className={styles.octagonMeta}>

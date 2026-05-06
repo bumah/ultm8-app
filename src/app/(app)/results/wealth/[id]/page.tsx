@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { WBLABELS, WHLABELS, WBMAP } from '@/lib/scoring/wealth-scoring';
-import { BTIERS, BGRADES, HSTATUS, getBehaviourTierIndex, getTierColor, signedScoreToRing } from '@/lib/scoring/shared';
+import { BTIERS, BGRADES, HSTATUS, getBehaviourTierIndex, getTierColor, signedScoreToRing, levelFromPct } from '@/lib/scoring/shared';
 import { WHRECS } from '@/lib/data/wealth-recommendations';
 import { WCONN_INSIGHTS } from '@/lib/data/wealth-connections';
 import OctagonChart from '@/components/octagon/OctagonChart';
@@ -174,8 +174,12 @@ export default function WealthResultsPage() {
 
         {/* Score box */}
         <div className={styles.scoreBox}>
-          <div className={styles.scoreValue}>{octagonPct}%</div>
-          <div className={styles.scoreLabel}>Wealth Octagon Score</div>
+          <div className={styles.scoreValue} style={{ color: levelFromPct(octagonPct).color }}>
+            {levelFromPct(octagonPct).label}
+          </div>
+          <div className={styles.scoreLabel}>
+            {octagonPct}% combined {'\u00B7'} {behaviourPct}% behaviour {'\u00B7'} {indicatorPct}% indicator
+          </div>
           <div className={styles.scoreSummary}>{getOctagonSummary(octagonPct)}</div>
         </div>
 

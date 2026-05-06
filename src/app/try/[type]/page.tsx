@@ -21,7 +21,7 @@ import { BLABELS, HLABELS } from '@/lib/scoring/health-scoring';
 import { WBLABELS, WHLABELS } from '@/lib/scoring/wealth-scoring';
 import {
   computeBehaviourPct, computeIndicatorPct, computeCombinedPct,
-  signedScoreToRing, getOverallRating, getBehaviourTierIndex, getTierColor,
+  signedScoreToRing, levelFromPct, getBehaviourTierIndex, getTierColor,
   BGRADES,
 } from '@/lib/scoring/shared';
 import OctagonChart from '@/components/octagon/OctagonChart';
@@ -149,7 +149,7 @@ export default function TryPage() {
     };
   }, [state.answers]);
 
-  const overall = getOverallRating(combinedPct);
+  const level = levelFromPct(combinedPct);
   const completed = state.answers.filter(a => a !== null).length;
   const progressPct = Math.round((completed / TOTAL_QS) * 100);
 
@@ -265,13 +265,28 @@ export default function TryPage() {
       <Link href="/" className={styles.back}>&larr; Home</Link>
 
       <div className={styles.resultHead}>
-        <div className={styles.eyebrow}>Your {type === 'health' ? 'Health' : 'Wealth'} Octagon</div>
+        <div className={styles.eyebrow}>Your {type === 'health' ? 'Health' : 'Wealth'} Result</div>
         <h1 className={styles.heading}>
-          You&rsquo;re scoring<br /><em>{combinedPct}%</em>
+          You&rsquo;re at<br /><em>{level.label}.</em>
         </h1>
-        <div className={styles.rating} style={{ color: overall.color }}>
-          {overall.label}
-        </div>
+      </div>
+
+      {/* 9-step ladder: Levels 1\u20138 + Ultimate */}
+      <div className={styles.ladder} aria-label={`Level ${level.idx} of 9`}>
+        {Array.from({ length: 9 }).map((_, i) => {
+          const stepIdx = i + 1;
+          const isCurrent = stepIdx === level.idx;
+          const isDone = stepIdx < level.idx;
+          return (
+            <div
+              key={stepIdx}
+              className={`${styles.ladderStep} ${isDone ? styles.ladderDone : ''} ${isCurrent ? styles.ladderCurrent : ''}`}
+              style={isCurrent ? { background: level.color, color: 'var(--canvas)' } : undefined}
+            >
+              {stepIdx === 9 ? 'ULT' : stepIdx}
+            </div>
+          );
+        })}
       </div>
 
       <div className={styles.scoreRow}>
@@ -283,6 +298,11 @@ export default function TryPage() {
         <div className={styles.scoreCell}>
           <div className={styles.scoreCellLabel}>Indicator</div>
           <div className={styles.scoreCellValue}>{indicatorPct}%</div>
+        </div>
+        <div className={styles.scoreCellDivider} />
+        <div className={styles.scoreCell}>
+          <div className={styles.scoreCellLabel}>Combined</div>
+          <div className={styles.scoreCellValue}>{combinedPct}%</div>
         </div>
       </div>
 

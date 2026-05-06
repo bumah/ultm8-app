@@ -195,6 +195,40 @@
   text-transform: uppercase;
 }
 
+/* ── 9-step level ladder ── */
+.ladder {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 4px;
+  margin-bottom: 1.25rem;
+}
+
+.ladderStep {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  border-radius: 3px;
+  background: var(--border-subtle);
+  color: var(--text-light);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  transition: background 0.2s, color 0.2s;
+}
+
+.ladderDone {
+  background: rgba(248, 246, 241, 0.18);
+  color: var(--text-muted);
+}
+
+.ladderCurrent {
+  /* color + background applied inline by the level tier */
+  font-weight: 900;
+  box-shadow: 0 0 0 1px var(--canvas), 0 0 0 2px currentColor;
+}
+
 .scoreRow {
   display: flex;
   justify-content: space-between;

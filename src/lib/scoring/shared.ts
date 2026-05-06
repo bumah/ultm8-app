@@ -94,3 +94,43 @@ export function getOverallRating(pct: number): { label: string; color: string } 
   if (pct >= 40) return { label: 'Getting there', color: '#F08A47' };
   return { label: 'Needs improvement', color: '#FF9A4D' };
 }
+
+/** A position on the 9-step ladder: Levels 1\u20138 + Ultimate. */
+export interface Level {
+  idx: number;        // 1..9 (9 = Ultimate)
+  label: string;      // "Level 1".."Level 8" or "Ultimate"
+  tierIdx: number;    // 0..3 -> needs / getting / strong / ultimate
+  color: string;      // tier colour
+}
+
+/** Map a combined percentage 0..100 onto the file's 9-step ladder.
+ *  Bands: 0\u201320 L1 \u00b7 20\u201330 L2 \u00b7 30\u201340 L3 \u00b7 40\u201350 L4 \u00b7
+ *  50\u201360 L5 \u00b7 60\u201370 L6 \u00b7 70\u201380 L7 \u00b7 80\u201390 L8 \u00b7 90\u2013100 Ultimate. */
+export function levelFromPct(pct: number): Level {
+  let idx: number;
+  if (pct < 20) idx = 1;
+  else if (pct < 30) idx = 2;
+  else if (pct < 40) idx = 3;
+  else if (pct < 50) idx = 4;
+  else if (pct < 60) idx = 5;
+  else if (pct < 70) idx = 6;
+  else if (pct < 80) idx = 7;
+  else if (pct < 90) idx = 8;
+  else idx = 9;
+
+  let tierIdx: number;
+  if (pct >= 80) tierIdx = 3;
+  else if (pct >= 60) tierIdx = 2;
+  else if (pct >= 40) tierIdx = 1;
+  else tierIdx = 0;
+
+  // Same tier palette as getOverallRating but indexed.
+  const tierColors = ['#FF9A4D', '#F08A47', '#FFB783', '#F8F6F1'];
+
+  return {
+    idx,
+    label: idx === 9 ? 'Ultimate' : `Level ${idx}`,
+    tierIdx,
+    color: tierColors[tierIdx],
+  };
+}
