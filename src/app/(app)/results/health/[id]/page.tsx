@@ -369,6 +369,16 @@ export default function HealthResultsPage() {
           <div className={styles.scoreLabel}>Behaviour Score</div>
         </div>
 
+        {/* Behaviour octagon */}
+        <div className={styles.octagonWrap}>
+          <OctagonChart
+            scores={bScores.map(signedScoreToRing)}
+            labels={[...BLABELS]}
+            maxScore={8}
+            size={320}
+          />
+        </div>
+
         <div className={styles.barRows}>
           {BLABELS.map((label, i) => {
             const score = bScores[i];

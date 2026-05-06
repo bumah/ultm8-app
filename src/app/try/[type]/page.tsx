@@ -136,7 +136,11 @@ export default function TryPage() {
   }, [state.screen, state.answers, type]);
 
   /* ── Derived data for results ── */
-  const { bScores, iScoresRaw, behaviourPct, indicatorPct, combinedPct, octagonScores } = useMemo(() => {
+  const {
+    bScores, iScoresRaw,
+    behaviourPct, indicatorPct, combinedPct,
+    bOctagonScores, iOctagonScores,
+  } = useMemo(() => {
     const bs = state.answers.slice(0, 8).map(s => s ?? 0);
     const is = state.answers.slice(8, 16).map(s => s ?? 0);
     return {
@@ -145,7 +149,8 @@ export default function TryPage() {
       behaviourPct: computeBehaviourPct(bs),
       indicatorPct: computeIndicatorPct(is),
       combinedPct: computeCombinedPct(computeBehaviourPct(bs), computeIndicatorPct(is)),
-      octagonScores: is.map(signedScoreToRing),
+      bOctagonScores: bs.map(signedScoreToRing),
+      iOctagonScores: is.map(signedScoreToRing),
     };
   }, [state.answers]);
 
@@ -306,15 +311,31 @@ export default function TryPage() {
         </div>
       </div>
 
-      <div className={styles.octagonWrap}>
-        <OctagonChart
-          scores={octagonScores}
-          labels={[...iLabels]}
-          maxScore={8}
-          size={300}
-          showLabels
-          showScores={false}
-        />
+      {/* Two octagons — behaviours + indicators. Side-by-side at >= 600px,
+          stacked on mobile. */}
+      <div className={styles.octagonsRow}>
+        <div className={styles.octagonCell}>
+          <div className={styles.octagonCellLabel}>Behaviours {'\u00B7'} {behaviourPct}%</div>
+          <OctagonChart
+            scores={bOctagonScores}
+            labels={[...bLabels]}
+            maxScore={8}
+            size={280}
+            showLabels
+            showScores={false}
+          />
+        </div>
+        <div className={styles.octagonCell}>
+          <div className={styles.octagonCellLabel}>Indicators {'\u00B7'} {indicatorPct}%</div>
+          <OctagonChart
+            scores={iOctagonScores}
+            labels={[...iLabels]}
+            maxScore={8}
+            size={280}
+            showLabels
+            showScores={false}
+          />
+        </div>
       </div>
 
       {/* Behaviour breakdown */}

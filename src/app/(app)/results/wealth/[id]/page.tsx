@@ -380,6 +380,16 @@ export default function WealthResultsPage() {
           <div className={styles.scoreLabel}>Behaviour Score</div>
         </div>
 
+        {/* Behaviour octagon */}
+        <div className={styles.octagonWrap}>
+          <OctagonChart
+            scores={bScores.map(signedScoreToRing)}
+            labels={[...WBLABELS]}
+            maxScore={8}
+            size={320}
+          />
+        </div>
+
         <div className={styles.barRows}>
           {WBLABELS.map((label, i) => {
             const score = bScores[i];
