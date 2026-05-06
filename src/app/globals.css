@@ -1,70 +1,72 @@
-/* ── ULTM8 Design System (dark mode) ── */
-@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800;900&family=Barlow+Condensed:wght@700;800;900&family=Space+Mono:wght@400;700&display=swap');
+/* ── ULTM8 Design System (Navy + Orange + Cream) ── */
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300..900&family=Geist+Mono:wght@400..700&display=swap');
 
 :root {
-  /* ── Canvas (backgrounds) ── */
-  --canvas: #12171F;
-  --canvas-alt: #1A1F28;
-  --canvas-raised: rgba(245, 240, 232, 0.04);
+  /* ── Canvas (navy stack) ── */
+  --canvas: #0F2D52;
+  --canvas-alt: #1A3D6B;          /* lifted panels / cards */
+  --canvas-raised: #1A3D6B;       /* alias for legacy bg3 */
+  --canvas-deep: #081A33;         /* deeper sections / button hover */
 
-  /* ── Text ── */
-  --text: rgba(245, 240, 232, 0.55);            /* body copy — 55% cream */
-  --text-heading: #F5F0E8;                      /* headings — full cream */
-  --text-muted: rgba(245, 240, 232, 0.35);
-  --text-light: rgba(245, 240, 232, 0.20);
-  --text-emphasis: rgba(245, 240, 232, 0.80);
+  /* ── Text on navy ── */
+  --text: rgba(248, 246, 241, 0.72);    /* body — 72% cream */
+  --text-heading: #F8F6F1;              /* full cream */
+  --text-emphasis: rgba(248, 246, 241, 0.85);
+  --text-muted: rgba(248, 246, 241, 0.50);
+  --text-light: rgba(248, 246, 241, 0.32);
 
-  /* ── Brand ── */
-  --brand: #F5F0E8;
-  --brand-dark: rgba(245, 240, 232, 0.85);
+  /* ── Brand (cream presence on navy) ── */
+  --brand: #F8F6F1;
+  --brand-dark: rgba(248, 246, 241, 0.85);
 
-  /* ── Action (red — rare, only CTAs / urgency) ── */
-  --action: #C8241A;
-  --action-hover: #E63B2F;
-  --action-subtle: rgba(200, 36, 26, 0.08);
+  /* ── Action (orange — CTAs, key numbers, em emphasis) ── */
+  --action: #F08A47;
+  --action-hover: #FF9A4D;
+  --action-subtle: rgba(240, 138, 71, 0.14);
+  --action-soft: #FFB783;
 
-  /* ── Data (blue — indicators, positive status) ── */
-  --data: #1D6FA4;
-  --data-subtle: rgba(29, 111, 164, 0.08);
+  /* ── Data (alias to orange — emphasis) ── */
+  --data: #F08A47;
+  --data-subtle: rgba(240, 138, 71, 0.14);
 
   /* ── Borders ── */
-  --border: rgba(245, 240, 232, 0.12);
-  --border-subtle: rgba(245, 240, 232, 0.06);
-  --border-strong: rgba(245, 240, 232, 0.25);
+  --border: rgba(248, 246, 241, 0.14);
+  --border-subtle: rgba(248, 246, 241, 0.08);
+  --border-strong: rgba(248, 246, 241, 0.25);
 
-  /* ── Status ── */
-  --success: #1D6FA4;
-  --warning: #C49A2A;
-  --error: #C8241A;
+  /* ── Status (single family for now) ── */
+  --success: #F08A47;
+  --warning: #F08A47;
+  --error: #F08A47;
 
   /* ─────────────────────────────────────────────────────────────
-     Legacy aliases — keeps every existing CSS module working.
+     Legacy aliases — every existing CSS module keeps working.
      New components should use the canonical tokens above.
      ───────────────────────────────────────────────────────────── */
   --bg: var(--canvas);
   --bg2: var(--canvas-alt);
-  --bg3: rgba(245, 240, 232, 0.06);
+  --bg3: rgba(248, 246, 241, 0.06);
 
   --red: var(--action);
   --red2: var(--action-hover);
-  --red-glow: rgba(200, 36, 26, 0.2);
-  --red-soft: rgba(200, 36, 26, 0.35);
+  --red-glow: rgba(240, 138, 71, 0.20);
+  --red-soft: rgba(240, 138, 71, 0.35);
 
   --cream: var(--text-heading);
   --text-dim: var(--text-muted);
   --text-faint: var(--text-light);
   --border-dim: var(--border-subtle);
 
-  /* Scoring tiers — kept */
-  --tier-1: #C8241A;        /* red — bottom tier, shares with action */
-  --tier-2: #C49A2A;        /* gold */
-  --tier-3: #1D6FA4;        /* blue — top tier, shares with data */
-  --tier-4: #1D6FA4;        /* alias */
+  /* Scoring tiers — collapsed onto orange + cream */
+  --tier-1: #F08A47;        /* orange — bottom tier */
+  --tier-2: #FFB783;        /* orange soft */
+  --tier-3: #F8F6F1;        /* cream — top tier */
+  --tier-4: #F8F6F1;
 
-  /* Typography */
-  --sans: 'Barlow', -apple-system, sans-serif;
-  --cond: 'Barlow Condensed', 'Barlow', sans-serif;
-  --mono: 'Space Mono', monospace;
+  /* ── Typography (single family: Geist) ── */
+  --sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --cond: 'Geist', -apple-system, sans-serif;     /* legacy alias — Barlow Condensed retired */
+  --mono: 'Geist Mono', ui-monospace, monospace;
 
   /* Spacing */
   --nav-height: 56px;
@@ -94,15 +96,26 @@ body {
   background: var(--canvas);
   color: var(--text);
   font-family: var(--sans);
-  line-height: 1.7;
+  font-weight: 400;
+  line-height: 1.6;
   min-height: 100vh;
   min-height: 100dvh;
   overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
 }
 
-/* Headings get the full cream */
+/* Headings: full cream, weighted 800-900, no italics */
 h1, h2, h3, h4, h5, h6 {
   color: var(--text-heading);
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+
+/* Hard rule: no italics anywhere. <em> renders as orange non-italic. */
+em, i {
+  font-style: normal;
+  color: var(--action);
 }
 
 a {
@@ -114,24 +127,13 @@ input, button, textarea, select {
   font-family: inherit;
 }
 
-/* ── Subtle halftone for warmth ── */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background-image: radial-gradient(circle, rgba(245, 240, 232, 0.02) 1px, transparent 1px);
-  background-size: 12px 12px;
+/* ── Selection ── */
+::selection {
+  background: rgba(240, 138, 71, 0.32);
+  color: var(--text-heading);
 }
 
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-/* ── Selection ── */
-::selection {
-  background: rgba(245, 240, 232, 0.15);
-  color: var(--text-heading);
-}
