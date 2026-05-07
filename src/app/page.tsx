@@ -24,8 +24,8 @@ export default async function Home() {
       {/* Hero */}
       <div className={styles.hero}>
         <h1 className={styles.heading}>
-          Start building<br />
-          your <em>best self.</em>
+          Start your<br />
+          <em>ULTM8 Challenge.</em>
         </h1>
 
         <p className={styles.sub}>

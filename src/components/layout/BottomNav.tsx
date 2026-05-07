@@ -9,7 +9,7 @@ const navItems = [
   { href: '/plan', label: 'Plan', icon: 'plan' },
   { href: '/calendar', label: 'Calendar', icon: 'calendar' },
   { href: '/trends', label: 'Trends', icon: 'trends' },
-  { href: '/profile', label: 'Profile', icon: 'profile' },
+  { href: '/more', label: 'More', icon: 'more' },
 ];
 
 function NavIcon({ icon, active }: { icon: string; active: boolean }) {
@@ -56,6 +56,14 @@ function NavIcon({ icon, active }: { icon: string; active: boolean }) {
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
           <circle cx="12" cy="7" r="4" />
+        </svg>
+      );
+    case 'more':
+      return (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="5" cy="12" r="1.5" />
+          <circle cx="12" cy="12" r="1.5" />
+          <circle cx="19" cy="12" r="1.5" />
         </svg>
       );
     default:

@@ -1,0 +1,337 @@
+/* ── More hub + shared bits for sub-pages ── */
+
+.container {
+  min-height: 100vh;
+  min-height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 1.5rem var(--page-pad) 4rem;
+  position: relative;
+  z-index: 1;
+}
+
+.back {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-decoration: none;
+  margin-bottom: 1rem;
+  transition: color 0.2s;
+}
+
+.back:hover { color: var(--text-heading); }
+
+.header {
+  margin-bottom: 1.75rem;
+}
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--action);
+  margin-bottom: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 2px;
+  background: var(--action);
+}
+
+.heading {
+  font-family: var(--cond);
+  font-size: clamp(32px, 6vw, 44px);
+  font-weight: 900;
+  color: var(--text-heading);
+  line-height: 0.98;
+  letter-spacing: -0.5px;
+  margin-bottom: 0.75rem;
+}
+
+.heading em {
+  font-style: normal;
+  color: var(--action);
+}
+
+.sub {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.7;
+  max-width: 380px;
+}
+
+/* ── Hub cards ── */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 1rem;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto auto;
+  gap: 4px 14px;
+  background: var(--canvas-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.1rem 1.25rem 1.25rem;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.2s, transform 0.15s;
+}
+
+.card:hover {
+  border-color: var(--action);
+  transform: translateY(-1px);
+}
+
+.cardLabel {
+  font-family: var(--mono);
+  font-size: 0.48rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--action);
+  font-weight: 700;
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.cardTitle {
+  font-family: var(--cond);
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--text-heading);
+  letter-spacing: -0.2px;
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.cardSub {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  grid-column: 1;
+  grid-row: 3;
+}
+
+.cardArrow {
+  font-family: var(--cond);
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--action);
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  align-self: center;
+}
+
+/* ── Shared section header (used on /more/resources, /more/metrics) ── */
+.sectionLabel {
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--action);
+  margin: 1.5rem 0 0.75rem;
+  font-weight: 700;
+}
+
+.sectionLabel:first-of-type { margin-top: 0.5rem; }
+
+/* ── Resources list ── */
+.resRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 12px;
+  background: var(--canvas-alt);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  padding: 12px 14px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.15s;
+}
+
+.resRow:hover { background: rgba(245, 240, 232, 0.05); }
+
+.resRow:first-of-type { border-radius: var(--radius-md) var(--radius-md) 0 0; }
+.resRow:last-of-type {
+  border-bottom: 1px solid var(--border);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+.resName {
+  font-family: var(--cond);
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-heading);
+  letter-spacing: -0.1px;
+  margin-bottom: 2px;
+}
+
+.resDesc {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.resBadges {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.resBadge {
+  font-family: var(--mono);
+  font-size: 0.42rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 2px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.resArrow {
+  font-family: var(--cond);
+  font-size: 16px;
+  color: var(--text-muted);
+}
+
+/* ── Region filter ── */
+.filterRow {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.filterBtn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-weight: 700;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.filterBtn:hover {
+  color: var(--text-heading);
+  border-color: var(--border-strong);
+}
+
+.filterBtnActive {
+  color: var(--action);
+  border-color: var(--action);
+  background: var(--action-subtle);
+}
+
+/* ── Metrics list ── */
+.metricCard {
+  background: var(--canvas-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.1rem 1.25rem 1.25rem;
+  margin-bottom: 10px;
+}
+
+.metricName {
+  font-family: var(--cond);
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--text-heading);
+  letter-spacing: -0.3px;
+  margin-bottom: 4px;
+}
+
+.metricOneLiner {
+  font-family: var(--cond);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--action);
+  letter-spacing: -0.1px;
+  margin-bottom: 0.85rem;
+}
+
+.metricBlock {
+  margin-top: 0.75rem;
+}
+
+.metricBlockLabel {
+  font-family: var(--mono);
+  font-size: 0.42rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  margin-bottom: 4px;
+}
+
+.metricBlockText {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.65;
+}
+
+.metricLever {
+  font-style: italic;
+  color: var(--text-emphasis);
+}
+
+/* ── Section navigation (sticky tabs on metrics page) ── */
+.sectionNav {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  margin-bottom: 1.25rem;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sectionNav::-webkit-scrollbar { display: none; }
+
+.sectionTab {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.sectionTab:hover {
+  color: var(--text-heading);
+}
+
+.sectionTabActive {
+  color: var(--action);
+  border-color: var(--action);
+  background: var(--action-subtle);
+}

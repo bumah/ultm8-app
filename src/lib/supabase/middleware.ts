@@ -34,7 +34,7 @@ export async function updateSession(request: NextRequest) {
   // Public routes that don't need auth (exact match).
   const publicRoutes = ['/login', '/register', '/', '/onboarding'];
   // Public route prefixes (anything starting with one of these is public).
-  const publicPrefixes = ['/try/'];
+  const publicPrefixes = ['/try/', '/more'];
 
   const isPublic =
     publicRoutes.includes(path) ||
