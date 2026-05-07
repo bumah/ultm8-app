@@ -243,9 +243,6 @@ export default async function DashboardPage() {
                 <span className={styles.octagonPct} style={{ color: healthLevel.color }}>
                   {healthLevel.label}
                 </span>
-                <span className={styles.octagonRating}>
-                  {healthPct}% combined
-                </span>
               </div>
               <div className={styles.octagonMeta}>
                 Last: {fmtDate(healthLastAt)}
@@ -283,9 +280,6 @@ export default async function DashboardPage() {
               <div className={styles.octagonScore}>
                 <span className={styles.octagonPct} style={{ color: wealthLevel.color }}>
                   {wealthLevel.label}
-                </span>
-                <span className={styles.octagonRating}>
-                  {wealthPct}% combined
                 </span>
               </div>
               <div className={styles.octagonMeta}>

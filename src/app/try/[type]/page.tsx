@@ -294,28 +294,17 @@ export default function TryPage() {
         })}
       </div>
 
-      <div className={styles.scoreRow}>
-        <div className={styles.scoreCell}>
-          <div className={styles.scoreCellLabel}>Behaviour</div>
-          <div className={styles.scoreCellValue}>{behaviourPct}%</div>
-        </div>
-        <div className={styles.scoreCellDivider} />
-        <div className={styles.scoreCell}>
-          <div className={styles.scoreCellLabel}>Indicator</div>
-          <div className={styles.scoreCellValue}>{indicatorPct}%</div>
-        </div>
-        <div className={styles.scoreCellDivider} />
-        <div className={styles.scoreCell}>
-          <div className={styles.scoreCellLabel}>Combined</div>
-          <div className={styles.scoreCellValue}>{combinedPct}%</div>
-        </div>
-      </div>
-
-      {/* Two octagons — behaviours + indicators. Side-by-side at >= 600px,
-          stacked on mobile. */}
+      {/* Two octagons \u2014 behaviours + indicators. Side-by-side at >= 600px,
+          stacked on mobile. Each is tagged with its own tier (no %). */}
       <div className={styles.octagonsRow}>
         <div className={styles.octagonCell}>
-          <div className={styles.octagonCellLabel}>Behaviours {'\u00B7'} {behaviourPct}%</div>
+          <div className={styles.octagonCellLabel}>Behaviours</div>
+          <div
+            className={styles.octagonCellTier}
+            style={{ color: levelFromPct(behaviourPct).color }}
+          >
+            {levelFromPct(behaviourPct).label}
+          </div>
           <OctagonChart
             scores={bOctagonScores}
             labels={[...bLabels]}
@@ -326,7 +315,13 @@ export default function TryPage() {
           />
         </div>
         <div className={styles.octagonCell}>
-          <div className={styles.octagonCellLabel}>Indicators {'\u00B7'} {indicatorPct}%</div>
+          <div className={styles.octagonCellLabel}>Indicators</div>
+          <div
+            className={styles.octagonCellTier}
+            style={{ color: levelFromPct(indicatorPct).color }}
+          >
+            {levelFromPct(indicatorPct).label}
+          </div>
           <OctagonChart
             scores={iOctagonScores}
             labels={[...iLabels]}

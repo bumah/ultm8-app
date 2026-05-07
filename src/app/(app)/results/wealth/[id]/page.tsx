@@ -178,7 +178,9 @@ export default function WealthResultsPage() {
             {levelFromPct(octagonPct).label}
           </div>
           <div className={styles.scoreLabel}>
-            {octagonPct}% combined {'\u00B7'} {behaviourPct}% behaviour {'\u00B7'} {indicatorPct}% indicator
+            Behaviours: <span style={{ color: levelFromPct(behaviourPct).color }}>{levelFromPct(behaviourPct).label}</span>
+            {' \u00B7 '}
+            Indicators: <span style={{ color: levelFromPct(indicatorPct).color }}>{levelFromPct(indicatorPct).label}</span>
           </div>
           <div className={styles.scoreSummary}>{getOctagonSummary(octagonPct)}</div>
         </div>
@@ -376,8 +378,10 @@ export default function WealthResultsPage() {
         </h2>
 
         <div className={styles.scoreBox}>
-          <div className={styles.scoreValue}>{behaviourPct}%</div>
-          <div className={styles.scoreLabel}>Behaviour Score</div>
+          <div className={styles.scoreValue} style={{ color: levelFromPct(behaviourPct).color }}>
+            {levelFromPct(behaviourPct).label}
+          </div>
+          <div className={styles.scoreLabel}>Behaviour Tier</div>
         </div>
 
         {/* Behaviour octagon */}
