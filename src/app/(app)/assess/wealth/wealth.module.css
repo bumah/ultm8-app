@@ -34,7 +34,6 @@
   color: var(--cream);
   line-height: 0.95;
   letter-spacing: -0.5px;
-  text-transform: uppercase;
   margin-bottom: 1rem;
 }
 
@@ -67,7 +66,6 @@
   font-family: var(--cond);
   font-size: clamp(28px, 5vw, 40px);
   font-weight: 900;
-  text-transform: uppercase;
   color: var(--cream);
   line-height: 0.95;
   letter-spacing: -0.5px;
@@ -245,7 +243,6 @@
   font-family: var(--cond);
   font-size: clamp(24px, 5vw, 36px);
   font-weight: 900;
-  text-transform: uppercase;
   color: var(--cream);
   margin-bottom: 1rem;
 }
