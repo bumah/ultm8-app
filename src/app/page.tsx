@@ -25,7 +25,7 @@ export default async function Home() {
       <div className={styles.hero}>
         <h1 className={styles.heading}>
           Start your<br />
-          <em>ULTM8 Challenge.</em>
+          <em>longevity challenge.</em>
         </h1>
 
         <p className={styles.sub}>
@@ -36,14 +36,14 @@ export default async function Home() {
         <div className={styles.assessLinks}>
           <Link href="/try/health" className={styles.assessCard}>
             <div className={styles.assessCardLabel}>Health</div>
-            <div className={styles.assessCardTitle}>Take the Health Assessment</div>
+            <div className={styles.assessCardTitle}>Health Challenge</div>
             <div className={styles.assessCardSub}>16 questions {'\u2014'} 2 minutes</div>
             <div className={styles.assessCardArrow}>{'\u2192'}</div>
           </Link>
 
           <Link href="/try/wealth" className={styles.assessCard}>
             <div className={styles.assessCardLabel}>Wealth</div>
-            <div className={styles.assessCardTitle}>Take the Wealth Assessment</div>
+            <div className={styles.assessCardTitle}>Wealth Challenge</div>
             <div className={styles.assessCardSub}>16 questions {'\u2014'} 2 minutes</div>
             <div className={styles.assessCardArrow}>{'\u2192'}</div>
           </Link>
