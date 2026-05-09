@@ -141,14 +141,35 @@ export default function CalendarPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  /* Pre-fill from URL params (e.g., from Plan page "+ Schedule in Calendar") */
+  /* Pre-fill from URL params. Used by:
+   *   - Plan page \u2192 "Schedule in Calendar" (title + category)
+   *   - Schedule page \u2192 "Add to schedule" (title + category + recurFreq + recurInterval)
+   *   - Challenges page \u2192 event "Add" (title + category + date) */
   useEffect(() => {
     const prefillTitle = searchParams.get('title');
     const prefillCategory = searchParams.get('category');
+    const prefillDate = searchParams.get('date');
+    const prefillFreq = searchParams.get('recurFreq');
+    const prefillInterval = searchParams.get('recurInterval');
+
     if (prefillTitle) {
       setNewTitle(prefillTitle);
       if (prefillCategory === 'health' || prefillCategory === 'wealth') {
         setNewCategory(prefillCategory);
+      }
+      if (prefillFreq && ['daily', 'weekly', 'monthly', 'annually'].includes(prefillFreq)) {
+        setNewFreq(prefillFreq as Freq);
+      }
+      if (prefillInterval) {
+        const n = parseInt(prefillInterval, 10);
+        if (Number.isFinite(n) && n > 0) setNewInterval(String(n));
+      }
+      if (prefillDate && /^\d{4}-\d{2}-\d{2}$/.test(prefillDate)) {
+        const d = parseISODate(prefillDate);
+        if (!isNaN(d.getTime())) {
+          setSelectedDate(d);
+          setWeekStart(getWeekStart(d));
+        }
       }
       setShowAddForm(true);
     }

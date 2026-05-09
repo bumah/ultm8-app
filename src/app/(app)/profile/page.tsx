@@ -40,6 +40,9 @@ export default function ProfilePage() {
   const [editCurrency, setEditCurrency] = useState<string>('\u00a3');
   const [editCustomCurrency, setEditCustomCurrency] = useState('');
   const [useCustomCurrency, setUseCustomCurrency] = useState(false);
+  const [editIncome, setEditIncome] = useState('');
+  const [editExpenses, setEditExpenses] = useState('');
+  const [editHeight, setEditHeight] = useState('');
   const [saving, setSaving] = useState(false);
 
   // Snapshot data
@@ -119,6 +122,9 @@ export default function ProfilePage() {
     setEditCurrency(isStandard ? curr : '');
     setEditCustomCurrency(isStandard ? '' : curr);
     setUseCustomCurrency(!isStandard);
+    setEditIncome(profile.monthly_income != null ? String(profile.monthly_income) : '');
+    setEditExpenses(profile.monthly_expenses != null ? String(profile.monthly_expenses) : '');
+    setEditHeight(profile.height_cm != null ? String(profile.height_cm) : '');
     setEditing(true);
   }
 
@@ -140,6 +146,9 @@ export default function ProfilePage() {
         date_of_birth: editDob || null,
         age_group: ageGroup,
         currency: finalCurrency,
+        monthly_income: editIncome.trim() ? parseFloat(editIncome) : null,
+        monthly_expenses: editExpenses.trim() ? parseFloat(editExpenses) : null,
+        height_cm: editHeight.trim() ? parseFloat(editHeight) : null,
       })
       .eq('id', profile.id)
       .select()
@@ -318,6 +327,29 @@ export default function ProfilePage() {
               </button>
             </>
           )}
+
+          <div className={styles.editLabel}>Baseline figures</div>
+          <InputField
+            label={`Monthly net income (${useCustomCurrency ? editCustomCurrency : editCurrency})`}
+            value={editIncome}
+            onChange={(e) => setEditIncome(e.target.value)}
+            placeholder="e.g. 4000"
+            type="number"
+          />
+          <InputField
+            label={`Monthly expenses (${useCustomCurrency ? editCustomCurrency : editCurrency})`}
+            value={editExpenses}
+            onChange={(e) => setEditExpenses(e.target.value)}
+            placeholder="e.g. 2500"
+            type="number"
+          />
+          <InputField
+            label="Height (cm)"
+            value={editHeight}
+            onChange={(e) => setEditHeight(e.target.value)}
+            placeholder="e.g. 178"
+            type="number"
+          />
 
           <div className={styles.editActions}>
             <Button variant="primary" onClick={saveProfile} disabled={saving}>

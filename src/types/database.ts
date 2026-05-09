@@ -6,6 +6,10 @@ export interface Profile {
   date_of_birth: string | null;
   currency: string;
   onboarding_complete: boolean;
+  // Baseline figures captured at onboarding, editable from /profile.
+  monthly_income: number | null;     // monthly take-home, in profile currency
+  monthly_expenses: number | null;   // monthly total expenses
+  height_cm: number | null;          // height in cm
   created_at: string;
   updated_at: string;
 }

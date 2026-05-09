@@ -18,6 +18,27 @@ export default function MorePage() {
       </div>
 
       <div className={styles.list}>
+        <Link href="/more/challenges" className={styles.card}>
+          <div className={styles.cardLabel}>Challenges</div>
+          <div className={styles.cardTitle}>Global fitness challenges to join</div>
+          <div className={styles.cardSub}>Hyrox, Spartan, Tough Mudder, Ironman {'\u2014'} pick a date and add it straight to your calendar.</div>
+          <div className={styles.cardArrow}>{'\u2192'}</div>
+        </Link>
+
+        <Link href="/more/schedule" className={styles.card}>
+          <div className={styles.cardLabel}>ULTM8 Schedule</div>
+          <div className={styles.cardTitle}>What to do daily, weekly, monthly</div>
+          <div className={styles.cardSub}>Inspiration cadence for health + wealth habits. Tap any item to add it to your calendar with the right recurrence.</div>
+          <div className={styles.cardArrow}>{'\u2192'}</div>
+        </Link>
+
+        <Link href="/more/goals" className={styles.card}>
+          <div className={styles.cardLabel}>ULTM8 Goals</div>
+          <div className={styles.cardTitle}>Benchmarks worth aiming for</div>
+          <div className={styles.cardSub}>BP under 120/80, 6 months emergency fund, 10\u00d7 net worth, FI ratio 1.0. Tap to set as a goal against the indicator.</div>
+          <div className={styles.cardArrow}>{'\u2192'}</div>
+        </Link>
+
         <Link href="/more/metrics" className={styles.card}>
           <div className={styles.cardLabel}>Metrics</div>
           <div className={styles.cardTitle}>The science behind every metric</div>
@@ -28,7 +49,7 @@ export default function MorePage() {
         <Link href="/more/resources" className={styles.card}>
           <div className={styles.cardLabel}>Resources</div>
           <div className={styles.cardTitle}>Apps, wearables, books, guides</div>
-          <div className={styles.cardSub}>Curated tools to help you build better habits and improve every indicator. Editorial picks {'\u2014'} ULTM8 doesn{'\u2019'}t earn commissions on any of these.</div>
+          <div className={styles.cardSub}>Curated tools to help you build better habits. Editorial picks {'\u2014'} ULTM8 doesn{'\u2019'}t earn commissions on any of these.</div>
           <div className={styles.cardArrow}>{'\u2192'}</div>
         </Link>
 

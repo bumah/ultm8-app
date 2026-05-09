@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { getIndicatorDef, formatIndicatorValue } from '@/lib/data/indicator-library';
@@ -60,6 +60,7 @@ function computeProgress(
 
 export default function IndicatorDetailPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const key = params.key as string;
   const def = getIndicatorDef(key);
 
@@ -122,6 +123,31 @@ export default function IndicatorDetailPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Pre-fill the goal form from URL params (?suggestTarget=&suggestTarget2=&suggestDurationDays=)
+  // Used by /more/goals \u2192 "Set" tap-to-add flow.
+  useEffect(() => {
+    if (loading) return;
+    const t1 = searchParams.get('suggestTarget');
+    const t2 = searchParams.get('suggestTarget2');
+    const dur = searchParams.get('suggestDurationDays');
+    if (t1 || dur) {
+      if (t1) setGoalT1(t1);
+      if (t2) setGoalT2(t2);
+      const start = todayISO();
+      setGoalStart(start);
+      if (dur) {
+        const days = parseInt(dur, 10);
+        if (Number.isFinite(days) && days > 0) {
+          const end = new Date();
+          end.setDate(end.getDate() + days);
+          setGoalEnd(end.toISOString().split('T')[0]);
+        }
+      }
+      setShowGoalForm(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]);
 
   const handleSave = async () => {
     const v1 = parseFloat(val1);
