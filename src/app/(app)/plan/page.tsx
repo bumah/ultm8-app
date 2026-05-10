@@ -3,24 +3,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import { BLABELS } from '@/lib/scoring/health-scoring';
-import { WBLABELS } from '@/lib/scoring/wealth-scoring';
+import { BLABELS, HLABELS } from '@/lib/scoring/health-scoring';
+import { WBLABELS, WHLABELS } from '@/lib/scoring/wealth-scoring';
+import { levelFromPct } from '@/lib/scoring/shared';
 import {
-  BGRADES, getBehaviourTierIndex, getTierColor, levelFromPct,
-} from '@/lib/scoring/shared';
-import { BRECS } from '@/lib/data/health-recommendations';
-import { WBRECS } from '@/lib/data/wealth-recommendations';
-import { HEALTH_PLAN } from '@/lib/data/health-plan';
-import { WEALTH_PLAN } from '@/lib/data/wealth-plan';
-import {
-  PERSONAL_CHALLENGES, challengeEndDate,
-  type PersonalChallenge,
-} from '@/lib/data/personal-challenges';
-import {
+  HEALTH_AXES, WEALTH_AXES,
   buildHealthAxes, buildWealthAxes, avgIndicatorPct,
 } from '@/lib/data/composites';
 import CompositeOctagon from '@/components/composites/CompositeOctagon';
-import HabitGrades from '@/components/composites/HabitGrades';
+import PillarAccordion, { type PillarRow } from '@/components/composites/PillarAccordion';
 import styles from './plan.module.css';
 
 /* ── DB column keys ── */
@@ -32,6 +23,16 @@ const HEALTH_B_KEYS = [
 const WEALTH_B_KEYS = [
   'b_active_income', 'b_passive_income', 'b_expenses', 'b_discretionary',
   'b_savings', 'b_debt_repayment', 'b_retirement', 'b_investment',
+] as const;
+
+const HEALTH_I_KEYS = [
+  'is_blood_pressure', 'is_weight', 'is_pushups', 'is_resting_hr',
+  'is_body_fat', 'is_sleep_quality', 'is_blood_sugar', 'is_wellbeing',
+] as const;
+
+const WEALTH_I_KEYS = [
+  'is_net_income', 'is_discretionary_spend', 'is_emergency_fund', 'is_debt_level',
+  'is_net_worth', 'is_pension_fund', 'is_passive_income', 'is_fi_ratio',
 ] as const;
 
 /** Behaviour slug strings used by personal-challenges `targets`. */
@@ -51,22 +52,10 @@ interface AssessmentRow {
   [key: string]: unknown;
 }
 
-interface Recommendation {
-  behaviourIndex: number;
-  name: string;
-  score: number;
-  grade: string;
-  color: string;
-  direction: 'increase' | 'reduce' | 'maintain';
-  rec: string;
-  next: string;
-}
-
 export default function PlanPage() {
   const [loading, setLoading] = useState(true);
   const [healthAssessment, setHealthAssessment] = useState<AssessmentRow | null>(null);
   const [wealthAssessment, setWealthAssessment] = useState<AssessmentRow | null>(null);
-  const [activeTab, setActiveTab] = useState<'health' | 'wealth'>('health');
 
   useEffect(() => {
     async function load() {
@@ -93,112 +82,84 @@ export default function PlanPage() {
 
       setHealthAssessment(healthRes.data as AssessmentRow | null);
       setWealthAssessment(wealthRes.data as AssessmentRow | null);
-
-      if (healthRes.data) setActiveTab('health');
-      else if (wealthRes.data) setActiveTab('wealth');
-
       setLoading(false);
     }
     load();
   }, []);
 
-  /* ── Recommendations ── */
-  const healthRecs = useMemo<Recommendation[]>(() => {
-    if (!healthAssessment) return [];
-    return HEALTH_B_KEYS.map((key, i) => {
-      const score = (healthAssessment[key] as number) ?? 0;
-      const rec = BRECS[i]?.[score] || { rec: '', next: '' };
-      return {
-        behaviourIndex: i,
-        name: BLABELS[i],
-        score,
-        grade: BGRADES[getBehaviourTierIndex(score)],
-        color: getTierColor(score),
-        direction: HEALTH_PLAN[i].type === 'increase' ? 'increase' : 'reduce',
-        rec: rec.rec,
-        next: rec.next ?? '',
-      };
-    });
-  }, [healthAssessment]);
-
-  const wealthRecs = useMemo<Recommendation[]>(() => {
-    if (!wealthAssessment) return [];
-    return WEALTH_B_KEYS.map((key, i) => {
-      const score = (wealthAssessment[key] as number) ?? 0;
-      const rec = WBRECS[i]?.[score] || { rec: '', next: '' };
-      return {
-        behaviourIndex: i,
-        name: WBLABELS[i],
-        score,
-        grade: BGRADES[getBehaviourTierIndex(score)],
-        color: getTierColor(score),
-        direction: WEALTH_PLAN[i].type === 'increase' ? 'increase' : 'reduce',
-        rec: rec.rec,
-        next: rec.next ?? '',
-      };
-    });
-  }, [wealthAssessment]);
-
-  /* ── Composite axes ── */
-  const HEALTH_I_KEYS = ['is_blood_pressure', 'is_weight', 'is_pushups', 'is_resting_hr',
-                         'is_body_fat', 'is_sleep_quality', 'is_blood_sugar', 'is_wellbeing'] as const;
-  const WEALTH_I_KEYS = ['is_net_income', 'is_discretionary_spend', 'is_emergency_fund', 'is_debt_level',
-                         'is_net_worth', 'is_pension_fund', 'is_passive_income', 'is_fi_ratio'] as const;
-
-  const healthAxes = useMemo(() => {
+  /* ── Composite axes (raw scores for accordion rows) ── */
+  const healthScores = useMemo(() => {
     if (!healthAssessment) return null;
-    const b = HEALTH_B_KEYS.map(k => (healthAssessment[k] as number) ?? 0);
-    const i = HEALTH_I_KEYS.map(k => (healthAssessment[k] as number) ?? 0);
-    return buildHealthAxes(b, i);
+    return {
+      b: HEALTH_B_KEYS.map(k => (healthAssessment[k] as number) ?? 0),
+      i: HEALTH_I_KEYS.map(k => (healthAssessment[k] as number) ?? 0),
+    };
   }, [healthAssessment]);
 
-  const wealthAxes = useMemo(() => {
+  const wealthScores = useMemo(() => {
     if (!wealthAssessment) return null;
-    const b = WEALTH_B_KEYS.map(k => (wealthAssessment[k] as number) ?? 0);
-    const i = WEALTH_I_KEYS.map(k => (wealthAssessment[k] as number) ?? 0);
-    return buildWealthAxes(b, i);
+    return {
+      b: WEALTH_B_KEYS.map(k => (wealthAssessment[k] as number) ?? 0),
+      i: WEALTH_I_KEYS.map(k => (wealthAssessment[k] as number) ?? 0),
+    };
   }, [wealthAssessment]);
 
-  const healthLevel = useMemo(() => healthAxes ? levelFromPct(avgIndicatorPct(healthAxes)) : null, [healthAxes]);
-  const wealthLevel = useMemo(() => wealthAxes ? levelFromPct(avgIndicatorPct(wealthAxes)) : null, [wealthAxes]);
+  const healthAxes = useMemo(
+    () => healthScores ? buildHealthAxes(healthScores.b, healthScores.i) : null,
+    [healthScores],
+  );
+  const wealthAxes = useMemo(
+    () => wealthScores ? buildWealthAxes(wealthScores.b, wealthScores.i) : null,
+    [wealthScores],
+  );
 
-  /* ── Suggested challenges from weak behaviours ── */
-  const suggestedChallenges = useMemo<PersonalChallenge[]>(() => {
-    const assessment = activeTab === 'health' ? healthAssessment : wealthAssessment;
-    if (!assessment) return [];
-    const slugs = activeTab === 'health' ? HEALTH_BEHAVIOUR_SLUGS : WEALTH_BEHAVIOUR_SLUGS;
-    const keys = activeTab === 'health' ? HEALTH_B_KEYS : WEALTH_B_KEYS;
+  const overallLevel = useMemo(() => {
+    const all = (healthAxes ?? []).concat(wealthAxes ?? []);
+    if (all.length === 0) return null;
+    return levelFromPct(avgIndicatorPct(all));
+  }, [healthAxes, wealthAxes]);
 
-    // Sort behaviours by score asc \u2014 weakest first.
-    const ranked = slugs
-      .map((slug, i) => ({ slug, score: (assessment[keys[i]] as number) ?? 0 }))
-      .sort((a, b) => a.score - b.score);
-
-    // Pull challenges that target each weak behaviour, dedupe by slug.
-    const out: PersonalChallenge[] = [];
-    const seen = new Set<string>();
-    for (const b of ranked) {
-      if (b.score >= 1) break; // only suggest for behaviours scoring 0 or below
-      const matches = PERSONAL_CHALLENGES.filter(c => c.targets.includes(b.slug));
-      for (const m of matches) {
-        if (seen.has(m.slug)) continue;
-        seen.add(m.slug);
-        out.push(m);
-        if (out.length >= 6) break;
-      }
-      if (out.length >= 6) break;
+  /* ── Build pillar rows for the accordion ── */
+  const pillarRows = useMemo<PillarRow[]>(() => {
+    const rows: PillarRow[] = [];
+    if (healthAxes && healthScores) {
+      HEALTH_AXES.forEach((def, i) => {
+        rows.push({
+          axis: healthAxes[i],
+          indicatorLabels: def.indicatorIndices.map(idx => HLABELS[idx]),
+          indicatorScores: def.indicatorIndices.map(idx => healthScores.i[idx] ?? 0),
+          behaviourLabels: def.behaviourIndices.map(idx => BLABELS[idx]),
+          behaviourScores: def.behaviourIndices.map(idx => healthScores.b[idx] ?? 0),
+          behaviourSlugs: def.behaviourIndices.map(idx => HEALTH_BEHAVIOUR_SLUGS[idx]),
+          domain: 'health',
+        });
+      });
     }
-    return out;
-  }, [activeTab, healthAssessment, wealthAssessment]);
+    if (wealthAxes && wealthScores) {
+      WEALTH_AXES.forEach((def, i) => {
+        rows.push({
+          axis: wealthAxes[i],
+          indicatorLabels: def.indicatorIndices.map(idx => WHLABELS[idx]),
+          indicatorScores: def.indicatorIndices.map(idx => wealthScores.i[idx] ?? 0),
+          behaviourLabels: def.behaviourIndices.map(idx => WBLABELS[idx]),
+          behaviourScores: def.behaviourIndices.map(idx => wealthScores.b[idx] ?? 0),
+          behaviourSlugs: def.behaviourIndices.map(idx => WEALTH_BEHAVIOUR_SLUGS[idx]),
+          domain: 'wealth',
+        });
+      });
+    }
+    return rows;
+  }, [healthAxes, wealthAxes, healthScores, wealthScores]);
 
   const hasHealth = !!healthAssessment;
   const hasWealth = !!wealthAssessment;
   const hasBoth = hasHealth && hasWealth;
+  const allAxes = (healthAxes ?? []).concat(wealthAxes ?? []);
 
   if (loading) {
     return (
       <div className={styles.container}>
-        <div className={styles.loading}>Loading\u2026</div>
+        <div className={styles.loading}>Loading{'\u2026'}</div>
       </div>
     );
   }
@@ -216,27 +177,17 @@ export default function PlanPage() {
         <div className={styles.emptyCard}>
           <div className={styles.emptyTitle}>No check-ins yet</div>
           <p className={styles.emptyText}>
-            Take your first assessment to see your octagon, level, and personalised recommendations.
+            Take your first check-in to see your octagon, level, and personalised recommendations.
           </p>
           <div className={styles.emptyLinks}>
-            <Link href="/assess/health" className={styles.emptyLink}>
-              Health check-in &rarr;
-            </Link>
-            <Link href="/assess/wealth" className={styles.emptyLink}>
-              Wealth check-in &rarr;
+            <Link href="/assess" className={styles.emptyLink}>
+              Start check-in &rarr;
             </Link>
           </div>
         </div>
       </div>
     );
   }
-
-  const recs = activeTab === 'health' ? healthRecs : wealthRecs;
-  const axes = activeTab === 'health' ? healthAxes : wealthAxes;
-  const level = activeTab === 'health' ? healthLevel : wealthLevel;
-  // Combined octagon shows all 8 pillars (4 health + 4 wealth) when both
-  // domains have data; otherwise shows the 4 pillars of the active tab.
-  const allAxes = (healthAxes ?? []).concat(wealthAxes ?? []);
 
   return (
     <div className={styles.container}>
@@ -247,117 +198,40 @@ export default function PlanPage() {
         </h1>
       </div>
 
-      {/* Tabs */}
-      {hasBoth && (
-        <div className={styles.typeTabs}>
-          <button
-            className={`${styles.typeTab} ${activeTab === 'health' ? styles.typeTabActive : ''}`}
-            onClick={() => setActiveTab('health')}
-          >
-            Health
-          </button>
-          <button
-            className={`${styles.typeTab} ${activeTab === 'wealth' ? styles.typeTabActive : ''}`}
-            onClick={() => setActiveTab('wealth')}
-          >
-            Wealth
-          </button>
-        </div>
-      )}
-
       {!hasBoth && (
         <div className={styles.missingPrompt}>
-          <Link href={hasHealth ? '/assess/wealth' : '/assess/health'}>
-            + Take {hasHealth ? 'Wealth' : 'Health'} check-in
+          <Link href="/assess">
+            + Complete your check-in
           </Link>
         </div>
       )}
 
-      {/* Composite octagon \u2014 indicator-led. Shows all 8 pillars (4 health + 4
-          wealth) when both domains have data; otherwise the 4 of the active tab. */}
-      {axes && (
+      {/* Composite octagon \u2014 indicator-led. Always combined: 4 health + 4 wealth
+          when both exist, otherwise the 4 of the available domain. */}
+      {allAxes.length > 0 && (
         <div className={styles.octBlock}>
-          {level && (
-            <div className={styles.octLevel} style={{ color: level.color }}>
-              {level.label}
+          {overallLevel && (
+            <div className={styles.octLevel} style={{ color: overallLevel.color }}>
+              {overallLevel.label}
             </div>
           )}
           <div className={styles.octChart}>
             <CompositeOctagon
-              axes={hasBoth ? allAxes : axes}
+              axes={allAxes}
               size={260}
               showLabels
             />
           </div>
-          <Link href={`/assess/${activeTab}`} className={styles.checkinBtn}>
-            New {activeTab} check-in {'\u2192'}
+          <Link href="/assess" className={styles.checkinBtn}>
+            New check-in {'\u2192'}
           </Link>
         </div>
       )}
 
-      {/* Habit grades \u2014 separate from the octagon, behaviour-led. */}
-      {axes && <HabitGrades axes={axes} title={`${activeTab === 'health' ? 'Health' : 'Wealth'} habits`} />}
-
-      {/* Suggested challenges */}
-      {suggestedChallenges.length > 0 && (
-        <div className={styles.suggestionsBlock}>
-          <div className={styles.sectionLabel}>Suggested challenges</div>
-          <p className={styles.sectionHint}>
-            Habit streaks that target the behaviours scoring lowest in your last check-in.
-          </p>
-          <div className={styles.suggestionList}>
-            {suggestedChallenges.map(c => (
-              <Link
-                key={c.slug}
-                href={`/calendar?title=${encodeURIComponent(c.name)}&category=${c.category}&recurFreq=${c.cadence}&recurInterval=1&recurEndDate=${challengeEndDate(c)}`}
-                className={styles.suggestionRow}
-              >
-                <div className={styles.suggestionBody}>
-                  <div className={styles.suggestionName}>{c.short}</div>
-                  <div className={styles.suggestionMeta}>
-                    {c.cadence === 'daily' ? 'Daily' : c.cadence === 'weekly' ? 'Weekly' : 'Monthly'}
-                    {' \u00B7 '}
-                    {c.durationCount} {c.durationUnit}
-                  </div>
-                </div>
-                <span className={styles.suggestionAdd}>+ Take</span>
-              </Link>
-            ))}
-          </div>
-        </div>
+      {/* 8-pillar accordion: indicator + behaviour + recommended challenges. */}
+      {pillarRows.length > 0 && (
+        <PillarAccordion rows={pillarRows} title="Pillars" />
       )}
-
-      {/* Recommendation cards */}
-      <div className={styles.sectionLabel}>Behaviour recommendations</div>
-      <div className={styles.recList}>
-        {recs.map((r) => {
-          const arrow = r.direction === 'increase' ? '\u2191' : '\u2193';
-          return (
-            <div className={styles.recCard} key={r.behaviourIndex}>
-              <div className={styles.recHeader}>
-                <div className={styles.recNameWrap}>
-                  <span className={styles.recArrow} style={{ color: r.color }}>{arrow}</span>
-                  <span className={styles.recName}>{r.name}</span>
-                </div>
-                <span className={styles.recGrade} style={{ color: r.color }}>{r.grade}</span>
-              </div>
-              <p className={styles.recText}>{r.rec}</p>
-              {r.next && (
-                <>
-                  <div className={styles.recNextLabel}>Next step</div>
-                  <p className={styles.recNext}>{r.next}</p>
-                </>
-              )}
-              <Link
-                href={`/calendar?title=${encodeURIComponent(`${r.name}: ${r.next || r.rec.slice(0, 60)}`)}&category=${activeTab}`}
-                className={styles.recAction}
-              >
-                + Schedule in Calendar
-              </Link>
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 }

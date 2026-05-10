@@ -84,6 +84,38 @@ export function challengesForBehaviour(behaviourSlug: string, limit = 3): Person
   return PERSONAL_CHALLENGES.filter(c => c.targets.includes(behaviourSlug)).slice(0, limit);
 }
 
+/**
+ * Suggest challenges for a composite axis. Each axis is backed by a set of
+ * behaviour slugs; we surface challenges whose `targets` overlap, ranked so
+ * that the ones aimed at the user\u2019s weakest behaviours come first.
+ *
+ * @param behaviourSlugs The behaviour slugs that drive this axis.
+ * @param scoresBySlug   Optional map slug \u2192 signed score, for ranking.
+ * @param limit          Max number of challenges to return (default 3).
+ */
+export function challengesForAxis(
+  behaviourSlugs: string[],
+  scoresBySlug: Record<string, number> = {},
+  limit = 3,
+): PersonalChallenge[] {
+  // Order axis behaviours weakest-first (lowest signed score wins).
+  const orderedSlugs = [...behaviourSlugs].sort(
+    (a, b) => (scoresBySlug[a] ?? 0) - (scoresBySlug[b] ?? 0),
+  );
+  const out: PersonalChallenge[] = [];
+  const seen = new Set<string>();
+  for (const slug of orderedSlugs) {
+    for (const c of PERSONAL_CHALLENGES) {
+      if (!c.targets.includes(slug)) continue;
+      if (seen.has(c.slug)) continue;
+      seen.add(c.slug);
+      out.push(c);
+      if (out.length >= limit) return out;
+    }
+  }
+  return out;
+}
+
 /** Convert a challenge\u2019s window into an end-date ISO string from a given start. */
 export function challengeEndDate(c: PersonalChallenge, start: Date = new Date()): string {
   const d = new Date(start);
