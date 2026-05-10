@@ -1,7 +1,7 @@
 type InsightFn = (bs: number[], hs: number[]) => string;
 
 // Insight generators per indicator. Order matches HLABELS v2:
-// 0 Blood Pressure, 1 Weight, 2 Waist, 3 Resting HR, 4 Body Fat,
+// 0 Blood Pressure, 1 Weight, 2 Push-ups, 3 Resting HR, 4 Body Fat,
 // 5 Sleep Quality, 6 Blood Sugar, 7 Wellbeing Score.
 // Each generator inspects behaviour scores (bs, 0-7 by behaviour index) and
 // summarises which habits are helping vs holding the indicator back.
@@ -53,13 +53,13 @@ export const CONN_INSIGHTS: InsightFn[] = [
     'Keep training and diet consistent to hold this weight.',
   ),
 
-  // 2: Waist
+  // 2: Push-ups
   (bs) => summarise(
-    [[3, 'Sweat'], [4, 'Sugar']],
+    [[2, 'Strength']],
     bs,
-    'waist',
-    'a lower waist measurement',
-    'Keep cardio and sugar low to protect this measurement.',
+    'push-up score',
+    'higher max reps',
+    'Keep training consistent to maintain max reps.',
   ),
 
   // 3: Resting HR

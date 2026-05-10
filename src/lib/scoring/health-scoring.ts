@@ -9,7 +9,7 @@ export const BLABELS = ['Sleep', 'Smoking', 'Strength', 'Sweat', 'Sugar', 'Salt'
 export const HLABELS = [
   'Blood Pressure',
   'Weight',
-  'Waist',
+  'Push-ups',
   'Resting HR',
   'Body Fat',
   'Sleep Quality',
@@ -17,7 +17,7 @@ export const HLABELS = [
   'Wellbeing Score',
 ] as const;
 
-export const HUNITS = ['mmHg', 'kg', 'cm', 'bpm', '%', '/10', 'mmol/L', '/10'] as const;
+export const HUNITS = ['mmHg', 'kg', 'reps', 'bpm', '%', '/10', 'mmol/L', '/10'] as const;
 
 // Health thresholds (1-8 scoring), gender-specific where applicable.
 // Order matches HLABELS.
@@ -29,7 +29,7 @@ export const HT: Record<number, {
 }> = {
   0: { both: [180, 160, 140, 130, 120, 115, 110, 0], dir: 'lower' },                                       // Blood Pressure (systolic)
   1: { male: [120, 110, 100, 90, 85, 80, 75, 70], female: [100, 90, 85, 80, 75, 70, 65, 60], dir: 'lower' }, // Weight (kg) — rough default
-  2: { male: [120, 110, 100, 94, 88, 82, 76, 70], female: [110, 100, 94, 88, 82, 76, 70, 64], dir: 'lower' }, // Waist (cm)
+  2: { male: [0, 5, 10, 15, 20, 30, 50, 100], female: [0, 3, 6, 10, 15, 20, 35, 60], dir: 'higher' },        // Push-ups (max reps)
   3: { both: [100, 90, 80, 70, 65, 60, 55, 50], dir: 'lower' },                                           // Resting HR
   4: { male: [40, 35, 30, 25, 21, 18, 15, 10], female: [50, 43, 36, 31, 26, 22, 18, 14], dir: 'lower' },   // Body Fat %
   5: { both: [2, 3, 4, 5, 6, 7, 8, 9], dir: 'higher' },                                                   // Sleep Quality /10
@@ -45,7 +45,7 @@ export const HWEIGHTS = [0.20, 0.10, 0.10, 0.15, 0.15, 0.10, 0.15, 0.05];
 export const BMAP: Record<number, number[]> = {
   0: [1, 5, 6, 7],     // Blood Pressure <- Smoking, Salt, Spirits, Stress
   1: [2, 3, 4],        // Weight         <- Strength, Sweat, Sugar
-  2: [3, 4],           // Waist          <- Sweat, Sugar
+  2: [2],              // Push-ups       <- Strength
   3: [0, 1, 3, 7],     // Resting HR     <- Sleep, Smoking, Sweat, Stress
   4: [2, 3, 4],        // Body Fat       <- Strength, Sweat, Sugar
   5: [0, 6, 7],        // Sleep Quality  <- Sleep, Spirits, Stress

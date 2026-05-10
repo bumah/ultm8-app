@@ -27,11 +27,11 @@ export const HEALTH_INDICATORS: IndicatorDefinition[] = [
     range: 'Your body weight over time',
   },
   {
-    id: 3, name: 'Waist',
-    hook: 'Waist circumference around your belly button, relaxed. A stronger predictor of metabolic health than weight alone.',
-    drivenBy: 'Sugar, Sweat',
-    unit: 'cm', placeholder: 'e.g. 88', min: 40, max: 180, step: 0.5,
-    range: 'Measured around belly button',
+    id: 3, name: 'Push-ups',
+    hook: 'Maximum push-ups in a single set, full range of motion, before failing. A quick, equipment-free read on upper-body strength.',
+    drivenBy: 'Strength training',
+    unit: 'reps', placeholder: 'e.g. 30', min: 0, max: 200, step: 1,
+    range: 'Max reps in one set',
   },
   {
     id: 4, name: 'Resting HR',

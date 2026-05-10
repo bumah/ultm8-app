@@ -44,7 +44,7 @@ export interface HealthAssessment {
   i_blood_pressure: number | null;
   i_blood_pressure_diastolic: number | null;
   i_weight: number | null;
-  i_waist: number | null;
+  i_pushups: number | null;
   i_resting_hr: number | null;
   i_body_fat: number | null;
   i_sleep_quality: number | null;
@@ -53,7 +53,7 @@ export interface HealthAssessment {
   // 8 indicator scores (1-8)
   is_blood_pressure: number | null;
   is_weight: number | null;
-  is_waist: number | null;
+  is_pushups: number | null;
   is_resting_hr: number | null;
   is_body_fat: number | null;
   is_sleep_quality: number | null;

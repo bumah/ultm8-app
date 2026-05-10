@@ -62,7 +62,7 @@ export const SCHEDULE: ScheduleItem[] = [
 
   // ── Monthly ──
   { category: 'wealth', name: 'Wealth check-in',     cadence: 'monthly', desc: '8 behaviour questions covering income, spending, saving and the rest.' },
-  { category: 'health', name: 'Waist measurement',   cadence: 'monthly', desc: 'Around the belly button, relaxed.' },
+  { category: 'health', name: 'Push-up max test',    cadence: 'monthly', desc: 'Single set to failure with full range of motion. Track your max each month.' },
   { category: 'wealth', name: 'Savings transfer',    cadence: 'monthly', desc: 'Pay yourself first. Move savings before spending.' },
   { category: 'wealth', name: 'Budget audit',        cadence: 'monthly', desc: 'Categorise the month. Look for surprises and creep.' },
   { category: 'health', name: 'One longer challenge', cadence: 'monthly', desc: 'A 10k run, hike, or longer training session beyond your weekly routine.' },
@@ -72,7 +72,7 @@ export const SCHEDULE: ScheduleItem[] = [
   { category: 'wealth', name: 'Investment review',     cadence: 'quarterly', desc: 'Check allocation, rebalance if needed.' },
 
   // ── Annually ──
-  { category: 'health', name: 'Full health screening',   cadence: 'annually', desc: 'GP check, blood panel, BP, weight, waist.' },
+  { category: 'health', name: 'Full health screening',   cadence: 'annually', desc: 'GP check, blood panel, BP, weight, body composition.' },
   { category: 'wealth', name: 'Pension review',          cadence: 'annually', desc: 'Pot value, contribution rate, projected income.' },
   { category: 'wealth', name: 'Will + protection review', cadence: 'annually', desc: 'Life cover, income protection, will, beneficiaries.' },
   { category: 'wealth', name: 'Tax review',              cadence: 'annually', desc: 'ISA, pension, capital gains and other allowances.' },

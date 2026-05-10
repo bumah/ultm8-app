@@ -21,7 +21,7 @@ export const INDICATOR_LIBRARY: IndicatorDef[] = [
   // ── Health ──
   { key: 'bp',             category: 'health', label: 'Blood Pressure',  unit: 'mmHg',   dual: true, higherIsBetter: false, hint: 'Systolic / Diastolic' },
   { key: 'weight',         category: 'health', label: 'Weight',          unit: 'kg',     decimals: 1, higherIsBetter: false },
-  { key: 'waist',          category: 'health', label: 'Waist',           unit: 'cm',     decimals: 1, higherIsBetter: false, hint: 'Around belly button' },
+  { key: 'pushups',        category: 'health', label: 'Push-ups',        unit: 'reps',                higherIsBetter: true,  hint: 'Max reps before failing' },
   { key: 'resting_hr',     category: 'health', label: 'Resting HR',      unit: 'bpm',    higherIsBetter: false },
   { key: 'body_fat',       category: 'health', label: 'Body Fat',        unit: '%',      decimals: 1, higherIsBetter: false },
   { key: 'sleep_quality',  category: 'health', label: 'Sleep Quality',   unit: '/10',    higherIsBetter: true, hint: '1\u201310 from your wearable' },

@@ -66,7 +66,7 @@ export const BRECS: Record<number, Recommendation>[] = [
 ];
 
 // Indicator recommendations indexed by [indicatorIndex][score]. Scores -1/0/1/2.
-// Order matches HLABELS: BP, Weight, Waist, Resting HR, Body Fat, Sleep Quality, Blood Sugar, Wellbeing.
+// Order matches HLABELS: BP, Weight, Push-ups, Resting HR, Body Fat, Sleep Quality, Blood Sugar, Wellbeing.
 export const HRECS: Record<number, Recommendation>[] = [
   // 0: Blood Pressure
   {
@@ -82,12 +82,12 @@ export const HRECS: Record<number, Recommendation>[] = [
     1:    { rec: 'You\u2019re close to a healthy range. Small consistency tweaks \u2014 sleep, sugar, training \u2014 will move this.' },
     2:    { rec: 'A healthy weight for your height is a strong baseline. Protect it through training, sleep and clean diet.' },
   },
-  // 2: Waist
+  // 2: Push-ups
   {
-    [-1]: { rec: 'Waist above guidelines is the strongest predictor of metabolic risk. Sugar reduction and cardio are the fastest levers.' },
-    0:    { rec: 'You haven\u2019t measured your waist. Wrap a tape around your belly button this week \u2014 cm or inches.' },
-    1:    { rec: 'Borderline waist is worth a small targeted reduction. Cut sugar and add 3 cardio sessions weekly.' },
-    2:    { rec: 'A lean waist is one of the cleanest metabolic signals. Maintain it.' },
+    [-1]: { rec: 'Fewer than 10 push-ups means upper-body strength is the priority. Start with 3 sets to failure, three days a week, building reps over time.' },
+    0:    { rec: 'Around 20 push-ups is a solid base. The next jump is consistency \u2014 4 sessions a week, push the last set to failure.' },
+    1:    { rec: 'Around 40 push-ups is strong. Push for 50+ with weighted variations, or progress to harder forms (decline, archer).' },
+    2:    { rec: '100+ push-ups is elite. Maintain with weighted or one-arm progressions and protect shoulder mobility.' },
   },
   // 3: Resting HR
   {

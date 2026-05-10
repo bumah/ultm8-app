@@ -72,7 +72,7 @@ const B_COLS = [
 ] as const;
 
 const IS_COLS = [
-  'is_blood_pressure', 'is_weight', 'is_waist', 'is_resting_hr',
+  'is_blood_pressure', 'is_weight', 'is_pushups', 'is_resting_hr',
   'is_body_fat', 'is_sleep_quality', 'is_blood_sugar', 'is_wellbeing',
 ] as const;
 

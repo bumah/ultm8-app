@@ -119,13 +119,13 @@ export const HEALTH_INDICATOR_QUESTIONS: BehaviourQuestion[] = [
     ],
   },
   {
-    id: 11, name: 'Waist',
-    hook: 'Waist circumference is the strongest predictor of metabolic risk \u2014 more than weight or BMI alone.',
+    id: 11, name: 'Push-ups',
+    hook: 'Maximum push-ups in a single set is a quick, equipment-free read on upper-body strength and endurance \u2014 a strong proxy for overall functional strength.',
     options: [
-      { score: 2, text: 'Healthy / lean' },
-      { score: 1, text: 'Borderline' },
-      { score: -1, text: 'Above guidelines' },
-      { score: 0, text: 'Don\u2019t know / haven\u2019t measured' },
+      { score: 2, text: '100 or more before failing' },
+      { score: 1, text: 'Around 40 before failing' },
+      { score: 0, text: 'Around 20 before failing' },
+      { score: -1, text: 'Fewer than 10 before failing' },
     ],
   },
   {
