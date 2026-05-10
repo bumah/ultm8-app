@@ -4,9 +4,10 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import {
-  PERSONAL_CHALLENGES, challengeEndDate,
+  PERSONAL_CHALLENGES,
   type PersonalChallenge, type ChallengeCadence, type ChallengeCategory,
 } from '@/lib/data/personal-challenges';
+import { takeChallenge } from '@/lib/data/take-challenge';
 import { CHALLENGES as EVENTS, CHALLENGE_CATEGORY_LABELS, getUpcomingEvents } from '@/lib/data/challenges';
 import styles from './challenges.module.css';
 
@@ -28,6 +29,7 @@ export default function ChallengesPage() {
   // Active challenges keyed by lowercase title -> event id (so we can End them)
   const [activeByTitle, setActiveByTitle] = useState<Map<string, string>>(new Map());
   const [endingId, setEndingId] = useState<string | null>(null);
+  const [takingSlug, setTakingSlug] = useState<string | null>(null);
 
   async function loadActive() {
     const supabase = createClient();
@@ -81,15 +83,22 @@ export default function ChallengesPage() {
     return map;
   }, [filtered]);
 
-  function takeChallengeUrl(c: PersonalChallenge): string {
-    const params = new URLSearchParams({
-      title: c.name,
-      category: c.category,
-      recurFreq: c.cadence,
-      recurInterval: '1',
-      recurEndDate: challengeEndDate(c),
-    });
-    return `/calendar?${params.toString()}`;
+  async function handleTakeChallenge(c: PersonalChallenge) {
+    setTakingSlug(c.slug);
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setTakingSlug(null);
+      alert('Please sign in to take a challenge.');
+      return;
+    }
+    const result = await takeChallenge(supabase, user.id, c);
+    setTakingSlug(null);
+    if ('error' in result) {
+      alert(`Could not take challenge: ${result.error}`);
+      return;
+    }
+    await loadActive();
   }
 
   const upcomingEvents = useMemo(() => getUpcomingEvents(), []);
@@ -206,9 +215,14 @@ export default function ChallengesPage() {
                           </button>
                         </div>
                       ) : (
-                        <Link href={takeChallengeUrl(ch)} className={styles.challengeCta}>
-                          Take challenge {'\u2192'}
-                        </Link>
+                        <button
+                          type="button"
+                          className={styles.challengeCta}
+                          onClick={() => handleTakeChallenge(ch)}
+                          disabled={takingSlug === ch.slug}
+                        >
+                          {takingSlug === ch.slug ? 'Taking\u2026' : `Take challenge ${'\u2192'}`}
+                        </button>
                       )}
                     </article>
                   );

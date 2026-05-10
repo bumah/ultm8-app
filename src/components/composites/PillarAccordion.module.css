@@ -170,6 +170,15 @@
   color: inherit;
   background: var(--bg2, var(--canvas));
   transition: background 0.15s;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  width: 100%;
+}
+
+.recRow:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .recRow:hover {

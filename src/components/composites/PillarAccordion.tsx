@@ -1,15 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import { createClient } from '@/lib/supabase/client';
 import type { AxisResult } from '@/lib/data/composites';
 import {
   HSTATUS, BGRADES, getBehaviourTierIndex, getTierColor, levelFromPct,
   signedScoreToRing,
 } from '@/lib/scoring/shared';
 import {
-  challengesForAxis, challengeEndDate, type PersonalChallenge,
+  challengesForAxis, type PersonalChallenge,
 } from '@/lib/data/personal-challenges';
+import { takeChallenge } from '@/lib/data/take-challenge';
 import styles from './PillarAccordion.module.css';
 
 export interface PillarRow {
@@ -41,6 +42,8 @@ interface Props {
  */
 export default function PillarAccordion({ rows, title }: Props) {
   const [open, setOpen] = useState<Set<string>>(new Set());
+  const [taking, setTaking] = useState<string | null>(null);
+  const [takenSlugs, setTakenSlugs] = useState<Set<string>>(new Set());
 
   function toggle(key: string) {
     setOpen(prev => {
@@ -151,23 +154,48 @@ export default function PillarAccordion({ rows, title }: Props) {
                     <div className={styles.section}>
                       <div className={styles.sectionLabel}>Recommended challenges</div>
                       <div className={styles.recList}>
-                        {recs.map(c => (
-                          <Link
-                            key={c.slug}
-                            href={`/calendar?title=${encodeURIComponent(c.name)}&category=${c.category}&recurFreq=${c.cadence}&recurInterval=1&recurEndDate=${challengeEndDate(c)}`}
-                            className={styles.recRow}
-                          >
-                            <div className={styles.recBody}>
-                              <div className={styles.recName}>{c.short}</div>
-                              <div className={styles.recMeta}>
-                                {c.cadence === 'daily' ? 'Daily' : c.cadence === 'weekly' ? 'Weekly' : 'Monthly'}
-                                {' \u00B7 '}
-                                {c.durationCount} {c.durationUnit}
+                        {recs.map(c => {
+                          const isTaking = taking === c.slug;
+                          const isTaken = takenSlugs.has(c.slug);
+                          return (
+                            <button
+                              key={c.slug}
+                              type="button"
+                              className={styles.recRow}
+                              onClick={async () => {
+                                if (isTaken || isTaking) return;
+                                setTaking(c.slug);
+                                const supabase = createClient();
+                                const { data: { user } } = await supabase.auth.getUser();
+                                if (!user) {
+                                  setTaking(null);
+                                  alert('Please sign in to take a challenge.');
+                                  return;
+                                }
+                                const result = await takeChallenge(supabase, user.id, c);
+                                setTaking(null);
+                                if ('error' in result) {
+                                  alert(`Could not take challenge: ${result.error}`);
+                                  return;
+                                }
+                                setTakenSlugs(prev => new Set(prev).add(c.slug));
+                              }}
+                              disabled={isTaking || isTaken}
+                            >
+                              <div className={styles.recBody}>
+                                <div className={styles.recName}>{c.short}</div>
+                                <div className={styles.recMeta}>
+                                  {c.cadence === 'daily' ? 'Daily' : c.cadence === 'weekly' ? 'Weekly' : 'Monthly'}
+                                  {' \u00B7 '}
+                                  {c.durationCount} {c.durationUnit}
+                                </div>
                               </div>
-                            </div>
-                            <span className={styles.recAdd}>+ Take</span>
-                          </Link>
-                        ))}
+                              <span className={styles.recAdd}>
+                                {isTaken ? '\u2713 Taken' : isTaking ? 'Taking\u2026' : '+ Take'}
+                              </span>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   )}

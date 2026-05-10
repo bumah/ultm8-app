@@ -19,6 +19,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import ScheduleModal from '@/components/dashboard/ScheduleModal';
 import styles from './dashboard.module.css';
 
 /* ── Types ── */
@@ -145,6 +146,7 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [events, setEvents] = useState<UserEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [schedFor, setSchedFor] = useState<UserEvent | null>(null);
 
   const today = useMemo(todayISO, []);
   const weekStart = useMemo(getMondayISO, []);
@@ -276,8 +278,9 @@ export default function DashboardPage() {
       progress = t ? `Month ${Math.min(n, t)} of ${t}` : `Month ${n}`;
     }
 
-    const showSchedule = ev.recurrence_freq === 'weekly' || ev.recurrence_freq === 'monthly';
-    const scheduleHref = `/calendar?title=${encodeURIComponent(ev.title)}&category=${ev.category}`;
+    // Show the Schedule pill on any active row that has no time set yet
+    // (any recurring tip created without a time, or a one-off without a time).
+    const showSchedule = !done && !ev.event_time;
 
     return (
       <div key={ev.id} className={`${styles.row} ${done ? styles.rowDone : ''}`}>
@@ -297,15 +300,19 @@ export default function DashboardPage() {
             </span>
             <span className={styles.rowChip}>{periodLabel}</span>
             {progress && <span className={styles.rowProgress}>{progress}</span>}
-            {!ev.recurrence_freq && ev.event_time && (
+            {ev.event_time && (
               <span className={styles.rowProgress}>{ev.event_time}</span>
             )}
           </div>
         </div>
-        {showSchedule && !done && (
-          <Link href={scheduleHref} className={styles.scheduleBtn}>
+        {showSchedule && (
+          <button
+            type="button"
+            onClick={() => setSchedFor(ev)}
+            className={styles.scheduleBtn}
+          >
             + Schedule
-          </Link>
+          </button>
         )}
       </div>
     );
@@ -380,6 +387,22 @@ export default function DashboardPage() {
         <Link href="/challenges" className={styles.actionPrimary}>Browse challenges {'\u2192'}</Link>
         <Link href="/calendar" className={styles.actionGhost}>+ New event</Link>
       </div>
+
+      {schedFor && (
+        <ScheduleModal
+          eventId={schedFor.id}
+          title={schedFor.title}
+          initialTime={schedFor.event_time}
+          initialFreq={schedFor.recurrence_freq}
+          onClose={() => setSchedFor(null)}
+          onSaved={({ event_time, recurrence_freq }) => {
+            setEvents(prev => prev.map(e => e.id === schedFor.id
+              ? { ...e, event_time, recurrence_freq: (recurrence_freq as Freq | null) }
+              : e,
+            ));
+          }}
+        />
+      )}
     </div>
   );
 }
