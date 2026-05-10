@@ -4,20 +4,32 @@ import OctagonChart from '@/components/octagon/OctagonChart';
 import { axisPctToRing, type AxisResult } from '@/lib/data/composites';
 
 interface Props {
-  /** 8 axis results, in the order they should appear around the octagon. */
+  /** Axis results in the order they should appear around the octagon. */
   axes: AxisResult[];
   size?: number;
   showLabels?: boolean;
 }
 
 /**
- * Single combined octagon: 4 health pillars + 4 wealth pillars rendered on
- * one chart. Values are indicator-led; pillars without indicators (e.g. the
- * old Strength axis before push-ups landed) fall back to a low ring value.
+ * Composite octagon. The underlying chart is a fixed 8-vertex shape, so:
+ *  - 8 axes (combined health + wealth) map 1:1 onto the 8 vertices.
+ *  - 4 axes (single domain) are repeated so each pillar occupies 2 adjacent
+ *    vertices, giving 4 fat sides on the octagon.
+ *  - Any other length is padded with empty entries.
  */
+function expandToEight<T>(arr: T[], empty: T): T[] {
+  if (arr.length === 8) return arr;
+  if (arr.length === 4) return arr.flatMap(v => [v, v]);
+  const out = arr.slice(0, 8);
+  while (out.length < 8) out.push(empty);
+  return out;
+}
+
 export default function CompositeOctagon({ axes, size = 300, showLabels = true }: Props) {
-  const scores = axes.map(a => axisPctToRing(a.indicatorPct));
-  const labels = axes.map(a => a.label);
+  const rawScores = axes.map(a => axisPctToRing(a.indicatorPct));
+  const rawLabels = axes.map(a => a.label);
+  const scores = expandToEight(rawScores, 1);
+  const labels = expandToEight(rawLabels, '');
   return (
     <OctagonChart
       scores={scores}

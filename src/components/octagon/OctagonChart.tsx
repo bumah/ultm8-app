@@ -163,8 +163,8 @@ export default function OctagonChart({
         if (angleDeg < 10 || angleDeg > 350) ctx.textAlign = 'center';
         if (angleDeg > 170 && angleDeg < 190) ctx.textAlign = 'center';
 
-        // Abbreviate labels
-        const abbrev = labels[i]
+        // Abbreviate labels (guard against missing entries)
+        const abbrev = (labels[i] ?? '')
           .replace('Blood Pressure', 'BP')
           .replace('Blood Sugar', 'BS')
           .replace('Resting HR', 'RHR')
