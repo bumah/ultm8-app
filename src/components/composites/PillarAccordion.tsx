@@ -87,13 +87,10 @@ export default function PillarAccordion({ rows, title }: Props) {
                 <span className={styles.headerMeta}>
                   {axisLevel && (
                     <span className={styles.headerLevel} style={{ color: axisLevel.color }}>
-                      {axisLevel.label}
+                      {axisLevel.idx === 9 ? 'ULT' : `L${axisLevel.idx}`}
                     </span>
                   )}
-                  <span className={styles.headerGrade} style={{ color: row.axis.color }}>
-                    {row.axis.grade}
-                  </span>
-                  <span className={styles.headerTraj} style={{ color: row.axis.color }}>
+                  <span className={styles.headerTraj} style={{ color: axisLevel?.color ?? row.axis.color }}>
                     {row.axis.trajectory}
                   </span>
                   <span className={`${styles.chev} ${isOpen ? styles.chevOpen : ''}`}>

@@ -62,18 +62,10 @@
 
 .headerLevel {
   font-family: var(--cond);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
-
-.headerGrade {
-  font-family: var(--cond);
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 900;
-  letter-spacing: -0.5px;
-  min-width: 1.6em;
+  letter-spacing: -0.3px;
+  min-width: 2.2em;
   text-align: right;
 }
 
