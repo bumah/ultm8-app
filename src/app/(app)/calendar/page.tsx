@@ -193,6 +193,7 @@ export default function CalendarPage() {
       .from('user_events')
       .select('*')
       .eq('user_id', user.id)
+      .is('ended_at', null)
       .order('event_date', { ascending: true })
       .order('event_time', { ascending: true, nullsFirst: true });
 

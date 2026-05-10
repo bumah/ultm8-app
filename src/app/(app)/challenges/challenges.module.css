@@ -227,6 +227,38 @@
   font-weight: 800;
 }
 
+.challengeActiveWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.challengeEnd {
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.challengeEnd:hover {
+  color: var(--text-heading);
+  border-color: var(--text-muted);
+}
+
+.challengeEnd:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ── Events: upcoming list (mirrors More page styling) ── */
 .eventList {
   display: flex;

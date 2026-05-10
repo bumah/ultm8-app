@@ -162,7 +162,8 @@ export default function DashboardPage() {
       supabase
         .from('user_events')
         .select('*')
-        .eq('user_id', user.id),
+        .eq('user_id', user.id)
+        .is('ended_at', null),
     ]);
 
     setProfile(profileData);

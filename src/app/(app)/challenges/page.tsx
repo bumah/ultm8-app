@@ -25,24 +25,46 @@ export default function ChallengesPage() {
   const [filterCategory, setFilterCategory] = useState<ChallengeCategory | 'all'>('all');
   const [filterCadence, setFilterCadence] = useState<ChallengeCadence | 'all'>('all');
 
-  // Active challenge slugs (anything with a matching title currently in user_events)
-  const [activeTitles, setActiveTitles] = useState<Set<string>>(new Set());
+  // Active challenges keyed by lowercase title -> event id (so we can End them)
+  const [activeByTitle, setActiveByTitle] = useState<Map<string, string>>(new Map());
+  const [endingId, setEndingId] = useState<string | null>(null);
+
+  async function loadActive() {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase
+      .from('user_events')
+      .select('id, title')
+      .eq('user_id', user.id)
+      .is('ended_at', null)
+      .not('recurrence_freq', 'is', null);
+    const map = new Map<string, string>();
+    for (const r of (data || []) as Array<{ id: string; title: string }>) {
+      map.set(r.title.toLowerCase(), r.id);
+    }
+    setActiveByTitle(map);
+  }
 
   useEffect(() => {
-    async function load() {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data } = await supabase
-        .from('user_events')
-        .select('title')
-        .eq('user_id', user.id)
-        .not('recurrence_freq', 'is', null);
-      const titles = new Set((data || []).map(r => (r.title as string).toLowerCase()));
-      setActiveTitles(titles);
-    }
-    load();
+    loadActive();
   }, []);
+
+  async function endChallenge(eventId: string) {
+    if (!confirm('End this challenge? It will be removed from your dashboard and calendar.')) return;
+    setEndingId(eventId);
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('user_events')
+      .update({ ended_at: new Date().toISOString() })
+      .eq('id', eventId);
+    setEndingId(null);
+    if (error) {
+      alert(`Could not end challenge: ${error.message}`);
+      return;
+    }
+    await loadActive();
+  }
 
   const filtered = useMemo(() => {
     return PERSONAL_CHALLENGES.filter(c => {
@@ -154,7 +176,8 @@ export default function ChallengesPage() {
               <div key={c}>
                 <div className={styles.sectionLabel}>{CADENCE_LABELS[c]} {'\u00B7'} {list.length}</div>
                 {list.map(ch => {
-                  const isActive = activeTitles.has(ch.name.toLowerCase());
+                  const activeId = activeByTitle.get(ch.name.toLowerCase()) ?? null;
+                  const isActive = !!activeId;
                   return (
                     <article key={ch.slug} className={styles.challengeCard}>
                       <div className={styles.challengeBody}>
@@ -171,7 +194,17 @@ export default function ChallengesPage() {
                         </div>
                       </div>
                       {isActive ? (
-                        <span className={styles.challengeActive}>{'\u2713'} In your calendar</span>
+                        <div className={styles.challengeActiveWrap}>
+                          <span className={styles.challengeActive}>{'\u2713'} In your calendar</span>
+                          <button
+                            type="button"
+                            className={styles.challengeEnd}
+                            onClick={() => endChallenge(activeId!)}
+                            disabled={endingId === activeId}
+                          >
+                            {endingId === activeId ? 'Ending\u2026' : 'End challenge'}
+                          </button>
+                        </div>
                       ) : (
                         <Link href={takeChallengeUrl(ch)} className={styles.challengeCta}>
                           Take challenge {'\u2192'}
