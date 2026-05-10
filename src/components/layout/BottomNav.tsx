@@ -5,11 +5,12 @@ import Link from 'next/link';
 import styles from './BottomNav.module.css';
 
 const navItems = [
-  { href: '/dashboard', label: 'Home', icon: 'home' },
-  { href: '/plan', label: 'Plan', icon: 'plan' },
-  { href: '/calendar', label: 'Calendar', icon: 'calendar' },
-  { href: '/trends', label: 'Trends', icon: 'trends' },
-  { href: '/more', label: 'More', icon: 'more' },
+  { href: '/dashboard',  label: 'Home',       icon: 'home' },
+  { href: '/calendar',   label: 'Calendar',   icon: 'calendar' },
+  { href: '/challenges', label: 'Challenges', icon: 'flame' },
+  { href: '/plan',       label: 'Plan',       icon: 'plan' },
+  { href: '/trends',     label: 'Trends',     icon: 'trends' },
+  { href: '/more',       label: 'More',       icon: 'more' },
 ];
 
 function NavIcon({ icon, active }: { icon: string; active: boolean }) {
@@ -64,6 +65,12 @@ function NavIcon({ icon, active }: { icon: string; active: boolean }) {
           <circle cx="5" cy="12" r="1.5" />
           <circle cx="12" cy="12" r="1.5" />
           <circle cx="19" cy="12" r="1.5" />
+        </svg>
+      );
+    case 'flame':
+      return (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 2c1 4 4 5 4 9a4 4 0 1 1-8 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 0-8z" />
         </svg>
       );
     default:

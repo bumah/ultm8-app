@@ -1,353 +1,384 @@
-import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
-import { BLABELS } from '@/lib/scoring/health-scoring';
-import { WBLABELS } from '@/lib/scoring/wealth-scoring';
-import { computeBehaviourPct, signedScoreToRing, levelFromPct } from '@/lib/scoring/shared';
-import OctagonChart from '@/components/octagon/OctagonChart';
+'use client';
+
+/**
+ * Worklist dashboard.
+ *
+ * Three sections aggregate the user's `user_events` into:
+ *   - Today      : daily-recurring events whose window contains today,
+ *                  plus any one-off events on today.
+ *   - This Week  : weekly-recurring events whose window covers this week,
+ *                  plus any one-off events later this week.
+ *   - This Month : monthly-recurring events whose window covers this month,
+ *                  plus any one-off events later this month.
+ *
+ * Each row has a checkbox that flips done-state for the current period
+ * (today / this week / this month) by editing `completed_dates[]` on the
+ * recurring master, or the `completed` boolean on the one-off.
+ */
+
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase/client';
 import styles from './dashboard.module.css';
 
-/* ── DB column keys ── */
-const HEALTH_B_KEYS = [
-  'b_sleep', 'b_smoking', 'b_strength', 'b_sweat',
-  'b_sugar', 'b_salt', 'b_spirits', 'b_stress',
-] as const;
-const WEALTH_B_KEYS = [
-  'b_active_income', 'b_passive_income', 'b_expenses', 'b_discretionary',
-  'b_savings', 'b_debt_repayment', 'b_retirement', 'b_investment',
-] as const;
+/* ── Types ── */
+type Freq = 'daily' | 'weekly' | 'monthly' | 'annually';
 
-/* ── Helpers ── */
-function fmtDate(d: string | null | undefined): string {
-  if (!d) return '—';
-  return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+interface UserEvent {
+  id: string;
+  title: string;
+  notes: string | null;
+  event_date: string;
+  event_time: string | null;
+  category: 'health' | 'wealth' | 'other';
+  completed: boolean;
+  recurrence_freq: Freq | null;
+  recurrence_interval: number | null;
+  recurrence_end_date: string | null;
+  completed_dates: string[] | null;
 }
 
-function daysSince(d: string): number {
-  const then = new Date(d);
-  const now = new Date();
-  return Math.floor((now.getTime() - then.getTime()) / (1000 * 60 * 60 * 24));
+interface Profile {
+  name: string | null;
 }
 
-/** Is a weekly health check-in due? (every 7 days) */
-function isHealthCheckinDue(lastDate: string | null | undefined): boolean {
-  if (!lastDate) return true;
-  return daysSince(lastDate) >= 7;
+/* ── Date helpers ── */
+function todayISO(): string {
+  return new Date().toISOString().split('T')[0];
 }
 
-/** Is a monthly wealth check-in due? */
-function isWealthCheckinDue(lastDate: string | null | undefined): boolean {
-  if (!lastDate) return true;
-  return daysSince(lastDate) >= 30;
+function getMondayISO(): string {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  d.setDate(diff);
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString().split('T')[0];
 }
 
-/** ISO week key: YYYY-Www */
-function weekKey(dateStr: string): string {
-  const d = new Date(dateStr);
-  const target = new Date(d.valueOf());
-  const dayNr = (d.getDay() + 6) % 7;
-  target.setDate(target.getDate() - dayNr + 3);
-  const firstThursday = target.valueOf();
-  target.setMonth(0, 1);
-  if (target.getDay() !== 4) {
-    target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+function getSundayISO(): string {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = d.getDate() + (day === 0 ? 0 : 7 - day);
+  d.setDate(diff);
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString().split('T')[0];
+}
+
+function getMonthStartISO(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+}
+
+function getMonthEndISO(): string {
+  const d = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
+  return d.toISOString().split('T')[0];
+}
+
+function fmtRange(start: string, end: string): string {
+  const a = new Date(start + 'T00:00:00');
+  const b = new Date(end + 'T00:00:00');
+  const sameMonth = a.getMonth() === b.getMonth();
+  const sa = a.toLocaleDateString('en-GB', { day: 'numeric', month: sameMonth ? undefined : 'short' });
+  const sb = b.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  return `${sa}\u2013${sb}`;
+}
+
+function fmtMonth(): string {
+  return new Date().toLocaleDateString('en-GB', { month: 'long' });
+}
+
+function fmtToday(): string {
+  return new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+}
+
+/* ── Period helpers ── */
+function dailyOccurrenceNumber(ev: UserEvent): number {
+  // 1-based day number in the recurring window.
+  const start = new Date(ev.event_date + 'T00:00:00');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diff = Math.floor((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  return Math.max(1, diff + 1);
+}
+
+function dailyTotal(ev: UserEvent): number | null {
+  if (!ev.recurrence_end_date) return null;
+  const start = new Date(ev.event_date + 'T00:00:00');
+  const end = new Date(ev.recurrence_end_date + 'T00:00:00');
+  const days = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  return Math.max(1, days);
+}
+
+function weeklyOccurrenceNumber(ev: UserEvent): number {
+  // 1-based week number in the recurring window.
+  const start = new Date(ev.event_date + 'T00:00:00');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diff = Math.floor((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 7));
+  return Math.max(1, diff + 1);
+}
+
+function weeklyTotal(ev: UserEvent): number | null {
+  if (!ev.recurrence_end_date) return null;
+  const start = new Date(ev.event_date + 'T00:00:00');
+  const end = new Date(ev.recurrence_end_date + 'T00:00:00');
+  const weeks = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 7)) + 1;
+  return Math.max(1, weeks);
+}
+
+function monthlyOccurrenceNumber(ev: UserEvent): number {
+  const start = new Date(ev.event_date + 'T00:00:00');
+  const today = new Date();
+  return (today.getFullYear() - start.getFullYear()) * 12 + (today.getMonth() - start.getMonth()) + 1;
+}
+
+function monthlyTotal(ev: UserEvent): number | null {
+  if (!ev.recurrence_end_date) return null;
+  const start = new Date(ev.event_date + 'T00:00:00');
+  const end = new Date(ev.recurrence_end_date + 'T00:00:00');
+  return Math.max(1, (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()) + 1);
+}
+
+/* ── Component ── */
+export default function DashboardPage() {
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [events, setEvents] = useState<UserEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const today = useMemo(todayISO, []);
+  const weekStart = useMemo(getMondayISO, []);
+  const weekEnd = useMemo(getSundayISO, []);
+  const monthStart = useMemo(getMonthStartISO, []);
+  const monthEnd = useMemo(getMonthEndISO, []);
+
+  const load = useCallback(async () => {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setLoading(false); return; }
+
+    const [{ data: profileData }, { data: eventsData }] = await Promise.all([
+      supabase.from('profiles').select('name').eq('id', user.id).single(),
+      supabase
+        .from('user_events')
+        .select('*')
+        .eq('user_id', user.id),
+    ]);
+
+    setProfile(profileData);
+    setEvents((eventsData || []) as UserEvent[]);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  /* ── Bucketing ── */
+  const todayItems = useMemo(() => events.filter(ev => {
+    if (ev.recurrence_freq === 'daily') {
+      if (ev.event_date > today) return false;
+      if (ev.recurrence_end_date && ev.recurrence_end_date < today) return false;
+      return true;
+    }
+    return !ev.recurrence_freq && ev.event_date === today;
+  }), [events, today]);
+
+  const weekItems = useMemo(() => events.filter(ev => {
+    if (ev.recurrence_freq === 'weekly') {
+      if (ev.event_date > weekEnd) return false;
+      if (ev.recurrence_end_date && ev.recurrence_end_date < weekStart) return false;
+      return true;
+    }
+    // One-off events later this week (excluding today)
+    return !ev.recurrence_freq
+      && ev.event_date > today
+      && ev.event_date <= weekEnd;
+  }), [events, weekStart, weekEnd, today]);
+
+  const monthItems = useMemo(() => events.filter(ev => {
+    if (ev.recurrence_freq === 'monthly') {
+      if (ev.event_date > monthEnd) return false;
+      if (ev.recurrence_end_date && ev.recurrence_end_date < monthStart) return false;
+      return true;
+    }
+    // One-off events later this month (excluding this week)
+    return !ev.recurrence_freq
+      && ev.event_date > weekEnd
+      && ev.event_date <= monthEnd;
+  }), [events, monthStart, monthEnd, weekEnd]);
+
+  /* ── Done check per period ── */
+  function isDone(ev: UserEvent): boolean {
+    if (!ev.recurrence_freq) return ev.completed;
+    const dates = ev.completed_dates || [];
+    if (ev.recurrence_freq === 'daily')   return dates.includes(today);
+    if (ev.recurrence_freq === 'weekly')  return dates.some(d => d >= weekStart && d <= weekEnd);
+    if (ev.recurrence_freq === 'monthly') return dates.some(d => d >= monthStart && d <= monthEnd);
+    return false;
   }
-  const week = 1 + Math.ceil((firstThursday - target.valueOf()) / 604800000);
-  return `${d.getFullYear()}-W${String(week).padStart(2, '0')}`;
-}
 
-/** Month key: YYYY-MM */
-function monthKey(dateStr: string): string {
-  const d = new Date(dateStr);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-}
+  async function toggleDone(ev: UserEvent) {
+    const supabase = createClient();
+    const done = isDone(ev);
 
-/** Count consecutive weeks ending at current week that have a check-in. */
-function computeWeeklyStreak(dates: string[]): number {
-  if (dates.length === 0) return 0;
-  const weeks = new Set(dates.map(weekKey));
-  let streak = 0;
-  const cursor = new Date();
-  while (weeks.has(weekKey(cursor.toISOString()))) {
-    streak++;
-    cursor.setDate(cursor.getDate() - 7);
-  }
-  return streak;
-}
+    if (!ev.recurrence_freq) {
+      // One-off: flip the boolean.
+      const newCompleted = !done;
+      setEvents(prev => prev.map(e => e.id === ev.id ? { ...e, completed: newCompleted } : e));
+      await supabase
+        .from('user_events')
+        .update({ completed: newCompleted, completed_at: newCompleted ? new Date().toISOString() : null })
+        .eq('id', ev.id);
+      return;
+    }
 
-/** Count consecutive months ending at current month that have a check-in. */
-function computeMonthlyStreak(dates: string[]): number {
-  if (dates.length === 0) return 0;
-  const months = new Set(dates.map(monthKey));
-  let streak = 0;
-  const cursor = new Date();
-  while (months.has(monthKey(cursor.toISOString()))) {
-    streak++;
-    cursor.setMonth(cursor.getMonth() - 1);
-  }
-  return streak;
-}
-
-export default async function DashboardPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single();
-
-  if (!profile?.onboarding_complete) {
-    redirect('/onboarding');
+    // Recurring: add/remove a date in completed_dates.
+    const periodKey =
+      ev.recurrence_freq === 'daily'  ? today :
+      ev.recurrence_freq === 'weekly' ? today :
+      ev.recurrence_freq === 'monthly' ? today : today;
+    const current = ev.completed_dates || [];
+    let next: string[];
+    if (done) {
+      // Remove any date matching this period.
+      if (ev.recurrence_freq === 'daily') {
+        next = current.filter(d => d !== today);
+      } else if (ev.recurrence_freq === 'weekly') {
+        next = current.filter(d => !(d >= weekStart && d <= weekEnd));
+      } else {
+        next = current.filter(d => !(d >= monthStart && d <= monthEnd));
+      }
+    } else {
+      next = [...current, periodKey];
+    }
+    setEvents(prev => prev.map(e => e.id === ev.id ? { ...e, completed_dates: next } : e));
+    await supabase
+      .from('user_events')
+      .update({ completed_dates: next })
+      .eq('id', ev.id);
   }
 
-  /* Latest assessments (used as "last check-in" for now — will be replaced
-     by weekly_checkins table in Phase 2) */
-  const { data: healthAssessmentData } = await supabase
-    .from('health_assessments')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('completed_at', { ascending: false })
-    .limit(1)
-    .single();
+  /* ── Render helpers ── */
+  function renderRow(ev: UserEvent, periodLabel: string) {
+    const done = isDone(ev);
+    let progress = '';
+    if (ev.recurrence_freq === 'daily') {
+      const n = dailyOccurrenceNumber(ev);
+      const t = dailyTotal(ev);
+      progress = t ? `Day ${Math.min(n, t)} of ${t}` : `Day ${n}`;
+    } else if (ev.recurrence_freq === 'weekly') {
+      const n = weeklyOccurrenceNumber(ev);
+      const t = weeklyTotal(ev);
+      progress = t ? `Week ${Math.min(n, t)} of ${t}` : `Week ${n}`;
+    } else if (ev.recurrence_freq === 'monthly') {
+      const n = monthlyOccurrenceNumber(ev);
+      const t = monthlyTotal(ev);
+      progress = t ? `Month ${Math.min(n, t)} of ${t}` : `Month ${n}`;
+    }
 
-  const { data: wealthAssessmentData } = await supabase
-    .from('wealth_assessments')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('completed_at', { ascending: false })
-    .limit(1)
-    .single();
+    const showSchedule = ev.recurrence_freq === 'weekly' || ev.recurrence_freq === 'monthly';
+    const scheduleHref = `/calendar?title=${encodeURIComponent(ev.title)}&category=${ev.category}`;
 
-  const healthAssessment = healthAssessmentData as Record<string, unknown> | null;
-  const wealthAssessment = wealthAssessmentData as Record<string, unknown> | null;
+    return (
+      <div key={ev.id} className={`${styles.row} ${done ? styles.rowDone : ''}`}>
+        <button
+          type="button"
+          className={`${styles.checkbox} ${done ? styles.checkboxOn : ''}`}
+          onClick={() => toggleDone(ev)}
+          aria-label={done ? 'Mark not done' : 'Mark done'}
+        >
+          {done && <span>{'\u2713'}</span>}
+        </button>
+        <div className={styles.rowBody}>
+          <div className={styles.rowTitle}>{ev.title}</div>
+          <div className={styles.rowMeta}>
+            <span className={`${styles.rowChip} ${styles[`rowChip_${ev.category}`]}`}>
+              {ev.category === 'health' ? 'Health' : ev.category === 'wealth' ? 'Wealth' : 'Other'}
+            </span>
+            <span className={styles.rowChip}>{periodLabel}</span>
+            {progress && <span className={styles.rowProgress}>{progress}</span>}
+            {!ev.recurrence_freq && ev.event_time && (
+              <span className={styles.rowProgress}>{ev.event_time}</span>
+            )}
+          </div>
+        </div>
+        {showSchedule && !done && (
+          <Link href={scheduleHref} className={styles.scheduleBtn}>
+            + Schedule
+          </Link>
+        )}
+      </div>
+    );
+  }
 
-  /* Extract behaviour scores (-1/0/+1/+2 each) and project onto the octagon's 1..8 ring scale. */
-  const healthScores: number[] = healthAssessment
-    ? HEALTH_B_KEYS.map(k => signedScoreToRing(healthAssessment[k] as number | null))
-    : [];
-  const wealthScores: number[] = wealthAssessment
-    ? WEALTH_B_KEYS.map(k => signedScoreToRing(wealthAssessment[k] as number | null))
-    : [];
+  if (loading) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.loading}>Loading\u2026</div>
+      </div>
+    );
+  }
 
-  /* Raw signed scores (used for behaviour pct). */
-  const healthRaw: number[] = healthAssessment
-    ? HEALTH_B_KEYS.map(k => (healthAssessment[k] as number) ?? 0)
-    : [];
-  const wealthRaw: number[] = wealthAssessment
-    ? WEALTH_B_KEYS.map(k => (wealthAssessment[k] as number) ?? 0)
-    : [];
-
-  /* Headline: combined octagon % (saved by the check-in). Fall back to the
-     behaviour-only pct if a row pre-dates the indicator_score_pct column. */
-  const healthPct = (healthAssessment?.octagon_score_pct as number)
-    ?? (healthRaw.length ? computeBehaviourPct(healthRaw) : 0);
-  const wealthPct = (wealthAssessment?.octagon_score_pct as number)
-    ?? (wealthRaw.length ? computeBehaviourPct(wealthRaw) : 0);
-  const healthLevel = levelFromPct(healthPct);
-  const wealthLevel = levelFromPct(wealthPct);
-
-  const healthLastAt = (healthAssessment?.completed_at as string | null | undefined) ?? null;
-  const wealthLastAt = (wealthAssessment?.completed_at as string | null | undefined) ?? null;
-  const healthId = (healthAssessment?.id as string | undefined) ?? null;
-  const wealthId = (wealthAssessment?.id as string | undefined) ?? null;
-  const healthDue = isHealthCheckinDue(healthLastAt);
-  const wealthDue = isWealthCheckinDue(wealthLastAt);
-  const anyCheckinDue = healthDue || wealthDue;
-
-  /* ── Streak calculation ──
-     Count consecutive weeks (health) / months (wealth) with check-ins,
-     ending at the current period. */
-  const { data: allHealthDates } = await supabase
-    .from('health_assessments')
-    .select('completed_at')
-    .eq('user_id', user.id)
-    .order('completed_at', { ascending: false });
-
-  const { data: allWealthDates } = await supabase
-    .from('wealth_assessments')
-    .select('completed_at')
-    .eq('user_id', user.id)
-    .order('completed_at', { ascending: false });
-
-  const healthStreak = computeWeeklyStreak(
-    (allHealthDates || []).map(r => r.completed_at as string)
-  );
-  const wealthStreak = computeMonthlyStreak(
-    (allWealthDates || []).map(r => r.completed_at as string)
-  );
-
-  /* Upcoming events from Calendar */
-  const today = new Date().toISOString().split('T')[0];
-  const { data: upcomingEvents } = await supabase
-    .from('user_events')
-    .select('id, title, event_date, category')
-    .eq('user_id', user.id)
-    .gte('event_date', today)
-    .eq('completed', false)
-    .order('event_date', { ascending: true })
-    .limit(3);
+  const greeting = profile?.name ? `Hi, ${profile.name.split(' ')[0]}` : 'Welcome';
 
   return (
     <div className={styles.container}>
       <div className={styles.greeting}>
-        <div className={styles.eyebrow}>Welcome</div>
-        <h1 className={styles.heading}>
-          {profile.name || 'Fighter'}
-        </h1>
+        <div className={styles.eyebrow}>Today</div>
+        <h1 className={styles.heading}>{greeting}</h1>
       </div>
 
-      {/* Octagons */}
-      {!healthAssessment && !wealthAssessment ? (
-        <div className={styles.emptyCard}>
-          <h3 className={styles.emptyTitle}>Start your journey</h3>
-          <p className={styles.emptyText}>
-            Take your first check-in to build your octagon and see where you stand.
-          </p>
-          <div className={styles.assessLinks}>
-            <Link href="/assess/health" className={styles.assessLink}>
-              <span className={styles.assessIcon}>+</span>
-              <div>
-                <strong>Health Check-in</strong>
-                <span>8 habits, 1 minute</span>
-              </div>
-            </Link>
-            <Link href="/assess/wealth" className={styles.assessLink}>
-              <span className={styles.assessIcon}>+</span>
-              <div>
-                <strong>Wealth Check-in</strong>
-                <span>8 habits, 1 minute</span>
-              </div>
-            </Link>
-          </div>
+      {/* TODAY */}
+      <div className={styles.section}>
+        <div className={styles.sectionHead}>
+          <span className={styles.sectionTitle}>Today</span>
+          <span className={styles.sectionDate}>{fmtToday()}</span>
         </div>
-      ) : (
-        <div className={styles.octagonGrid}>
-          {/* Health */}
-          {healthAssessment && healthId ? (
-            <Link href={`/results/health/${healthId}`} className={styles.octagonCardLink}>
-              <div className={styles.octagonLabel}>Health</div>
-              <div className={styles.octagonChart}>
-                <OctagonChart
-                  scores={healthScores}
-                  labels={[...BLABELS]}
-                  maxScore={8}
-                  size={180}
-                  showLabels={false}
-                  showScores={false}
-                />
-              </div>
-              <div className={styles.octagonScore}>
-                <span className={styles.octagonPct} style={{ color: healthLevel.color }}>
-                  {healthLevel.label}
-                </span>
-              </div>
-              <div className={styles.octagonMeta}>
-                Last: {fmtDate(healthLastAt)}
-              </div>
-              {healthStreak > 1 && (
-                <div className={styles.streakBadge}>
-                  🔥 {healthStreak}-week streak
-                </div>
-              )}
-            </Link>
-          ) : (
-            <div className={styles.octagonCard}>
-              <div className={styles.octagonLabel}>Health</div>
-              <Link href="/assess/health" className={styles.octagonEmpty}>
-                <span>+</span>
-                Start health check-in
-              </Link>
-            </div>
-          )}
+        {todayItems.length === 0 ? (
+          <div className={styles.empty}>
+            Nothing scheduled today.{' '}
+            <Link href="/challenges" className={styles.emptyLink}>Take a challenge {'\u2192'}</Link>
+          </div>
+        ) : (
+          <div className={styles.list}>
+            {todayItems.map(ev => renderRow(ev, 'Daily'))}
+          </div>
+        )}
+      </div>
 
-          {/* Wealth */}
-          {wealthAssessment && wealthId ? (
-            <Link href={`/results/wealth/${wealthId}`} className={styles.octagonCardLink}>
-              <div className={styles.octagonLabel}>Wealth</div>
-              <div className={styles.octagonChart}>
-                <OctagonChart
-                  scores={wealthScores}
-                  labels={[...WBLABELS]}
-                  maxScore={8}
-                  size={180}
-                  showLabels={false}
-                  showScores={false}
-                />
-              </div>
-              <div className={styles.octagonScore}>
-                <span className={styles.octagonPct} style={{ color: wealthLevel.color }}>
-                  {wealthLevel.label}
-                </span>
-              </div>
-              <div className={styles.octagonMeta}>
-                Last: {fmtDate(wealthLastAt)}
-              </div>
-              {wealthStreak > 1 && (
-                <div className={styles.streakBadge}>
-                  🔥 {wealthStreak}-month streak
-                </div>
-              )}
-            </Link>
-          ) : (
-            <div className={styles.octagonCard}>
-              <div className={styles.octagonLabel}>Wealth</div>
-              <Link href="/assess/wealth" className={styles.octagonEmpty}>
-                <span>+</span>
-                Start wealth check-in
-              </Link>
-            </div>
-          )}
+      {/* THIS WEEK */}
+      <div className={styles.section}>
+        <div className={styles.sectionHead}>
+          <span className={styles.sectionTitle}>This week</span>
+          <span className={styles.sectionDate}>{fmtRange(weekStart, weekEnd)}</span>
         </div>
-      )}
+        {weekItems.length === 0 ? (
+          <div className={styles.empty}>Nothing for this week.</div>
+        ) : (
+          <div className={styles.list}>
+            {weekItems.map(ev => renderRow(ev, ev.recurrence_freq === 'weekly' ? 'Weekly' : 'Event'))}
+          </div>
+        )}
+      </div>
 
-      {/* Check-in prompt */}
-      {(healthAssessment || wealthAssessment) && anyCheckinDue && (
-        <div className={styles.checkinPrompt}>
-          <div className={styles.checkinPromptTitle}>
-            Check-in due
-          </div>
-          <p className={styles.checkinPromptText}>
-            {healthDue && wealthDue
-              ? 'Both your health and wealth check-ins are ready. Each takes 1 minute.'
-              : healthDue
-              ? 'Your weekly health check-in is ready. Takes 1 minute.'
-              : 'Your monthly wealth check-in is ready. Takes 1 minute.'}
-          </p>
-          <div className={styles.checkinPromptActions}>
-            {healthDue && (
-              <Link href="/assess/health" className={styles.checkinBtn}>
-                Health &rarr;
-              </Link>
-            )}
-            {wealthDue && (
-              <Link href="/assess/wealth" className={styles.checkinBtn}>
-                Wealth &rarr;
-              </Link>
-            )}
-          </div>
+      {/* THIS MONTH */}
+      <div className={styles.section}>
+        <div className={styles.sectionHead}>
+          <span className={styles.sectionTitle}>This month</span>
+          <span className={styles.sectionDate}>{fmtMonth()}</span>
         </div>
-      )}
+        {monthItems.length === 0 ? (
+          <div className={styles.empty}>Nothing for this month.</div>
+        ) : (
+          <div className={styles.list}>
+            {monthItems.map(ev => renderRow(ev, ev.recurrence_freq === 'monthly' ? 'Monthly' : 'Event'))}
+          </div>
+        )}
+      </div>
 
-      {/* Upcoming events */}
-      {upcomingEvents && upcomingEvents.length > 0 && (
-        <div className={styles.upcomingSection}>
-          <div className={styles.upcomingTitle}>Upcoming</div>
-          <div className={styles.upcomingList}>
-            {upcomingEvents.map(ev => (
-              <div key={ev.id} className={styles.upcomingRow}>
-                <span className={styles.upcomingName}>{ev.title}</span>
-                <span className={styles.upcomingDate}>{fmtDate(ev.event_date)}</span>
-              </div>
-            ))}
-          </div>
-          <Link href="/calendar" className={styles.upcomingMore}>
-            View Calendar &rarr;
-          </Link>
-        </div>
-      )}
+      <div className={styles.actions}>
+        <Link href="/challenges" className={styles.actionPrimary}>Browse challenges {'\u2192'}</Link>
+        <Link href="/calendar" className={styles.actionGhost}>+ New event</Link>
+      </div>
     </div>
   );
 }

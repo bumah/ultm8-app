@@ -151,6 +151,7 @@ export default function CalendarPage() {
     const prefillDate = searchParams.get('date');
     const prefillFreq = searchParams.get('recurFreq');
     const prefillInterval = searchParams.get('recurInterval');
+    const prefillEndDate = searchParams.get('recurEndDate');
 
     if (prefillTitle) {
       setNewTitle(prefillTitle);
@@ -163,6 +164,9 @@ export default function CalendarPage() {
       if (prefillInterval) {
         const n = parseInt(prefillInterval, 10);
         if (Number.isFinite(n) && n > 0) setNewInterval(String(n));
+      }
+      if (prefillEndDate && /^\d{4}-\d{2}-\d{2}$/.test(prefillEndDate)) {
+        setNewEndDate(prefillEndDate);
       }
       if (prefillDate && /^\d{4}-\d{2}-\d{2}$/.test(prefillDate)) {
         const d = parseISODate(prefillDate);

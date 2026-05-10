@@ -273,3 +273,136 @@
     font-size: 12px;
   }
 }
+
+/* ── Octagon block ── */
+.octBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--canvas-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.octLevel {
+  font-family: var(--cond);
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -0.4px;
+  margin-bottom: 0.75rem;
+}
+
+.octChart {
+  margin-bottom: 1rem;
+}
+
+.checkinBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  color: var(--text-emphasis);
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  padding: 10px 16px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  font-family: var(--sans);
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.checkinBtn:hover {
+  color: var(--text-heading);
+  border-color: var(--action);
+}
+
+/* ── Suggested challenges ── */
+.suggestionsBlock {
+  margin-bottom: 1.5rem;
+}
+
+.sectionLabel {
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--action);
+  margin: 1.5rem 0 0.5rem;
+  font-weight: 700;
+}
+
+.sectionHint {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin-bottom: 0.75rem;
+}
+
+.suggestionList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.suggestionRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  background: var(--canvas-alt);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  padding: 12px 14px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.15s;
+}
+
+.suggestionRow:hover { background: rgba(245, 240, 232, 0.05); }
+
+.suggestionRow:first-of-type { border-radius: var(--radius-md) var(--radius-md) 0 0; }
+.suggestionRow:last-of-type {
+  border-bottom: 1px solid var(--border);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+.suggestionBody { min-width: 0; }
+
+.suggestionName {
+  font-family: var(--cond);
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-heading);
+  letter-spacing: -0.1px;
+}
+
+.suggestionMeta {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+}
+
+.suggestionAdd {
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--action);
+  border: 1px solid var(--action);
+  border-radius: 999px;
+  padding: 6px 12px;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.suggestionRow:hover .suggestionAdd {
+  background: var(--action-subtle);
+}
