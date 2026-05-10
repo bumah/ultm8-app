@@ -21,10 +21,14 @@ import { BLABELS, HLABELS } from '@/lib/scoring/health-scoring';
 import { WBLABELS, WHLABELS } from '@/lib/scoring/wealth-scoring';
 import {
   computeBehaviourPct, computeIndicatorPct, computeCombinedPct,
-  signedScoreToRing, levelFromPct, getBehaviourTierIndex, getTierColor,
+  levelFromPct, getBehaviourTierIndex, getTierColor,
   BGRADES,
 } from '@/lib/scoring/shared';
-import OctagonChart from '@/components/octagon/OctagonChart';
+import {
+  buildHealthAxes, buildWealthAxes,
+} from '@/lib/data/composites';
+import CompositeOctagon from '@/components/composites/CompositeOctagon';
+import HabitGrades from '@/components/composites/HabitGrades';
 import Button from '@/components/ui/Button';
 import OptionCard from '@/components/ui/OptionCard';
 import ProgressBar from '@/components/ui/ProgressBar';
@@ -138,21 +142,18 @@ export default function TryPage() {
   /* ── Derived data for results ── */
   const {
     bScores, iScoresRaw,
-    behaviourPct, indicatorPct, combinedPct,
-    bOctagonScores, iOctagonScores,
+    combinedPct,
+    axes,
   } = useMemo(() => {
     const bs = state.answers.slice(0, 8).map(s => s ?? 0);
     const is = state.answers.slice(8, 16).map(s => s ?? 0);
     return {
       bScores: bs,
       iScoresRaw: is,
-      behaviourPct: computeBehaviourPct(bs),
-      indicatorPct: computeIndicatorPct(is),
       combinedPct: computeCombinedPct(computeBehaviourPct(bs), computeIndicatorPct(is)),
-      bOctagonScores: bs.map(signedScoreToRing),
-      iOctagonScores: is.map(signedScoreToRing),
+      axes: type === 'health' ? buildHealthAxes(bs, is) : buildWealthAxes(bs, is),
     };
-  }, [state.answers]);
+  }, [state.answers, type]);
 
   const level = levelFromPct(combinedPct);
   const completed = state.answers.filter(a => a !== null).length;
@@ -294,44 +295,15 @@ export default function TryPage() {
         })}
       </div>
 
-      {/* Two octagons \u2014 behaviours + indicators. Side-by-side at >= 600px,
-          stacked on mobile. Each is tagged with its own tier (no %). */}
+      {/* Single composite octagon: 4 pillars derived from indicators. */}
       <div className={styles.octagonsRow}>
         <div className={styles.octagonCell}>
-          <div className={styles.octagonCellLabel}>Behaviours</div>
-          <div
-            className={styles.octagonCellTier}
-            style={{ color: levelFromPct(behaviourPct).color }}
-          >
-            {levelFromPct(behaviourPct).label}
-          </div>
-          <OctagonChart
-            scores={bOctagonScores}
-            labels={[...bLabels]}
-            maxScore={8}
-            size={280}
-            showLabels
-            showScores={false}
-          />
-        </div>
-        <div className={styles.octagonCell}>
-          <div className={styles.octagonCellLabel}>Indicators</div>
-          <div
-            className={styles.octagonCellTier}
-            style={{ color: levelFromPct(indicatorPct).color }}
-          >
-            {levelFromPct(indicatorPct).label}
-          </div>
-          <OctagonChart
-            scores={iOctagonScores}
-            labels={[...iLabels]}
-            maxScore={8}
-            size={280}
-            showLabels
-            showScores={false}
-          />
+          <CompositeOctagon axes={axes} size={300} />
         </div>
       </div>
+
+      {/* Habit grades + trajectory per pillar (behaviour-only). */}
+      <HabitGrades axes={axes} title={`${type === 'health' ? 'Health' : 'Wealth'} habit grades`} />
 
       {/* Behaviour breakdown */}
       <div className={styles.breakdownBlock}>

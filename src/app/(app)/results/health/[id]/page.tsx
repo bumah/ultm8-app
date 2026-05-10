@@ -8,6 +8,9 @@ import { BTIERS, BGRADES, HSTATUS, getBehaviourTierIndex, getTierColor, signedSc
 import { HRECS } from '@/lib/data/health-recommendations';
 import { CONN_INSIGHTS } from '@/lib/data/health-connections';
 import OctagonChart from '@/components/octagon/OctagonChart';
+import CompositeOctagon from '@/components/composites/CompositeOctagon';
+import HabitGrades from '@/components/composites/HabitGrades';
+import { buildHealthAxes } from '@/lib/data/composites';
 import Button from '@/components/ui/Button';
 import styles from './results.module.css';
 
@@ -116,6 +119,9 @@ export default function HealthResultsPage() {
   /* Indicator section is only meaningful if any indicator answer was given. */
   const hasIndicators = iScoresRaw.some(s => s !== 0) || indicatorPct > 0;
 
+  /* Composite axes (4 pillars) for the headline octagon. */
+  const healthAxes = buildHealthAxes(bScores, iScoresRaw);
+
   /* ── Toggle helpers ── */
   function toggleBehaviour(idx: number) {
     setOpenBehaviours((prev) => {
@@ -164,15 +170,13 @@ export default function HealthResultsPage() {
           <div className={styles.scoreSummary}>{getOctagonSummary(octagonPct)}</div>
         </div>
 
-        {/* Octagon chart */}
+        {/* Composite octagon: 4 health pillars (Mind / Strength / Fitness / Heart). */}
         <div className={styles.octagonWrap}>
-          <OctagonChart
-            scores={iScores}
-            labels={[...HLABELS]}
-            maxScore={8}
-            size={320}
-          />
+          <CompositeOctagon axes={healthAxes} size={320} />
         </div>
+
+        {/* Habit grades + trajectory per pillar. */}
+        <HabitGrades axes={healthAxes} title="Habit grades" />
 
         {/* Indicator bar rows */}
         <div className={styles.barRows}>

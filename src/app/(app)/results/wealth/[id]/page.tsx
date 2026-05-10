@@ -8,6 +8,9 @@ import { BTIERS, BGRADES, HSTATUS, getBehaviourTierIndex, getTierColor, signedSc
 import { WHRECS } from '@/lib/data/wealth-recommendations';
 import { WCONN_INSIGHTS } from '@/lib/data/wealth-connections';
 import OctagonChart from '@/components/octagon/OctagonChart';
+import CompositeOctagon from '@/components/composites/CompositeOctagon';
+import HabitGrades from '@/components/composites/HabitGrades';
+import { buildWealthAxes } from '@/lib/data/composites';
 import Button from '@/components/ui/Button';
 import styles from './results.module.css';
 
@@ -137,6 +140,9 @@ export default function WealthResultsPage() {
   const octagonPct: number = data.octagon_score_pct ?? 0;
   const hasIndicators = iScoresRaw.some(s => s !== 0) || indicatorPct > 0;
 
+  /* Composite axes (4 pillars) for the headline octagon. */
+  const wealthAxes = buildWealthAxes(bScores, iScoresRaw);
+
   /* ── Toggle helpers ── */
   function toggleBehaviour(idx: number) {
     setOpenBehaviours((prev) => {
@@ -185,15 +191,13 @@ export default function WealthResultsPage() {
           <div className={styles.scoreSummary}>{getOctagonSummary(octagonPct)}</div>
         </div>
 
-        {/* Octagon chart */}
+        {/* Composite octagon: 4 wealth pillars (Cashflow / Assets / Debt / Retirement). */}
         <div className={styles.octagonWrap}>
-          <OctagonChart
-            scores={iScores}
-            labels={[...WHLABELS]}
-            maxScore={8}
-            size={320}
-          />
+          <CompositeOctagon axes={wealthAxes} size={320} />
         </div>
+
+        {/* Habit grades + trajectory per pillar. */}
+        <HabitGrades axes={wealthAxes} title="Habit grades" />
 
         {/* Indicator bar rows */}
         <div className={styles.barRows}>

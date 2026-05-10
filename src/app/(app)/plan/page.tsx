@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { BLABELS } from '@/lib/scoring/health-scoring';
 import { WBLABELS } from '@/lib/scoring/wealth-scoring';
 import {
-  BGRADES, getBehaviourTierIndex, getTierColor, signedScoreToRing, levelFromPct,
+  BGRADES, getBehaviourTierIndex, getTierColor, levelFromPct,
 } from '@/lib/scoring/shared';
 import { BRECS } from '@/lib/data/health-recommendations';
 import { WBRECS } from '@/lib/data/wealth-recommendations';
@@ -16,7 +16,11 @@ import {
   PERSONAL_CHALLENGES, challengeEndDate,
   type PersonalChallenge,
 } from '@/lib/data/personal-challenges';
-import OctagonChart from '@/components/octagon/OctagonChart';
+import {
+  buildHealthAxes, buildWealthAxes, avgIndicatorPct,
+} from '@/lib/data/composites';
+import CompositeOctagon from '@/components/composites/CompositeOctagon';
+import HabitGrades from '@/components/composites/HabitGrades';
 import styles from './plan.module.css';
 
 /* ── DB column keys ── */
@@ -135,20 +139,28 @@ export default function PlanPage() {
     });
   }, [wealthAssessment]);
 
-  /* ── Octagon scores (signed -> ring) ── */
-  const healthOctagon = useMemo(() => {
+  /* ── Composite axes ── */
+  const HEALTH_I_KEYS = ['is_blood_pressure', 'is_weight', 'is_pushups', 'is_resting_hr',
+                         'is_body_fat', 'is_sleep_quality', 'is_blood_sugar', 'is_wellbeing'] as const;
+  const WEALTH_I_KEYS = ['is_net_income', 'is_discretionary_spend', 'is_emergency_fund', 'is_debt_level',
+                         'is_net_worth', 'is_pension_fund', 'is_passive_income', 'is_fi_ratio'] as const;
+
+  const healthAxes = useMemo(() => {
     if (!healthAssessment) return null;
-    const scores = HEALTH_B_KEYS.map(k => signedScoreToRing((healthAssessment[k] as number) ?? 0));
-    const pct = (healthAssessment.octagon_score_pct as number) ?? 0;
-    return { scores, level: levelFromPct(pct) };
+    const b = HEALTH_B_KEYS.map(k => (healthAssessment[k] as number) ?? 0);
+    const i = HEALTH_I_KEYS.map(k => (healthAssessment[k] as number) ?? 0);
+    return buildHealthAxes(b, i);
   }, [healthAssessment]);
 
-  const wealthOctagon = useMemo(() => {
+  const wealthAxes = useMemo(() => {
     if (!wealthAssessment) return null;
-    const scores = WEALTH_B_KEYS.map(k => signedScoreToRing((wealthAssessment[k] as number) ?? 0));
-    const pct = (wealthAssessment.octagon_score_pct as number) ?? 0;
-    return { scores, level: levelFromPct(pct) };
+    const b = WEALTH_B_KEYS.map(k => (wealthAssessment[k] as number) ?? 0);
+    const i = WEALTH_I_KEYS.map(k => (wealthAssessment[k] as number) ?? 0);
+    return buildWealthAxes(b, i);
   }, [wealthAssessment]);
+
+  const healthLevel = useMemo(() => healthAxes ? levelFromPct(avgIndicatorPct(healthAxes)) : null, [healthAxes]);
+  const wealthLevel = useMemo(() => wealthAxes ? levelFromPct(avgIndicatorPct(wealthAxes)) : null, [wealthAxes]);
 
   /* ── Suggested challenges from weak behaviours ── */
   const suggestedChallenges = useMemo<PersonalChallenge[]>(() => {
@@ -220,8 +232,11 @@ export default function PlanPage() {
   }
 
   const recs = activeTab === 'health' ? healthRecs : wealthRecs;
-  const labels = activeTab === 'health' ? BLABELS : WBLABELS;
-  const oct = activeTab === 'health' ? healthOctagon : wealthOctagon;
+  const axes = activeTab === 'health' ? healthAxes : wealthAxes;
+  const level = activeTab === 'health' ? healthLevel : wealthLevel;
+  // Combined octagon shows all 8 pillars (4 health + 4 wealth) when both
+  // domains have data; otherwise shows the 4 pillars of the active tab.
+  const allAxes = (healthAxes ?? []).concat(wealthAxes ?? []);
 
   return (
     <div className={styles.container}>
@@ -258,30 +273,30 @@ export default function PlanPage() {
         </div>
       )}
 
-      {/* Octagon + level */}
-      {oct && (
+      {/* Composite octagon \u2014 indicator-led. Shows all 8 pillars (4 health + 4
+          wealth) when both domains have data; otherwise the 4 of the active tab. */}
+      {axes && (
         <div className={styles.octBlock}>
-          <div className={styles.octLevel} style={{ color: oct.level.color }}>
-            {oct.level.label}
-          </div>
+          {level && (
+            <div className={styles.octLevel} style={{ color: level.color }}>
+              {level.label}
+            </div>
+          )}
           <div className={styles.octChart}>
-            <OctagonChart
-              scores={oct.scores}
-              labels={[...labels]}
-              maxScore={8}
+            <CompositeOctagon
+              axes={hasBoth ? allAxes : axes}
               size={260}
               showLabels
-              showScores={false}
             />
           </div>
-          <Link
-            href={`/assess/${activeTab}`}
-            className={styles.checkinBtn}
-          >
+          <Link href={`/assess/${activeTab}`} className={styles.checkinBtn}>
             New {activeTab} check-in {'\u2192'}
           </Link>
         </div>
       )}
+
+      {/* Habit grades \u2014 separate from the octagon, behaviour-led. */}
+      {axes && <HabitGrades axes={axes} title={`${activeTab === 'health' ? 'Health' : 'Wealth'} habits`} />}
 
       {/* Suggested challenges */}
       {suggestedChallenges.length > 0 && (

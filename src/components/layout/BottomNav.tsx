@@ -9,7 +9,6 @@ const navItems = [
   { href: '/calendar',   label: 'Calendar',   icon: 'calendar' },
   { href: '/challenges', label: 'Challenges', icon: 'flame' },
   { href: '/plan',       label: 'Plan',       icon: 'plan' },
-  { href: '/trends',     label: 'Trends',     icon: 'trends' },
   { href: '/more',       label: 'More',       icon: 'more' },
 ];
 

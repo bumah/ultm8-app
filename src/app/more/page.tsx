@@ -18,6 +18,13 @@ export default function MorePage() {
       </div>
 
       <div className={styles.list}>
+        <Link href="/trends" className={styles.card}>
+          <div className={styles.cardLabel}>Trends</div>
+          <div className={styles.cardTitle}>Your indicators over time</div>
+          <div className={styles.cardSub}>Log values for blood pressure, weight, push-ups, net worth and more {'\u2014'} watch your numbers move.</div>
+          <div className={styles.cardArrow}>{'\u2192'}</div>
+        </Link>
+
         <Link href="/more/challenges" className={styles.card}>
           <div className={styles.cardLabel}>Challenges</div>
           <div className={styles.cardTitle}>Global fitness challenges to join</div>
