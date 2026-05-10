@@ -113,6 +113,7 @@ export default function AssessPage() {
   const [ageGroup, setAgeGroup] = useState<string>('30-44');
   const [currency, setCurrency] = useState<string>('\u00A3');
   const [profileLoaded, setProfileLoaded] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   /* Load user profile snapshot fields */
   useEffect(() => {
@@ -140,9 +141,13 @@ export default function AssessPage() {
   }, [router]);
 
   const computeAndSave = useCallback(async () => {
+    setSaveError(null);
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setSaveError('You\u2019re not signed in. Please sign back in and retry.');
+      return;
+    }
 
     const healthB = state.answers.slice(0, 8).map(s => s ?? 0);
     const healthI = state.answers.slice(8, 16).map(s => s ?? 0);
@@ -190,32 +195,39 @@ export default function AssessPage() {
     const monthEnd = getMonthEnd();
 
     /* Replace any existing check-ins for the relevant periods, then insert */
-    await Promise.all([
-      supabase
-        .from('health_assessments')
-        .delete()
-        .eq('user_id', user.id)
-        .gte('completed_at', weekStart)
-        .lt('completed_at', weekEnd),
-      supabase
-        .from('wealth_assessments')
-        .delete()
-        .eq('user_id', user.id)
-        .gte('completed_at', monthStart)
-        .lt('completed_at', monthEnd),
-    ]);
+    try {
+      await Promise.all([
+        supabase
+          .from('health_assessments')
+          .delete()
+          .eq('user_id', user.id)
+          .gte('completed_at', weekStart)
+          .lt('completed_at', weekEnd),
+        supabase
+          .from('wealth_assessments')
+          .delete()
+          .eq('user_id', user.id)
+          .gte('completed_at', monthStart)
+          .lt('completed_at', monthEnd),
+      ]);
 
-    const [healthRes, wealthRes] = await Promise.all([
-      supabase.from('health_assessments').insert(healthRow).select('id').single(),
-      supabase.from('wealth_assessments').insert(wealthRow).select('id').single(),
-    ]);
+      const [healthRes, wealthRes] = await Promise.all([
+        supabase.from('health_assessments').insert(healthRow).select('id').single(),
+        supabase.from('wealth_assessments').insert(wealthRow).select('id').single(),
+      ]);
 
-    if (healthRes.error || wealthRes.error) {
-      console.error('Failed to save check-in:', healthRes.error || wealthRes.error);
-      return;
+      const dbErr = healthRes.error || wealthRes.error;
+      if (dbErr) {
+        console.error('Failed to save check-in:', dbErr);
+        setSaveError(dbErr.message || 'Could not save your check-in. Please try again.');
+        return;
+      }
+
+      router.push('/plan');
+    } catch (err) {
+      console.error('Failed to save check-in:', err);
+      setSaveError(err instanceof Error ? err.message : 'Could not save your check-in. Please try again.');
     }
-
-    router.push('/plan');
   }, [state.answers, gender, ageGroup, currency, router]);
 
   useEffect(() => {
@@ -323,6 +335,24 @@ export default function AssessPage() {
 
   /* Computing */
   if (state.screen === 'computing') {
+    if (saveError) {
+      return (
+        <div className={`${styles.container} ${styles.screen}`}>
+          <div className={styles.computing}>
+            <h2 className={styles.computingTitle}>Couldn{'\u2019'}t save your check-in</h2>
+            <p className={styles.computingSub} style={{ color: 'var(--red, #c8241a)' }}>
+              {saveError}
+            </p>
+            <div style={{ display: 'flex', gap: 8, marginTop: 16, justifyContent: 'center' }}>
+              <Button onClick={() => { computeAndSave(); }}>Retry</Button>
+              <Button variant="ghost" onClick={() => router.push('/dashboard')}>
+                Back to dashboard
+              </Button>
+            </div>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className={`${styles.container} ${styles.screen}`}>
         <div className={styles.computing}>
