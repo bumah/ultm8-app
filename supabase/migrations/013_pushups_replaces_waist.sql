@@ -32,5 +32,13 @@ ALTER TABLE health_assessments
   ADD COLUMN IF NOT EXISTS is_pushups INT;
 
 -- Trends data: any waist logs / goals are no longer meaningful, drop them.
-DELETE FROM indicator_logs  WHERE indicator_key = 'waist';
-DELETE FROM indicator_goals WHERE indicator_key = 'waist';
+-- Guarded so the migration is safe on DBs where 007/010 haven't been applied.
+DO $$
+BEGIN
+  IF to_regclass('public.indicator_logs') IS NOT NULL THEN
+    DELETE FROM indicator_logs WHERE indicator_key = 'waist';
+  END IF;
+  IF to_regclass('public.indicator_goals') IS NOT NULL THEN
+    DELETE FROM indicator_goals WHERE indicator_key = 'waist';
+  END IF;
+END $$;
